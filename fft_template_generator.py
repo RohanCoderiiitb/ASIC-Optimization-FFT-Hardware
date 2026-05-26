@@ -306,7 +306,6 @@ class FFTTemplateGenerator:
             "    fp4_to_fp8_converter conv_yi8 (.fp4_in(Y_reg[3:0]), .fp8_out(Y_fp8_packed[7:0]));\n"
             "\n"
             "    // Final 24-bit write data\n"
-            "    wire [23:0] X_wr_24, Y_wr_24;\n"
             "    assign X_wr_24 = out_was_fp8 ? {X_reg,       X_fp4_packed}\n"
             "                                 : {X_fp8_packed, X_reg[7:0]};\n"
             "    assign Y_wr_24 = out_was_fp8 ? {Y_reg,       Y_fp4_packed}\n"
@@ -445,6 +444,8 @@ module {core_module_name} #(
     wire [ADDR_WIDTH-1:0] mem_wr_addr = ext_wr_en ? ext_wr_addr :
                                         (state == WRITE_X) ? idx_a :
                                         (state == WRITE_Y) ? idx_b : {aw}'d0;
+
+    wire [23:0] X_wr_24, Y_wr_24;
 
     wire [23:0] mem_wr_data = ext_wr_en ? ext_wr_data :
                               (state == WRITE_X) ? X_wr_24 :
