@@ -21,7 +21,7 @@ CROSSOVER_RATE = 0.9
 OBJECTIVES = 3               # Power, Area, Latency (from Genus) — SQNR removed (no iverilog)
 
 CURRENT_GEN = 0
-SOLUTION_THREADS = 6
+SOLUTION_THREADS = 1
 
 FITNESS = 'fitness.npy'
 DPI = 200

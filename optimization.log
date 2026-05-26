@@ -4878,3 +4878,609 @@
 [2026-05-26 19:35:21] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
 [2026-05-26 19:35:21] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
 [2026-05-26 19:35:21] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 21:59:32] [INFO] Initialized directory structure
+[2026-05-26 22:00:31] [INFO] Initialized directory structure
+[2026-05-26 22:00:31] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:00:31] [INFO] Setting up Verilog source files
+[2026-05-26 22:00:31] [INFO] 
+============================================================
+[2026-05-26 22:00:31] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:00:31] [INFO] ============================================================
+
+[2026-05-26 22:00:31] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:00:31] [INFO] NSGA-II Configuration:
+[2026-05-26 22:00:31] [INFO]   Population size : 6
+[2026-05-26 22:00:31] [INFO]   Generations     : 3
+[2026-05-26 22:00:31] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:00:31] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:00:31] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:00:31] [INFO]   Parallel threads: 6
+[2026-05-26 22:00:31] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:00:31] [GEN] === Generation 0 ===
+[2026-05-26 22:00:31] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:00:31] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:00:31] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:00:31] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:00:31] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:00:31] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:00:31] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:12:27] [INFO] Initialized directory structure
+[2026-05-26 22:12:27] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:12:27] [INFO] Setting up Verilog source files
+[2026-05-26 22:12:27] [INFO] 
+============================================================
+[2026-05-26 22:12:27] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:12:27] [INFO] ============================================================
+
+[2026-05-26 22:12:27] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:12:27] [INFO] NSGA-II Configuration:
+[2026-05-26 22:12:27] [INFO]   Population size : 6
+[2026-05-26 22:12:27] [INFO]   Generations     : 3
+[2026-05-26 22:12:27] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:12:27] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:12:27] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:12:27] [INFO]   Parallel threads: 6
+[2026-05-26 22:12:27] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:12:27] [GEN] === Generation 0 ===
+[2026-05-26 22:12:27] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:12:27] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:12:27] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:12:27] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:12:27] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:12:27] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:12:27] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:15:36] [INFO] Initialized directory structure
+[2026-05-26 22:15:36] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:15:36] [INFO] Setting up Verilog source files
+[2026-05-26 22:15:36] [INFO] 
+============================================================
+[2026-05-26 22:15:36] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:15:36] [INFO] ============================================================
+
+[2026-05-26 22:15:36] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:15:36] [INFO] NSGA-II Configuration:
+[2026-05-26 22:15:36] [INFO]   Population size : 6
+[2026-05-26 22:15:36] [INFO]   Generations     : 3
+[2026-05-26 22:15:36] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:15:36] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:15:36] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:15:36] [INFO]   Parallel threads: 6
+[2026-05-26 22:15:36] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:15:36] [GEN] === Generation 0 ===
+[2026-05-26 22:15:36] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:15:36] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:15:36] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:15:36] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:15:36] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:15:36] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:15:36] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:16:45] [INFO] Initialized directory structure
+[2026-05-26 22:16:45] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:16:45] [INFO] Setting up Verilog source files
+[2026-05-26 22:16:45] [INFO] 
+============================================================
+[2026-05-26 22:16:45] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:16:45] [INFO] ============================================================
+
+[2026-05-26 22:16:45] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:16:45] [INFO] NSGA-II Configuration:
+[2026-05-26 22:16:45] [INFO]   Population size : 6
+[2026-05-26 22:16:45] [INFO]   Generations     : 3
+[2026-05-26 22:16:45] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:16:45] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:16:45] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:16:45] [INFO]   Parallel threads: 6
+[2026-05-26 22:16:45] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:16:45] [GEN] === Generation 0 ===
+[2026-05-26 22:16:45] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:16:45] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:16:45] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:16:45] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:16:45] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:16:45] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:16:45] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:21:15] [INFO] Initialized directory structure
+[2026-05-26 22:21:15] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:21:15] [INFO] Setting up Verilog source files
+[2026-05-26 22:21:15] [INFO] 
+============================================================
+[2026-05-26 22:21:15] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:21:15] [INFO] ============================================================
+
+[2026-05-26 22:21:15] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:21:15] [INFO] NSGA-II Configuration:
+[2026-05-26 22:21:15] [INFO]   Population size : 6
+[2026-05-26 22:21:15] [INFO]   Generations     : 3
+[2026-05-26 22:21:15] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:21:15] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:21:15] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:21:15] [INFO]   Parallel threads: 6
+[2026-05-26 22:21:15] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:21:15] [GEN] === Generation 0 ===
+[2026-05-26 22:21:15] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:21:15] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:21:15] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:21:15] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:21:15] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:21:15] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:21:15] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:23:53] [INFO] Initialized directory structure
+[2026-05-26 22:23:53] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:23:53] [INFO] Setting up Verilog source files
+[2026-05-26 22:23:53] [INFO] 
+============================================================
+[2026-05-26 22:23:53] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:23:53] [INFO] ============================================================
+
+[2026-05-26 22:23:53] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:23:53] [INFO] NSGA-II Configuration:
+[2026-05-26 22:23:53] [INFO]   Population size : 6
+[2026-05-26 22:23:53] [INFO]   Generations     : 3
+[2026-05-26 22:23:53] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:23:53] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:23:53] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:23:53] [INFO]   Parallel threads: 6
+[2026-05-26 22:23:53] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:23:53] [GEN] === Generation 0 ===
+[2026-05-26 22:23:53] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:23:53] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:23:53] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:23:53] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:23:53] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:23:53] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:23:53] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:46:58] [INFO] Initialized directory structure
+[2026-05-26 22:46:58] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:46:58] [INFO] Setting up Verilog source files
+[2026-05-26 22:46:58] [INFO] 
+============================================================
+[2026-05-26 22:46:58] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:46:58] [INFO] ============================================================
+
+[2026-05-26 22:46:58] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:46:58] [INFO] NSGA-II Configuration:
+[2026-05-26 22:46:58] [INFO]   Population size : 6
+[2026-05-26 22:46:58] [INFO]   Generations     : 3
+[2026-05-26 22:46:58] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:46:58] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:46:58] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:46:58] [INFO]   Parallel threads: 6
+[2026-05-26 22:46:58] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:46:58] [GEN] === Generation 0 ===
+[2026-05-26 22:46:58] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:46:58] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:46:58] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:46:58] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:46:58] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:46:58] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 22:46:58] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol3_gen1. stderr tail: 
+[2026-05-26 22:47:13] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol0_gen1. stderr tail: 
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol4_gen1. stderr tail: 
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol5_gen1. stderr tail: 
+[2026-05-26 22:47:13] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol2_gen1. stderr tail: 
+[2026-05-26 22:47:13] [ERROR] Genus failed for fft_8_sol1_gen1. stderr tail: 
+[2026-05-26 22:47:13] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:13] [INFO] Generation 0 complete
+[2026-05-26 22:47:13] [GEN] === Generation 1 ===
+[2026-05-26 22:47:13] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:47:13] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:47:13] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:47:13] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 22:47:13] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:47:13] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-26 22:47:13] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol2_gen2. stderr tail: 
+[2026-05-26 22:47:26] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol4_gen2. stderr tail: 
+[2026-05-26 22:47:26] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol1_gen2. stderr tail: 
+[2026-05-26 22:47:26] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol3_gen2. stderr tail: 
+[2026-05-26 22:47:26] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol5_gen2. stderr tail: 
+[2026-05-26 22:47:26] [ERROR] Genus failed for fft_8_sol0_gen2. stderr tail: 
+[2026-05-26 22:47:26] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 22:47:26] [INFO] Generation 1 complete
+[2026-05-26 22:47:26] [GEN] === Generation 2 ===
+[2026-05-26 22:47:26] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 22:47:26] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0)]
+[2026-05-26 22:47:26] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:47:26] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:47:26] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 22:47:26] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-26 22:47:26] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-26 22:47:26] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-26 22:47:26] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-26 22:47:26] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-26 22:47:26] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-26 22:51:03] [INFO] Initialized directory structure
+[2026-05-26 22:51:03] [INFO] Running quick test with 16-point FFT
+[2026-05-26 22:51:03] [INFO] Setting up Verilog source files
+[2026-05-26 22:51:03] [INFO] 
+============================================================
+[2026-05-26 22:51:03] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 22:51:03] [INFO] ============================================================
+
+[2026-05-26 22:51:03] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 22:51:03] [INFO] NSGA-II Configuration:
+[2026-05-26 22:51:03] [INFO]   Population size : 6
+[2026-05-26 22:51:03] [INFO]   Generations     : 3
+[2026-05-26 22:51:03] [INFO]   Crossover rate  : 0.9
+[2026-05-26 22:51:03] [INFO]   Mutation rate   : 0.05
+[2026-05-26 22:51:03] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 22:51:03] [INFO]   Parallel threads: 6
+[2026-05-26 22:51:03] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 22:51:03] [GEN] === Generation 0 ===
+[2026-05-26 22:51:03] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:51:03] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 22:51:03] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 22:51:03] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 22:51:03] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 22:51:03] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 22:51:03] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:09:54] [INFO] Initialized directory structure
+[2026-05-26 23:09:54] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:09:54] [INFO] Setting up Verilog source files
+[2026-05-26 23:09:54] [INFO] 
+============================================================
+[2026-05-26 23:09:54] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:09:54] [INFO] ============================================================
+
+[2026-05-26 23:09:54] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:09:54] [INFO] NSGA-II Configuration:
+[2026-05-26 23:09:54] [INFO]   Population size : 6
+[2026-05-26 23:09:54] [INFO]   Generations     : 3
+[2026-05-26 23:09:54] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:09:54] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:09:54] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:09:54] [INFO]   Parallel threads: 6
+[2026-05-26 23:09:54] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:09:54] [GEN] === Generation 0 ===
+[2026-05-26 23:09:54] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:09:54] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:09:54] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:09:54] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:09:54] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:09:54] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 23:09:54] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:11:35] [INFO] Initialized directory structure
+[2026-05-26 23:11:35] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:11:35] [INFO] Setting up Verilog source files
+[2026-05-26 23:11:35] [INFO] 
+============================================================
+[2026-05-26 23:11:35] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:11:35] [INFO] ============================================================
+
+[2026-05-26 23:11:35] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:11:35] [INFO] NSGA-II Configuration:
+[2026-05-26 23:11:35] [INFO]   Population size : 6
+[2026-05-26 23:11:35] [INFO]   Generations     : 3
+[2026-05-26 23:11:35] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:11:35] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:11:35] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:11:35] [INFO]   Parallel threads: 6
+[2026-05-26 23:11:35] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:11:35] [GEN] === Generation 0 ===
+[2026-05-26 23:11:35] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:11:35] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:11:35] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:11:35] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:11:35] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 23:11:35] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 23:11:35] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:11:35] [ERROR] Genus failed for fft_8_sol4_gen1. stderr tail: 
+[2026-05-26 23:11:35] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:11:35] [ERROR] Genus failed for fft_8_sol5_gen1. stderr tail: 
+[2026-05-26 23:11:35] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:11:35] [ERROR] Genus failed for fft_8_sol0_gen1. stderr tail: 
+[2026-05-26 23:11:35] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:22] [INFO] Initialized directory structure
+[2026-05-26 23:15:22] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:15:22] [INFO] Setting up Verilog source files
+[2026-05-26 23:15:22] [INFO] 
+============================================================
+[2026-05-26 23:15:22] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:15:22] [INFO] ============================================================
+
+[2026-05-26 23:15:22] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:15:22] [INFO] NSGA-II Configuration:
+[2026-05-26 23:15:22] [INFO]   Population size : 6
+[2026-05-26 23:15:22] [INFO]   Generations     : 3
+[2026-05-26 23:15:22] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:15:22] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:15:22] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:15:22] [INFO]   Parallel threads: 4
+[2026-05-26 23:15:22] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:15:22] [GEN] === Generation 0 ===
+[2026-05-26 23:15:22] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:22] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:15:22] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:15:22] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:22] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 23:15:22] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:15:22] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 23:15:22] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 23:15:23] [ERROR] Genus failed for fft_8_sol3_gen1. stderr tail: 
+[2026-05-26 23:15:23] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:23] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:15:23] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 23:15:23] [ERROR] Genus failed for fft_8_sol0_gen1. stderr tail: 
+[2026-05-26 23:15:23] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:23] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:15:23] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:15:23] [ERROR] Genus failed for fft_8_sol1_gen1. stderr tail: 
+[2026-05-26 23:15:23] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:23] [ERROR] Genus failed for fft_8_sol2_gen1. stderr tail: 
+[2026-05-26 23:15:23] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol4_gen1. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol5_gen1. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [INFO] Generation 0 complete
+[2026-05-26 23:15:24] [GEN] === Generation 1 ===
+[2026-05-26 23:15:24] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:24] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:15:24] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-26 23:15:24] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol1_gen2. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol0_gen2. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:15:24] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol3_gen2. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:24] [ERROR] Genus failed for fft_8_sol2_gen2. stderr tail: 
+[2026-05-26 23:15:24] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:25] [ERROR] Genus failed for fft_8_sol5_gen2. stderr tail: 
+[2026-05-26 23:15:25] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:25] [ERROR] Genus failed for fft_8_sol4_gen2. stderr tail: 
+[2026-05-26 23:15:25] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:25] [INFO] Generation 1 complete
+[2026-05-26 23:15:25] [GEN] === Generation 2 ===
+[2026-05-26 23:15:25] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 23:15:25] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:15:25] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:25] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0)]
+[2026-05-26 23:15:25] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-26 23:15:25] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-26 23:15:25] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-26 23:15:25] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-26 23:15:26] [ERROR] Genus failed for fft_8_sol0_gen3. stderr tail: 
+[2026-05-26 23:15:26] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:26] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-26 23:15:26] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-26 23:15:26] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-26 23:15:26] [ERROR] Genus failed for fft_8_sol3_gen3. stderr tail: 
+[2026-05-26 23:15:26] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:26] [ERROR] Genus failed for fft_8_sol2_gen3. stderr tail: 
+[2026-05-26 23:15:26] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:26] [ERROR] Genus failed for fft_8_sol1_gen3. stderr tail: 
+[2026-05-26 23:15:26] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:26] [ERROR] Genus failed for fft_8_sol5_gen3. stderr tail: 
+[2026-05-26 23:15:26] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:15:26] [INFO] Generation 2 complete
+[2026-05-26 23:15:26] [INFO] Optimisation complete for 8-point FFT
+[2026-05-26 23:15:26] [INFO] Saving optimization results...
+[2026-05-26 23:15:26] [WARN] WARNING: No feasible solutions — saving least-infeasible fallback.
+[2026-05-26 23:15:26] [INFO] Summary saved → ./results/fft_8/summary.txt
+[2026-05-26 23:15:26] [INFO] Solution CSV saved → ./results/fft_8/all_solutions_fft8.csv  (6 rows)
+[2026-05-26 23:15:27] [INFO] 2-D Pareto plot (3 panels) saved → ./results/fft_8/pareto_2d_fft8.png
+[2026-05-26 23:15:27] [INFO] Latency dashboard saved → ./results/fft_8/pareto_latency_fft8.png
+[2026-05-26 23:15:27] [INFO] All-generations CSV saved → ./results/fft_8/all_generations_fft8.csv  (17 solutions)
+[2026-05-26 23:15:27] [INFO] Compressed 17 solution log(s) → ./results/fft_8/solution_logs_fft8.zip (17 deleted)
+[2026-05-26 23:15:27] [INFO] RTL zip: 34 file(s) → ./results/fft_8/rtl_fft8.zip (originals deleted)
+[2026-05-26 23:15:27] [INFO] Results saved to ./results/fft_8  (Fallback front: 6 solutions)
+[2026-05-26 23:15:27] [INFO] Quick test complete
+[2026-05-26 23:17:45] [INFO] Initialized directory structure
+[2026-05-26 23:17:45] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:17:45] [INFO] Setting up Verilog source files
+[2026-05-26 23:17:45] [INFO] 
+============================================================
+[2026-05-26 23:17:45] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:17:45] [INFO] ============================================================
+
+[2026-05-26 23:17:45] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:17:45] [INFO] NSGA-II Configuration:
+[2026-05-26 23:17:45] [INFO]   Population size : 6
+[2026-05-26 23:17:45] [INFO]   Generations     : 3
+[2026-05-26 23:17:45] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:17:45] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:17:45] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:17:45] [INFO]   Parallel threads: 1
+[2026-05-26 23:17:45] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:17:45] [GEN] === Generation 0 ===
+[2026-05-26 23:17:45] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:17:45] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:17:46] [ERROR] Genus failed for fft_8_sol0_gen1. stderr tail: 
+[2026-05-26 23:17:46] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:46] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:17:46] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 23:17:47] [ERROR] Genus failed for fft_8_sol1_gen1. stderr tail: 
+[2026-05-26 23:17:47] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:47] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:17:47] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 23:17:47] [ERROR] Genus failed for fft_8_sol2_gen1. stderr tail: 
+[2026-05-26 23:17:47] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:47] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:17:47] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 23:17:48] [ERROR] Genus failed for fft_8_sol3_gen1. stderr tail: 
+[2026-05-26 23:17:48] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:48] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:17:48] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 23:17:49] [ERROR] Genus failed for fft_8_sol4_gen1. stderr tail: 
+[2026-05-26 23:17:49] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:49] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:17:49] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:17:49] [ERROR] Genus failed for fft_8_sol5_gen1. stderr tail: 
+[2026-05-26 23:17:49] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:49] [INFO] Generation 0 complete
+[2026-05-26 23:17:49] [GEN] === Generation 1 ===
+[2026-05-26 23:17:49] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:17:49] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-26 23:17:50] [ERROR] Genus failed for fft_8_sol0_gen2. stderr tail: 
+[2026-05-26 23:17:50] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:17:50] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:17:50] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-26 23:20:45] [INFO] Initialized directory structure
+[2026-05-26 23:20:45] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:20:45] [INFO] Setting up Verilog source files
+[2026-05-26 23:20:45] [INFO] 
+============================================================
+[2026-05-26 23:20:45] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:20:45] [INFO] ============================================================
+
+[2026-05-26 23:20:45] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:20:45] [INFO] NSGA-II Configuration:
+[2026-05-26 23:20:45] [INFO]   Population size : 6
+[2026-05-26 23:20:45] [INFO]   Generations     : 3
+[2026-05-26 23:20:45] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:20:45] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:20:45] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:20:45] [INFO]   Parallel threads: 1
+[2026-05-26 23:20:45] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:20:45] [GEN] === Generation 0 ===
+[2026-05-26 23:20:45] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:20:45] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:20:46] [ERROR] Genus failed for fft_8_sol0_gen1. stderr tail: 
+[2026-05-26 23:20:46] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:46] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:20:46] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-26 23:20:47] [ERROR] Genus failed for fft_8_sol1_gen1. stderr tail: 
+[2026-05-26 23:20:47] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:47] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:20:47] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-26 23:20:47] [ERROR] Genus failed for fft_8_sol2_gen1. stderr tail: 
+[2026-05-26 23:20:47] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:47] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-26 23:20:47] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-26 23:20:48] [ERROR] Genus failed for fft_8_sol3_gen1. stderr tail: 
+[2026-05-26 23:20:48] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:48] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:20:48] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-26 23:20:48] [ERROR] Genus failed for fft_8_sol4_gen1. stderr tail: 
+[2026-05-26 23:20:48] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:48] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-26 23:20:48] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-26 23:20:49] [ERROR] Genus failed for fft_8_sol5_gen1. stderr tail: 
+[2026-05-26 23:20:49] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:49] [INFO] Generation 0 complete
+[2026-05-26 23:20:49] [GEN] === Generation 1 ===
+[2026-05-26 23:20:49] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:20:49] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-26 23:20:50] [ERROR] Genus failed for fft_8_sol0_gen2. stderr tail: 
+[2026-05-26 23:20:50] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-26 23:20:50] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-26 23:20:50] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-26 23:29:06] [INFO] Initialized directory structure
+[2026-05-26 23:29:06] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:29:06] [INFO] Setting up Verilog source files
+[2026-05-26 23:29:06] [INFO] 
+============================================================
+[2026-05-26 23:29:06] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:29:06] [INFO] ============================================================
+
+[2026-05-26 23:29:06] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:29:06] [INFO] NSGA-II Configuration:
+[2026-05-26 23:29:06] [INFO]   Population size : 6
+[2026-05-26 23:29:06] [INFO]   Generations     : 3
+[2026-05-26 23:29:06] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:29:06] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:29:06] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:29:06] [INFO]   Parallel threads: 1
+[2026-05-26 23:29:06] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:29:06] [GEN] === Generation 0 ===
+[2026-05-26 23:29:06] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:29:06] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-26 23:43:10] [INFO] Initialized directory structure
+[2026-05-26 23:43:10] [INFO] Running quick test with 16-point FFT
+[2026-05-26 23:43:10] [INFO] Setting up Verilog source files
+[2026-05-26 23:43:10] [INFO] 
+============================================================
+[2026-05-26 23:43:10] [INFO] Starting optimisation for 8-point FFT
+[2026-05-26 23:43:10] [INFO] ============================================================
+
+[2026-05-26 23:43:10] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-26 23:43:10] [INFO] NSGA-II Configuration:
+[2026-05-26 23:43:10] [INFO]   Population size : 6
+[2026-05-26 23:43:10] [INFO]   Generations     : 3
+[2026-05-26 23:43:10] [INFO]   Crossover rate  : 0.9
+[2026-05-26 23:43:10] [INFO]   Mutation rate   : 0.05
+[2026-05-26 23:43:10] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-26 23:43:10] [INFO]   Parallel threads: 1
+[2026-05-26 23:43:10] [INFO]   Clock target    : 3.0 ns
+[2026-05-26 23:43:10] [GEN] === Generation 0 ===
+[2026-05-26 23:43:10] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-26 23:43:10] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 00:08:51] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 00:08:51] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 00:08:51] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 00:08:51] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
