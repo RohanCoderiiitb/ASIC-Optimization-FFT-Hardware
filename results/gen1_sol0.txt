@@ -1,0 +1,17 @@
+FFT Size          : 8
+Generation        : 1
+Solution ID       : 0
+Chromosome        : [0, 0, 0, 0, 0, 0]
+
+Results (ASIC - Cadence Genus):
+  Power             : 1000.0000 mW
+  Area              : 400000.00 um2
+  SQNR              : N/A (iverilog not available)
+  Crit Path Delay   : 200.000 ns
+  Norm Latency      : 10.0000x
+
+Precision Stats:
+  fp8_mult: 0
+  fp4_mult: 3
+  fp8_add: 0
+  fp4_add: 3
