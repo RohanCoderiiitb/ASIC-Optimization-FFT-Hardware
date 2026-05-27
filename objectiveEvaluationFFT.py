@@ -24,7 +24,7 @@ from pymoo.core.problem import Problem
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from globalVariablesMixedFFT import *
-from fft_template_generator import FFTTemplateGenerator
+from fft_template_generator_tb_RAM import FFTTemplateGenerator
 # PerformanceEvaluator (SQNR/iverilog) is no longer imported — SQNR disabled
 
 
@@ -217,11 +217,6 @@ class MixedPrecisionFFTProblem(Problem):
         """
         Parse the three report files written by genus_synthesis.tcl and
         return (power_mw, area_um2, crit_delay_ns).
-
-        Report files (written by the TCL script):
-          <REPORTS_DIR>/<design_name>_power.rpt
-          <REPORTS_DIR>/<design_name>_area.rpt
-          <REPORTS_DIR>/<design_name>_timing.rpt
         """
         power_mw   = MAX_POWER_MW * 2
         area_um2   = MAX_AREA_UM2 * 2
@@ -231,26 +226,9 @@ class MixedPrecisionFFTProblem(Problem):
         rpt_area   = os.path.join(REPORTS_DIR, f"{design_name}_area.rpt")
         rpt_timing = os.path.join(REPORTS_DIR, f"{design_name}_timing.rpt")
 
-        # --- Power report ---
-        # Genus report_power emits a table; the total power row looks like:
-        #   Total         <dynamic_mw>   <leakage_mw>   <total_mw>   mW
-        # We capture the last numeric column on the "Total" summary line.
         power_mw = self._parse_genus_power(rpt_power, power_mw)
-
-        # --- Area report ---
-        # Genus report_area emits a line:
-        #   Total cell area:    <value>
-        area_um2 = self._parse_genus_area(rpt_area, area_um2)
-
-        # --- Timing report ---
-        # Genus report_timing emits a line near the top:
-        #   Timing Path : ...
-        #   ... (slack) ...
-        #   Data Path Delay : <value> ns
-        # or the critical-path arrival time on the line:
-        #   slack (MET|VIOLATED) <slack_value>
-        # We derive delay = CLOCK_PERIOD - slack (if slack line present),
-        # or parse "Data Path Delay" directly.
+        # Pass design_name to locate the module in the area table
+        area_um2 = self._parse_genus_area(rpt_area, design_name, area_um2)
         crit_delay = self._parse_genus_timing(rpt_timing, crit_delay)
 
         log_message(
@@ -262,18 +240,8 @@ class MixedPrecisionFFTProblem(Problem):
 
     def _parse_genus_power(self, rpt_file, fallback):
         """
-        Extract total power (mW) from a Genus report_power file.
-
-        Genus power report excerpt (legacy_ui):
-          ---------------------------------------------------------------
-          Instance       Dynamic   Leakage    Total     Units
-          ---------------------------------------------------------------
-          top_design     0.1234    0.0056     0.1290    mW
-          ...
-          Totals         0.1234    0.0056     0.1290    mW
-          ---------------------------------------------------------------
-        We match the "Totals" line and take the third numeric column.
-        If units are reported as 'W' instead of 'mW', we convert.
+        Extract total power from a Genus report_power file.
+        Matches the 'Subtotal' line and checks the 'Power Unit' header.
         """
         if not os.path.exists(rpt_file):
             log_message(f"Power report not found: {rpt_file}", level='ERROR')
@@ -283,49 +251,32 @@ class MixedPrecisionFFTProblem(Problem):
             with open(rpt_file, 'r') as fh:
                 content = fh.read()
 
-            # Match the Totals summary line
-            # Pattern: "Totals" followed by whitespace-separated numbers
+            # Find power unit (W or mW)
+            unit_match = re.search(r'Power Unit:\s*(m?W)', content)
+            is_watts = unit_match and unit_match.group(1) == 'W'
+
+            # Match the Subtotal line to get the total power (4th numeric column)
             pattern = re.compile(
-                r'(?i)^[ \t]*totals?\s+'          # "Totals" / "Total"
-                r'([\d.eE+\-]+)\s+'               # dynamic
-                r'([\d.eE+\-]+)\s+'               # leakage
-                r'([\d.eE+\-]+)',                  # total
+                r'^\s*Subtotal\s+[\d.eE+\-]+\s+[\d.eE+\-]+\s+[\d.eE+\-]+\s+([\d.eE+\-]+)',
                 re.MULTILINE
             )
             m = pattern.search(content)
             if m:
-                total_val = float(m.group(3))
-                # Check reported units on the same line
-                line = content[m.start():content.find('\n', m.start())]
-                if 'W' in line and 'mW' not in line:
-                    total_val *= 1000.0            # convert W → mW
+                total_val = float(m.group(1))
+                if is_watts:
+                    total_val *= 1000.0  # Convert W to mW
                 return total_val
-
-            # Fallback: look for "Total Power" labelled line
-            pattern2 = re.compile(
-                r'(?i)total\s+power[^\d]*([\d.eE+\-]+)\s*(m?W)',
-                re.MULTILINE
-            )
-            m2 = pattern2.search(content)
-            if m2:
-                val = float(m2.group(1))
-                if m2.group(2).strip() == 'W':
-                    val *= 1000.0
-                return val
 
         except Exception as e:
             log_message(f"Error parsing power report {rpt_file}: {e}", level='ERROR')
 
         return fallback
 
-    def _parse_genus_area(self, rpt_file, fallback):
+
+    def _parse_genus_area(self, rpt_file, design_name, fallback):
         """
         Extract total cell area (µm²) from a Genus report_area file.
-
-        Genus area report excerpt (legacy_ui):
-          ...
-          Total cell area:        1234.567
-          ...
+        Finds the table row corresponding to the top module.
         """
         if not os.path.exists(rpt_file):
             log_message(f"Area report not found: {rpt_file}", level='ERROR')
@@ -335,8 +286,9 @@ class MixedPrecisionFFTProblem(Problem):
             with open(rpt_file, 'r') as fh:
                 content = fh.read()
 
+            # Pattern: Matches the top design name, optional module name, cell count, then captures cell area
             pattern = re.compile(
-                r'(?i)total\s+cell\s+area\s*:\s*([\d.eE+\-]+)',
+                rf'^\s*{re.escape(design_name)}_top\s+(?:\S+\s+)?\d+\s+([\d.eE+\-]+)',
                 re.MULTILINE
             )
             m = pattern.search(content)
@@ -348,24 +300,11 @@ class MixedPrecisionFFTProblem(Problem):
 
         return fallback
 
+
     def _parse_genus_timing(self, rpt_file, fallback):
         """
-        Extract the worst-case critical-path delay (ns) from a Genus
-        report_timing file.
-
-        Genus timing report (legacy_ui) contains lines such as:
-
-          Startpoint: ...
-          Endpoint  : ...
-          ...
-          Data Path Delay : 2.345 ns
-          ...
-          slack (MET)  0.655
-
-        Strategy:
-          1. Try to parse "Data Path Delay" directly — most reliable.
-          2. If absent, compute delay = CLOCK_PERIOD − slack from the
-             "slack" line (works for both MET and VIOLATED paths).
+        Extract the worst-case critical-path delay (ns) from a Genus report_timing file.
+        Computes delay = CLOCK_PERIOD - Slack.
         """
         if not os.path.exists(rpt_file):
             log_message(f"Timing report not found: {rpt_file}", level='ERROR')
@@ -375,26 +314,31 @@ class MixedPrecisionFFTProblem(Problem):
             with open(rpt_file, 'r') as fh:
                 content = fh.read()
 
-            # Strategy 1: "Data Path Delay" line
+            # Strategy 1: Match "Timing slack : 1370ps" or ns
+            pat_slack = re.compile(
+                r'(?i)Timing\s+slack\s*:\s*([-\d.eE+]+)\s*(ps|ns)',
+                re.MULTILINE
+            )
+            m = pat_slack.search(content)
+            if m:
+                slack = float(m.group(1))
+                unit = m.group(2).lower()
+                
+                # Convert to nanoseconds if needed
+                if unit == 'ps':
+                    slack /= 1000.0
+                    
+                delay = CLOCK_PERIOD - slack
+                return max(delay, 0.0)
+
+            # Strategy 2: Fallback to "Data Path Delay" 
             pat_delay = re.compile(
                 r'(?i)data\s+path\s+delay\s*:\s*([\d.eE+\-]+)\s*ns',
                 re.MULTILINE
             )
-            m = pat_delay.search(content)
-            if m:
-                return float(m.group(1))
-
-            # Strategy 2: derive from slack
-            # Matches: "slack (MET) 0.655"  or  "slack (VIOLATED) -0.123"
-            pat_slack = re.compile(
-                r'(?i)slack\s*\((?:MET|VIOLATED)\)\s*([-\d.eE+]+)',
-                re.MULTILINE
-            )
-            m2 = pat_slack.search(content)
+            m2 = pat_delay.search(content)
             if m2:
-                slack = float(m2.group(1))
-                delay = CLOCK_PERIOD - slack
-                return max(delay, 0.0)
+                return float(m2.group(1))
 
         except Exception as e:
             log_message(f"Error parsing timing report {rpt_file}: {e}", level='ERROR')

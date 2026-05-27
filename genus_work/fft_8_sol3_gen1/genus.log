@@ -1,0 +1,607 @@
+Cadence Genus(TM) Synthesis Solution.
+Copyright 2021 Cadence Design Systems, Inc. All rights reserved worldwide.
+Cadence and the Cadence logo are registered trademarks and Genus is a trademark
+of Cadence Design Systems, Inc. in the United States and other countries.
+
+Version: 21.10-p002_1, built Thu Aug 19 21:43:13 PDT 2021
+Options: -legacy_ui -batch -log /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_work/fft_8_sol3_gen1/genus.log -execute {set DESIGN_NAME fft_8_sol3_gen1; set CORE_FILE   /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1.v;    set TOP_FILE    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1_top.v;     set VERILOG_DIR /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources; set LIB_FILE    /home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib;     set CLK_PERIOD  3.0; set RPT_DIR     /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/reports;     set WORK_DIR    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_work/fft_8_sol3_gen1;  source /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_synthesis.tcl} 
+Date:    Wed May 27 23:13:59 2026
+Host:    localhost.localdomain (x86_64 w/Linux 4.18.0-553.125.1.el8_10.x86_64) (16cores*24cpus*1physical cpu*12th Gen Intel(R) Core(TM) i9-12900K 30720KB) (65441756KB)
+PID:     317582
+OS:      Red Hat Enterprise Linux release 8.10 (Ootpa)
+
+Checking out license: Genus_Synthesis
+
+
+***********************************************************************************************************
+***********************************************************************************************************
+
+
+
+Loading tool scripts...
+Finished loading tool scripts (4 seconds elapsed).
+
+#@ Processing -execute option
+@genus 1> set DESIGN_NAME fft_8_sol3_gen1; set CORE_FILE   /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1.v;    set TOP_FILE    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1_top.v;     set VERILOG_DIR /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources; set LIB_FILE    /home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib;     set CLK_PERIOD  3.0; set RPT_DIR     /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/reports;     set WORK_DIR    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_work/fft_8_sol3_gen1;  source /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_synthesis.tcl
+Sourcing '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_synthesis.tcl' (Wed May 27 23:14:03 IST 2026)...
+================================================================
+Genus synthesis: fft_8_sol3_gen1
+  Core RTL  : /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1.v
+  Top RTL   : /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1_top.v
+  Liberty   : /home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib
+  Clk period: 3.0 ns
+  Reports -> : /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/reports
+================================================================
+  Setting attribute of root '/': 'max_cpus_per_server' = 16
+
+Threads Configured:3
+
+  Message Summary for Library fast_vdd1v0_basicCells.lib:
+  *******************************************************
+  Missing a function attribute in the output pin definition. [LBR-518]: 1
+  *******************************************************
+ 
+Info    : Created nominal operating condition. [LBR-412]
+        : Operating condition '_nominal_' was created for the PVT values (1.000000, 1.100000, 0.000000) in library 'fast_vdd1v0_basicCells.lib'.
+        : The nominal operating condition is represented, either by the nominal PVT values specified in the library source (via nom_process,nom_voltage and nom_temperature respectively), or by the default PVT values (1.0,1.0,1.0).
+Warning : Library cell has no output pins defined. [LBR-9]
+        : Library cell 'ANTENNA' must have an output pin.
+        : Add the missing output pin(s), then reload the library. Else the library cell will be marked as timing model i.e. unusable. Timing_model means that the cell does not have any defined function. If there is no output pin, Genus will mark library cell as unusable i.e. the attribute 'usable' will be marked to 'false' on the libcell. Therefore, the cell is not used for mapping and it will not be picked up from the library for synthesis. If you query the attribute 'unusable_reason' on the libcell; result will be: 'Library cell has no output pins.'Note: The message LBR-9 is only for the logical pins and not for the power_ground pins. Genus will depend upon the output function defined in the pin group (output pin) of the cell, to use it for mapping. The pg_pin will not have any function defined.
+Warning : Library cell has no output pins defined. [LBR-9]
+        : Library cell 'ANTENNA' must have an output pin.
+  Setting attribute of root '/': 'library' = /home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib
+Warning : This attribute will be obsolete in a next major release. [TUI-32]
+        : attribute: 'hdl_search_path', object type: 'root'
+        : Attribute 'hdl_search_path' is going to be obsoleted, use the new attribute 'init_hdl_search_path'.
+  Setting attribute of root '/': 'hdl_search_path' = /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources
+    initial begin
+          |
+Warning : Ignoring unsynthesizable construct. [VLOGPT-37]
+        : Initial in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom.v' on line 19, column 11.
+        : For example, the following constructs will be ignored:
+    - initial block
+    - final block
+    - program block
+    - property block
+    - sequence block
+    - covergroup
+    - checker block
+    - gate drive strength
+    - system task enable
+    - reg declaration with initial value
+    - specify block.
+  Library has 324 usable logic and 128 usable sequential lib-cells.
+Info    : Elaborating Design. [ELAB-1]
+        : Elaborating top-level block 'fft_8_sol3_gen1_top' from file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1_top.v'.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00000001011' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 96.
+        : When multiple case item expressions match the case condition, only the statements associated with the first matching item are considered.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '11' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 96.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001101111' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 195.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '110' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 195.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001101111' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 196.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '111' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 196.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110000' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 197.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '112' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 197.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110001' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 198.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '113' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 198.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110010' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 199.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '114' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 199.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110011' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 200.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '115' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 200.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110100' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 201.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '116' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 201.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110101' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 202.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '117' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 202.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110110' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 203.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '118' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 203.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00001110111' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 204.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '119' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 204.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00011010011' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 296.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '211' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 296.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00100110111' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 396.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '311' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 396.
+Warning : Ignored redundant case item. [CDFG-480]
+        : Case item '00110011011' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 496.
+Warning : Unreachable statements for case item. [CDFG-472]
+        : Case item '411' in module 'twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizeable.v' on line 496.
+Warning : Removing unused register. [CDFG-508]
+        : Removing unused latch register 'cur_add_prec' in module 'fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1.v' on line 114.
+        : Genus removes the flip-flop or latch inferred for an unused signal or variable. To preserve the flip-flop or latch, set the hdl_preserve_unused_registers attribute to true or use a pragma in the RTL.
+Warning : Removing unused register. [CDFG-508]
+        : Removing unused latch register 'cur_wr_prec' in module 'fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11' in file '/home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol3_gen1.v' on line 114.
+Info    : Done Elaborating Design. [ELAB-3]
+        : Done elaborating 'fft_8_sol3_gen1_top'.
+Checking for analog nets...
+Check completed for analog nets.
+Checking for source RTL...
+Check completed for source RTL.
+Running Unified Mux Engine Tricks...
+Completed Unified Mux Engine Tricks
+--------------------------------------------------------
+| Trick             | Accepts | Rejects | Runtime (ms) | 
+--------------------------------------------------------
+| ume_constant_bmux |       0 |       0 |         0.00 | 
+--------------------------------------------------------
+Starting clip mux common data inputs [v1.0] (stage: post_elab, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed clip mux common data inputs (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting clip the non-user hierarchies [v2.0] (stage: post_elab, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed clip the non-user hierarchies (accepts: 0, rejects: 0, runtime: 0.000s)
+##Generic Timing Info for library domain: _default_ typical gate delay: 31.7 ps std_slew: 5.4 ps std_load: 1.0 fF
+Starting mux data reorder optimization [v1.0] (stage: pre_to_gen_setup, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed mux data reorder optimization (accepts: 0, rejects: 0, runtime: 0.003s)
+Info    : Replacing a flip-flop with a logic constant 1. [GLO-13]
+        : The instance is 'bank_sel_reg'.
+        : To prevent this optimization, set the 'optimize_constant_1_flops' root attribute to 'false' or 'optimize_constant_1_seq' instance attribute to 'false'.
+Info    : Replacing a flip-flop with a logic constant 0. [GLO-12]
+        : The instance is 'core/twiddle_rom/twiddle_out_reg[6]'.
+        : To prevent this optimization, set the 'optimize_constant_0_flops' root attribute to 'false' or 'optimize_constant_0_seq' instance attribute to 'false'. You can also see the complete list of deleted sequential with command "report sequential -deleted" (on Reason "constant0").
+Info    : Replacing a flip-flop with a logic constant 0. [GLO-12]
+        : The instance is 'core/twiddle_rom/twiddle_out_reg[14]'.
+Info    : Deleting instances not driving any primary outputs. [GLO-34]
+        : Deleting 3 sequential instances.
+        : Optimizations such as constant propagation or redundancy removal could change the connections so a hierarchical instance does not drive any primary outputs anymore. To see the list of deleted hierarchical instances, set the 'information_level' attribute to 2 or above. If the message is truncated set the message attribute 'truncate' to false to see the complete list. To prevent this optimization, set the 'delete_unloaded_insts' root/subdesign attribute to 'false' or 'preserve' instance attribute to 'true'.
+Info    : Synthesizing. [SYNTH-1]
+        : Synthesizing 'fft_8_sol3_gen1_top' to generic gates using 'medium' effort.
+PBS_Generic-Start - Elapsed_Time 0, CPU_Time 0.0
+stamp 'PBS_Generic-Start' being created for table 'pbs_debug'
+
+  Total Time (Wall) |  Stage Time (Wall)  |   % (Wall)   |    Date - Time     |  Memory   | Stage
+--------------------+---------------------+--------------+--------------------+-----------+----------------------
+ 00:00:06(00:00:04) |  00:00:00(00:00:00) |   0.0(  0.0) |   23:14:05 (May27) |  272.7 MB | PBS_Generic-Start
+--------------------+---------------------+--------------+--------------------+-----------+----------------------
+Number of threads: 16 * 1   (id: pbs_debug, time_info v1.57)
+Info: (*N*) indicates data that was populated from previously saved time_info database
+Info: CPU time includes time of parent + longest thread
+TNS Restructuring config: no_value at stage: generic applied.
+Info    : Partition Based Synthesis execution skipped. [PHYS-752]
+        : Design size is less than the partition size '100000' for distributed generic optimization to kick in.
+Starting mux data reorder optimization [v1.0] (stage: pre_to_gen_setup, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed mux data reorder optimization (accepts: 0, rejects: 0, runtime: 0.017s)
+Starting mux data reorder optimization [v1.0] (stage: post_to_gen_setup, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed mux data reorder optimization (accepts: 0, rejects: 0, runtime: 0.011s)
+Running Unified Mux Engine Tricks...
+Completed Unified Mux Engine Tricks
+--------------------------------------------
+| Trick | Accepts | Rejects | Runtime (ms) | 
+--------------------------------------------
+--------------------------------------------
+Starting datapath recasting [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed datapath recasting (accepts: 0, rejects: 2, runtime: 0.013s)
+Starting infer macro optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed infer macro optimization (accepts: 0, rejects: 39, runtime: 0.017s)
+Starting decode mux sandwich optimization [v2.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed decode mux sandwich optimization (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting decode mux optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed decode mux optimization (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting chop wide muxes [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed chop wide muxes (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting common data mux cascade opt [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed common data mux cascade opt (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting mux input consolidation [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed mux input consolidation (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting priority mux optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed priority mux optimization (accepts: 0, rejects: 0, runtime: 0.265s)
+Starting constant-data mux optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Info    : Deleting instances not driving any primary outputs. [GLO-34]
+        : Deleting 11 hierarchical instances.
+Info    : Deleting instances not driving any primary outputs. [GLO-34]
+        : Deleting 1 hierarchical instance.
+Info    : Deleting instances not driving any primary outputs. [GLO-34]
+        : Deleting 16 hierarchical instances.
+Completed constant-data mux optimization (accepts: 4, rejects: 0, runtime: 0.134s)
+Starting chain-to-tree inequality transform [v2.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed chain-to-tree inequality transform (accepts: 0, rejects: 0, runtime: 0.017s)
+Starting reconvergence optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed reconvergence optimization (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting logic restructure optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed logic restructure optimization (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting common select mux optimization [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed common select mux optimization (accepts: 0, rejects: 1, runtime: 0.003s)
+Starting identity transform [v3.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed identity transform (accepts: 0, rejects: 7, runtime: 0.003s)
+Starting reduce operator chain [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed reduce operator chain (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting common data mux cascade opt [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed common data mux cascade opt (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting mux input consolidation [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed mux input consolidation (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting optimize datapath elements [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed optimize datapath elements (accepts: 0, rejects: 0, runtime: 0.001s)
+Starting clip mux common data inputs [v1.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed clip mux common data inputs (accepts: 0, rejects: 0, runtime: 0.000s)
+Starting clip the non-user hierarchies [v2.0] (stage: pre_rtlopt, startdef: fft_8_sol3_gen1_top, recur: true)
+Completed clip the non-user hierarchies (accepts: 0, rejects: 0, runtime: 0.000s)
+Running Unified Mux Engine Tricks...
+Completed Unified Mux Engine Tricks
+--------------------------------------------------
+| Trick       | Accepts | Rejects | Runtime (ms) | 
+--------------------------------------------------
+| ume_runtime |       0 |       0 |         0.00 | 
+--------------------------------------------------
+Number of big hc bmuxes before = 0
+Number of non-ctl's : 3
+shannon_mux_0 shannon_mux_1 mux_34_786 
+SOP DEBUG : Module= bit_reverse_MAX_N1024_WIDTH11, Cluster= ctl_N_15_18, ctl= 2, Non-ctl= 3
+Selected impl_type 0 (ctl + 1-hot mux form) for sop cluster ctl_N_15_18.
+Number of non-ctl's : 1
+shannon_mux_0 
+SOP DEBUG : Module= dit_fft_agu_variable_MAX_N1024_ADDR_WIDTH11, Cluster= ctl_N_28_18, ctl= 1, Non-ctl= 1
+Selected impl_type 0 (ctl + 1-hot mux form) for sop cluster ctl_N_28_18.
+Number of non-ctl's : 1
+shannon_mux_2247 
+SOP DEBUG : Module= dit_fft_agu_variable_MAX_N1024_ADDR_WIDTH11, Cluster= g2246, ctl= 1, Non-ctl= 1
+Selected impl_type 1 (pla_form1 (optimized)) for sop cluster g2246.
+Number of non-ctl's : 3
+mux_cmbsop_cur_mult_prec_121_19 mux_cur_mult_prec_115_289 mux_cur_rd_prec_115_291 
+SOP DEBUG : Module= fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11, Cluster= ctl_121_19, ctl= 3, Non-ctl= 3
+Selected impl_type 1 (pla_form1 (optimized)) for sop cluster ctl_121_19.
+Number of non-ctl's : 1
+mux_rom_data_84_15 
+SOP DEBUG : Module= twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11, Cluster= ctl_rom_addr_84_15, ctl= 1, Non-ctl= 1
+Selected impl_type 1 (pla_form1 (optimized)) for sop cluster ctl_rom_addr_84_15.
+Info    : Pre-processed datapath logic. [DPOPT-6]
+        : Pre-processing optimizations applied to datapath logic in 'fft_8_sol3_gen1_top':
+          live_trim(32) sop(5) 
+Info    : Optimizing datapath logic. [DPOPT-1]
+        : Optimizing datapath logic in 'fft_8_sol3_gen1_top'.
+Info    : Implementing datapath configurations. [DPOPT-3]
+        : Implementing datapath configurations for 'CDN_DP_region_1_1'
+CSAGen Prep Share:0 Re-Write:12 Speculation: 0
+Warning: (CSAGEN-QOR) CSA is rejected due to potential bad sign-cast to unsigned.
+:		agu_sub_78_36 -> SUB_UNS_OP1.B
+MaxCSA: Successfully built Maximal CSA Expression Expr0
+MaxCSA: Successfully built Maximal CSA Expression Expr1
+MaxCSA: Successfully built Maximal CSA Expression Expr2
+MaxCSA: Successfully built Maximal CSA Expression Expr3
+MaxCSA: Successfully built Maximal CSA Expression Expr4
+MaxCSA: Successfully built Maximal CSA Expression Expr5
+MaxCSA: Successfully built Maximal CSA Expression Expr6
+MaxCSA: Successfully built Maximal CSA Expression Expr7
+MaxCSA: Successfully built Maximal CSA Expression Expr8
+MaxCSA: Successfully built Maximal CSA Expression Expr9
+CDN_DP_region_1_1 level = 0 loads = 0 drivers = 0
+CDN_DP_region_1_1_c0 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7495394400 ,dp = 37 mux = 74 sg = slow         worst_clk_period: -4592024818112686007544091371623043813004152832110781083474987530434548819765321140516579626654680392906110065126800729164270879694187219469955113378228855615075034128434092163310164542077600748578610244716643515416258676369934689095608681774610783372403276652660868448931282944.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: 0
+ skipped
+CDN_DP_region_1_1_c1 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7766328350 ,dp = 41 mux = 73 sg = fast         worst_clk_period: -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    wns: 0  norm_wns:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    fail_endp: -477218583783369671 
+    tns:  0  tns_per_endp:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: 669
+ is current best
+CDN_DP_region_1_1_c2 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7283185050 ,dp = 36 mux = 73 sg = very_slow    worst_clk_period: 0.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: -122461952
+ is current best
+CDN_DP_region_1_1_c3 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7766328350 ,dp = 41 mux = 73 sg = very_fast    worst_clk_period: -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    wns: 0  norm_wns:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    fail_endp: -477218583783369671 
+    tns:  0  tns_per_endp:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: 669
+
+CDN_DP_region_1_1_c4 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7283185050 ,dp = 36 mux = 73 sg = very_fast    worst_clk_period: 0.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: -129384192
+ is current best
+CDN_DP_region_1_1_c5 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7283185050 ,dp = 36 mux = 73 sg = very_fast    worst_clk_period: 0.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: -131194624
+ is current best
+CDN_DP_region_1_1_c6 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7766328350 ,dp = 41 mux = 73 sg = very_fast    worst_clk_period: -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    wns: 0  norm_wns:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000 
+    fail_endp: -477218583783369671 
+    tns:  0  tns_per_endp:  -4592028935132543887148515115886517326005708957250279725516842991308515879341678547728202924673106824374663170390412258843043737853279011318874685585434460818796850135417798454144128557409302070019454586154905644007908805888570189579458721869565115566287256630679535390061232128.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: 669
+
+CDN_DP_region_1_1_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 9498704050 ,dp = 37 mux = 73 sg = very_fast    worst_clk_period: 0.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: -72787968
+
+Best config: CDN_DP_region_1_1_c5 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11: area: 7283185050 ,dp = 36 mux = 73 sg = very_fast    worst_clk_period: 0.0000 
+    wns: 0  norm_wns:  0.0000 
+    fail_endp: 0 
+    tns:  0  tns_per_endp:  0.0000   norm_tns_per_endp:  0.0000 
+    tns_sense_max:  0.0000  tns_sense_avg:  0.0000   tns_sense_num: -131194624
+  Smallest config area : 7283185050.  Fastest config wns;  0
+##>+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>Summary table of configs (Best config is CDN_DP_region_1_1_c5)
+##>+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>                     0                  1                  2                  3                  4                  5                  6                  7            
+##>+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>           Area       7495394400         7766328350         7283185050         7766328350         7283185050         7283185050         7766328350         9498704050  
+##>            WNS          +896.30            +896.30            +896.30            +896.30            +896.30            +896.30            +896.30            +849.10  
+##>            TNS                0                  0                  0                  0                  0                  0                  0                  0  
+##>    Num Rewrite                0                  1                  1                  1                  1                  1                  1                 13  
+##>     Num Factor                0                  0                  0                  0                  0                  0                  0                  1  
+##>      Num Share                0                  0                  0                  0                  0                  0                  0                  0  
+##>   Num CmultCse                0                  0                  0                  0                  0                  0                  0                  0  
+##>   Num Downsize                0                  0                  0                  0                  0                  0                  0                  0  
+##>  Num Speculate                0                  0                  0                  0                  0                  0                  0                  0  
+##>     Runtime(s)                0                  0                  0                  0                  0                  0                  0                  3  
++----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>
+##>
+##>+------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>Optimization Step DEBUG Table for config CDN_DP_region_1_1_c5
+##>
+##>                          Step                        Area   ( % Chg)        WNS (Change)        TNS (Change)          Runtime (s)        Comment                   
+##>+------------------------------------------------------------------------------------------------------------------------------------------------------------+
+##>createMaxCarrySave              START             7495394400 (      )      896.30 (        )             0 (        )              
+##> datapath_rewrite_one_def       START             7495394400 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  fast_cse_elim                 START             7495394400 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7478043950 ( -0.23)      896.30 (   +0.00)             0 (       0)           0  
+##>  fast_cse_elim                 START             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7478043950 ( -0.23)      896.30 (   +0.00)             0 (       0)           0  
+##> speculate_in_gdef              START             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  pre_speculate_mux_merge       START             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> csa_opto                       START             7478043950 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7496729050 ( +0.25)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7496729050 ( +0.02)      896.30 (   +0.00)             0 (       0)           0  
+##>canonicalize_by_names           START             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_rewrite_post_csa_one_  START             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> rewrite                        START             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)              (na,csaa) base_comb_unsigned_add_ci_add_from --> comb_unsigned_add_ci_add_to
+##>                                  END             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> rewrite                        START             7496729050 ( +0.00)      896.30 (   +0.00)             0 (       0)              (a,ar) csa_add_and_inc_v2 --> csa_add_ci
+##>                                  END             7466032100 ( -0.41)      896.30 (   +0.00)             0 (       0)           0  
+##> rewrite                        START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              (na,csaa) unsigned_add_add_v1_from --> unsigned_add_add_csa_to
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> rewrite                        START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              (na,csaa) unsigned_add_add_v3_from --> unsigned_add_add_csa_to
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> rewrite                        START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              (na,csaa) base_comb_unsigned_add_add_from --> comb_unsigned_add_add_to
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( -0.41)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_csa_factoring_one_gde  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dpopt_share_one_def             START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_rewrite_post_share     START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dp_combine_const_mult_with_com  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>speculate_in_gdef               START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> pre_speculate_mux_merge        START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dp_operator_level_decompositio  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>selective_flatten_dp_config     START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>createMaxCarrySave              START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> datapath_rewrite_one_def       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  fast_cse_elim                 START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>  fast_cse_elim                 START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> speculate_in_gdef              START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  pre_speculate_mux_merge       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> csa_opto                       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_rewrite_post_csa_one_  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_csa_factoring_one_gde  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dpopt_share_one_def             START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>datapath_rewrite_post_share     START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dp_combine_const_mult_with_com  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>speculate_in_gdef               START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> pre_speculate_mux_merge        START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>dp_operator_level_decompositio  START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>selective_flatten_dp_config     START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>createMaxCarrySave              START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> datapath_rewrite_one_def       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  fast_cse_elim                 START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>  fast_cse_elim                 START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> speculate_in_gdef              START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>  pre_speculate_mux_merge       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##> csa_opto                       START             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7466032100 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>context_based_simplify          START             7427327250 ( -0.52)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7283185050 ( -1.94)      896.30 (   +0.00)             0 (       0)           0  
+##>group_csa_final_adder_dp        START             7283185050 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7303204800 ( +0.27)      896.30 (   +0.00)             0 (       0)           0  
+##>dpopt_flatten_critical_muxes_i  START             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>speculate_in_gdef               START             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##> pre_speculate_mux_merge        START             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>                                  END             7303204800 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>create_score                    START             7283185050 ( -0.27)      896.30 (   +0.00)             0 (       0)              
+##>                                  END             7283185050 ( +0.00)      896.30 (   +0.00)             0 (       0)           0  
+##>+------------------------------------------------------------------------------------------------------------------------------------------------------------+
+Committed config: CDN_DP_region_1_1_c5
+Info    : Done implementing datapath configurations. [DPOPT-4]
+        : Selected 'very_fast' configuration 5 for module 'CDN_DP_region_1_1'.
+          Optimizations applied to 'very_fast' configuration:
+            rewriting(1), factoring(0), sharing(0), cmultcse(0), downsizing(0), speculation(0)
+Info    : Implementing datapath configurations. [DPOPT-3]
+        : Implementing datapath configurations for 'CDN_DP_region_1_0'
+CSAGen Prep Share:0 Re-Write:86 Speculation: 0
+MaxCSA: Successfully built Maximal CSA Expression Expr10
+MaxCSA: Successfully built Maximal CSA Expression Expr11
+MaxCSA: Successfully built Maximal CSA Expression Expr12
+MaxCSA: Successfully built Maximal CSA Expression Expr13
+MaxCSA: Successfully built Maximal CSA Expression Expr14
+MaxCSA: Successfully built Maximal CSA Expression Expr15
+MaxCSA: Successfully built Maximal CSA Expression Expr16
+MaxCSA: Successfully built Maximal CSA Expression Expr17
+MaxCSA: Successfully built Maximal CSA Expression Expr18
+MaxCSA: Successfully built Maximal CSA Expression Expr19
+MaxCSA: Successfully built Maximal CSA Expression Expr20
+MaxCSA: Successfully built Maximal CSA Expression Expr21
+MaxCSA: Successfully built Maximal CSA Expression Expr22
+MaxCSA: Successfully built Maximal CSA Expression Expr23
+MaxCSA: Successfully built Maximal CSA Expression Expr24
+MaxCSA: Successfully built Maximal CSA Expression Expr25
+MaxCSA: Successfully built Maximal CSA Expression Expr26
+MaxCSA: Successfully built Maximal CSA Expression Expr27
+MaxCSA: Successfully built Maximal CSA Expression Expr28
+MaxCSA: Successfully built Maximal CSA Expression Expr29
+MaxCSA: Successfully built Maximal CSA Expression Expr30
+MaxCSA: Successfully built Maximal CSA Expression Expr31
+MaxCSA: Successfully built Maximal CSA Expression Expr32
+MaxCSA: Successfully built Maximal CSA Expression Expr33
+MaxCSA: Successfully built Maximal CSA Expression Expr34
+MaxCSA: Successfully built Maximal CSA Expression Expr35
+MaxCSA: Successfully built Maximal CSA Expression Expr36
+MaxCSA: Successfully built Maximal CSA Expression Expr37
+MaxCSA: Successfully built Maximal CSA Expression Expr38
+MaxCSA: Successfully built Maximal CSA Expression Expr39
+MaxCSA: Successfully built Maximal CSA Expression Expr40
+MaxCSA: Successfully built Maximal CSA Expression Expr41
+MaxCSA: Successfully built Maximal CSA Expression Expr42
+MaxCSA: Successfully built Maximal CSA Expression Expr43
+MaxCSA: Successfully built Maximal CSA Expression Expr44
+MaxCSA: Successfully built Maximal CSA Expression Expr45
+MaxCSA: Successfully built Maximal CSA Expression Expr46
+MaxCSA: Successfully built Maximal CSA Expression Expr47
+MaxCSA: Successfully built Maximal CSA Expression Expr48
+MaxCSA: Successfully built Maximal CSA Expression Expr49
+MaxCSA: Successfully built Maximal CSA Expression Expr50
+MaxCSA: Successfully built Maximal CSA Expression Expr51
+MaxCSA: Successfully built Maximal CSA Expression Expr52
+MaxCSA: Successfully built Maximal CSA Expression Expr53
+MaxCSA: Successfully built Maximal CSA Expression Expr54
+MaxCSA: Successfully built Maximal CSA Expression Expr55
+MaxCSA: Successfully built Maximal CSA Expression Expr56
+MaxCSA: Successfully built Maximal CSA Expression Expr57
+MaxCSA: Successfully built Maximal CSA Expression Expr58
+MaxCSA: Successfully built Maximal CSA Expression Expr59
+MaxCSA: Successfully built Maximal CSA Expression Expr60
+MaxCSA: Successfully built Maximal CSA Expression Expr61
+MaxCSA: Successfully built Maximal CSA Expression Expr62
+MaxCSA: Successfully built Maximal CSA Expression Expr63
+MaxCSA: Successfully built Maximal CSA Expression Expr64
+MaxCSA: Successfully built Maximal CSA Expression Expr65
+MaxCSA: Successfully built Maximal CSA Expression Expr66
+MaxCSA: Successfully built Maximal CSA Expression Expr67
+MaxCSA: Successfully built Maximal CSA Expression Expr68
+MaxCSA: Successfully built Maximal CSA Expression Expr69
+MaxCSA: Successfully built Maximal CSA Expression Expr70
+MaxCSA: Successfully built Maximal CSA Expression Expr71
+MaxCSA: Successfully built Maximal CSA Expression Expr72
+MaxCSA: Successfully built Maximal CSA Expression Expr73
+MaxCSA: Successfully built Maximal CSA Expression Expr74
+MaxCSA: Successfully built Maximal CSA Expression Expr75
+MaxCSA: Successfully built Maximal CSA Expression Expr76
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP650, ADD_TC_OP649)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP652, ADD_TC_OP651)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP_661, SUB_TC_OP660)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP_663, SUB_TC_OP662)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP_665, SUB_TC_OP664)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (SUB_TC_OP_667, SUB_TC_OP666)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (final_adder_SUB_TC_OP, addinc_ADD_TC_OP_64)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (final_adder_SUB_TC_OP_21, addinc_ADD_TC_OP_67)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (final_adder_SUB_TC_OP_23, addinc_ADD_TC_OP_70)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (final_adder_SUB_TC_OP_25, addinc_ADD_TC_OP_73)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (ADD_TC_OP_628, ADD_TC_OP626)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged the following sets of instances in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11':
+	  (ADD_TC_OP_633, ADD_TC_OP630)
+
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'SUB_TC_OP701' and 'SUB_TC_OP742' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'SUB_TC_OP699' and 'SUB_TC_OP_744' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'SUB_TC_OP697' and 'SUB_TC_OP732' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'SUB_TC_OP695' and 'SUB_TC_OP_734' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'ADD_TC_OP696' and 'ADD_TC_OP749' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'ADD_TC_OP694' and 'ADD_TC_OP739' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'ADD_TC_OP698' and 'ADD_TC_OP729' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.
+Info    : Accepted resource sharing opportunity. [RTLOPT-30]
+        : Merged instances 'ADD_TC_OP700' and 'ADD_TC_OP719' in 'CDN_DP_region_1_0_c7 in fft_8_sol3_gen1_core_MAX_N1024_ADDR_WIDTH11'.

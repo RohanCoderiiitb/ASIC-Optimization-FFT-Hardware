@@ -1,0 +1,21 @@
+Cadence Genus(TM) Synthesis Solution.
+Copyright 2021 Cadence Design Systems, Inc. All rights reserved worldwide.
+Cadence and the Cadence logo are registered trademarks and Genus is a trademark
+of Cadence Design Systems, Inc. in the United States and other countries.
+
+Version: 21.10-p002_1, built Thu Aug 19 21:43:13 PDT 2021
+Options: -legacy_ui -batch -log /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_work/fft_8_sol5_gen1/genus.log -execute {set DESIGN_NAME fft_8_sol5_gen1; set CORE_FILE   /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol5_gen1.v;    set TOP_FILE    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/generated_designs/fft_8_sol5_gen1_top.v;     set VERILOG_DIR /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/verilog_sources; set LIB_FILE    /home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib;     set CLK_PERIOD  3.0; set RPT_DIR     /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/reports;     set WORK_DIR    /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_work/fft_8_sol5_gen1;  source /home/rohan/Documents/ASIC-Optimization-FFT-Hardware/genus_synthesis.tcl} 
+Date:    Wed May 27 23:15:44 2026
+Host:    localhost.localdomain (x86_64 w/Linux 4.18.0-553.125.1.el8_10.x86_64) (16cores*24cpus*1physical cpu*12th Gen Intel(R) Core(TM) i9-12900K 30720KB) (65441756KB)
+PID:     322497
+OS:      Red Hat Enterprise Linux release 8.10 (Ootpa)
+
+Checking out license: Genus_Synthesis
+
+
+***********************************************************************************************************
+***********************************************************************************************************
+
+
+
+Loading tool scripts...

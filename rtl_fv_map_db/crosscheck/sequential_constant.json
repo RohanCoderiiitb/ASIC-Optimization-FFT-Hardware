@@ -1,0 +1,145 @@
+{
+ "filetype": "conformal-table",
+ "data": [
+  {
+   "Object": "/bank_sel_reg",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "1",
+   "LEC constant": "1",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[6]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[14]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/X_reg_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[2]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[3]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[4]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[5]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[6]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[7]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[9]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[2]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  }
+ ],
+ "cols": [
+  {
+   "key": "Object"
+  },
+  {
+   "key": "Type"
+  },
+  {
+   "key": "Design"
+  },
+  {
+   "key": "User Setup constant"
+  },
+  {
+   "key": "LEC constant"
+  }
+ ],
+ "sort": [
+  "-highlite"
+ ]
+}
