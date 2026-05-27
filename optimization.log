@@ -5484,3 +5484,803 @@
 [2026-05-27 00:08:51] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
 [2026-05-27 00:08:51] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
 [2026-05-27 00:08:51] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 12:33:52] [INFO] Initialized directory structure
+[2026-05-27 12:33:52] [INFO] Running quick test with 16-point FFT
+[2026-05-27 12:33:52] [INFO] Setting up Verilog source files
+[2026-05-27 12:33:52] [INFO] 
+============================================================
+[2026-05-27 12:33:52] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 12:33:52] [INFO] ============================================================
+
+[2026-05-27 12:33:52] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 12:33:52] [INFO] NSGA-II Configuration:
+[2026-05-27 12:33:52] [INFO]   Population size : 6
+[2026-05-27 12:33:52] [INFO]   Generations     : 3
+[2026-05-27 12:33:52] [INFO]   Crossover rate  : 0.9
+[2026-05-27 12:33:52] [INFO]   Mutation rate   : 0.05
+[2026-05-27 12:33:52] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 12:33:52] [INFO]   Parallel threads: 1
+[2026-05-27 12:33:52] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 12:33:52] [GEN] === Generation 0 ===
+[2026-05-27 12:33:52] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 12:33:52] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 14:56:10] [INFO] Initialized directory structure
+[2026-05-27 14:56:10] [INFO] Running quick test with 16-point FFT
+[2026-05-27 14:56:10] [INFO] Setting up Verilog source files
+[2026-05-27 14:56:10] [INFO] 
+============================================================
+[2026-05-27 14:56:10] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 14:56:10] [INFO] ============================================================
+
+[2026-05-27 14:56:10] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 14:56:10] [INFO] NSGA-II Configuration:
+[2026-05-27 14:56:10] [INFO]   Population size : 6
+[2026-05-27 14:56:10] [INFO]   Generations     : 3
+[2026-05-27 14:56:10] [INFO]   Crossover rate  : 0.9
+[2026-05-27 14:56:10] [INFO]   Mutation rate   : 0.05
+[2026-05-27 14:56:10] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 14:56:10] [INFO]   Parallel threads: 1
+[2026-05-27 14:56:10] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 14:56:10] [GEN] === Generation 0 ===
+[2026-05-27 14:56:10] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 14:56:10] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 14:56:41] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 14:56:41] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 14:56:41] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 14:56:41] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 15:10:08] [INFO] Initialized directory structure
+[2026-05-27 15:10:08] [INFO] Running quick test with 16-point FFT
+[2026-05-27 15:10:08] [INFO] Setting up Verilog source files
+[2026-05-27 15:10:08] [INFO] 
+============================================================
+[2026-05-27 15:10:08] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 15:10:08] [INFO] ============================================================
+
+[2026-05-27 15:10:08] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 15:10:08] [INFO] NSGA-II Configuration:
+[2026-05-27 15:10:08] [INFO]   Population size : 6
+[2026-05-27 15:10:08] [INFO]   Generations     : 3
+[2026-05-27 15:10:08] [INFO]   Crossover rate  : 0.9
+[2026-05-27 15:10:08] [INFO]   Mutation rate   : 0.05
+[2026-05-27 15:10:08] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 15:10:08] [INFO]   Parallel threads: 1
+[2026-05-27 15:10:08] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 15:10:08] [GEN] === Generation 0 ===
+[2026-05-27 15:10:08] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 15:10:08] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 15:10:33] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 15:10:33] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 15:10:33] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 15:10:33] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 15:11:07] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 15:11:07] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 15:11:07] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 15:11:07] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 15:16:36] [INFO] Initialized directory structure
+[2026-05-27 15:16:36] [INFO] Running quick test with 16-point FFT
+[2026-05-27 15:16:36] [INFO] Setting up Verilog source files
+[2026-05-27 15:16:36] [INFO] 
+============================================================
+[2026-05-27 15:16:36] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 15:16:36] [INFO] ============================================================
+
+[2026-05-27 15:16:36] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 15:16:36] [INFO] NSGA-II Configuration:
+[2026-05-27 15:16:36] [INFO]   Population size : 6
+[2026-05-27 15:16:36] [INFO]   Generations     : 3
+[2026-05-27 15:16:36] [INFO]   Crossover rate  : 0.9
+[2026-05-27 15:16:36] [INFO]   Mutation rate   : 0.05
+[2026-05-27 15:16:36] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 15:16:36] [INFO]   Parallel threads: 1
+[2026-05-27 15:16:36] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 15:16:36] [GEN] === Generation 0 ===
+[2026-05-27 15:16:36] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 15:16:36] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 15:21:39] [INFO] Initialized directory structure
+[2026-05-27 15:21:39] [INFO] Running quick test with 16-point FFT
+[2026-05-27 15:21:39] [INFO] Setting up Verilog source files
+[2026-05-27 15:21:39] [INFO] 
+============================================================
+[2026-05-27 15:21:39] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 15:21:39] [INFO] ============================================================
+
+[2026-05-27 15:21:39] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 15:21:39] [INFO] NSGA-II Configuration:
+[2026-05-27 15:21:39] [INFO]   Population size : 6
+[2026-05-27 15:21:39] [INFO]   Generations     : 3
+[2026-05-27 15:21:39] [INFO]   Crossover rate  : 0.9
+[2026-05-27 15:21:39] [INFO]   Mutation rate   : 0.05
+[2026-05-27 15:21:39] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 15:21:39] [INFO]   Parallel threads: 1
+[2026-05-27 15:21:39] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 15:21:39] [GEN] === Generation 0 ===
+[2026-05-27 15:21:39] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 15:21:39] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 15:22:03] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 15:22:03] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 15:22:03] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 15:22:03] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 15:32:56] [INFO] Initialized directory structure
+[2026-05-27 15:32:57] [INFO] Running quick test with 16-point FFT
+[2026-05-27 15:32:57] [INFO] Setting up Verilog source files
+[2026-05-27 15:32:57] [INFO] 
+============================================================
+[2026-05-27 15:32:57] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 15:32:57] [INFO] ============================================================
+
+[2026-05-27 15:32:57] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 15:32:57] [INFO] NSGA-II Configuration:
+[2026-05-27 15:32:57] [INFO]   Population size : 6
+[2026-05-27 15:32:57] [INFO]   Generations     : 3
+[2026-05-27 15:32:57] [INFO]   Crossover rate  : 0.9
+[2026-05-27 15:32:57] [INFO]   Mutation rate   : 0.05
+[2026-05-27 15:32:57] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 15:32:57] [INFO]   Parallel threads: 1
+[2026-05-27 15:32:57] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 15:32:57] [GEN] === Generation 0 ===
+[2026-05-27 15:32:57] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 15:32:57] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 15:33:26] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 15:33:26] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 15:33:26] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 15:33:26] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 17:39:05] [INFO] Initialized directory structure
+[2026-05-27 17:39:05] [INFO] Running quick test with 16-point FFT
+[2026-05-27 17:39:05] [INFO] Setting up Verilog source files
+[2026-05-27 17:39:05] [INFO] 
+============================================================
+[2026-05-27 17:39:05] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 17:39:05] [INFO] ============================================================
+
+[2026-05-27 17:39:05] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 17:39:05] [INFO] NSGA-II Configuration:
+[2026-05-27 17:39:05] [INFO]   Population size : 6
+[2026-05-27 17:39:05] [INFO]   Generations     : 3
+[2026-05-27 17:39:05] [INFO]   Crossover rate  : 0.9
+[2026-05-27 17:39:05] [INFO]   Mutation rate   : 0.05
+[2026-05-27 17:39:05] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 17:39:05] [INFO]   Parallel threads: 1
+[2026-05-27 17:39:05] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 17:39:05] [GEN] === Generation 0 ===
+[2026-05-27 17:39:05] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 17:39:05] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 17:39:34] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:39:34] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:39:34] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 17:39:34] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 17:40:40] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:40:40] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:40:40] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 17:40:40] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 17:42:46] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:42:46] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:42:46] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 17:42:46] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 17:44:51] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:44:51] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:44:51] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 17:44:51] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 17:45:38] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:45:38] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:45:38] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 17:45:38] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 17:46:28] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:46:28] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:46:28] [INFO] Generation 0 complete
+[2026-05-27 17:46:28] [GEN] === Generation 1 ===
+[2026-05-27 17:46:28] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 17:46:28] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-27 17:47:34] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:47:34] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:47:34] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 17:47:34] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-27 17:48:41] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:48:41] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:48:41] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 17:48:41] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-27 17:50:43] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:50:43] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:50:43] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 17:50:43] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-27 17:52:11] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:52:11] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:52:11] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 17:52:11] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-27 17:53:38] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:53:38] [INFO] Solution 4: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:53:38] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 17:53:38] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-27 17:55:05] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:55:05] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:55:05] [INFO] Generation 1 complete
+[2026-05-27 17:55:05] [GEN] === Generation 2 ===
+[2026-05-27 17:55:05] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 17:55:05] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-27 17:56:32] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:56:32] [INFO] Solution 0: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:56:32] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 17:56:32] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-27 17:58:33] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:58:33] [INFO] Solution 1: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:58:33] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0)]
+[2026-05-27 17:58:33] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-27 17:59:59] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 17:59:59] [INFO] Solution 2: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 17:59:59] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 17:59:59] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-27 18:01:05] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 18:01:05] [INFO] Solution 3: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 18:01:05] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 18:01:05] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-27 18:01:05] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-27 18:02:39] [INFO] Genus metrics parsed — Power=1000.000mW  Area=400000.0µm²  CritDelay=200.000ns
+[2026-05-27 18:02:39] [INFO] Solution 5: P=1000.000mW, A=400000.0µm², CritDelay=200.000ns → NormLat=10.000x
+[2026-05-27 18:02:39] [INFO] Generation 2 complete
+[2026-05-27 18:02:39] [INFO] Optimisation complete for 8-point FFT
+[2026-05-27 18:02:39] [INFO] Saving optimization results...
+[2026-05-27 18:02:39] [WARN] WARNING: No feasible solutions — saving least-infeasible fallback.
+[2026-05-27 18:02:39] [INFO] Summary saved → ./results/fft_8/summary.txt
+[2026-05-27 18:02:39] [INFO] Solution CSV saved → ./results/fft_8/all_solutions_fft8.csv  (6 rows)
+[2026-05-27 18:02:40] [INFO] 2-D Pareto plot (3 panels) saved → ./results/fft_8/pareto_2d_fft8.png
+[2026-05-27 18:02:40] [INFO] Latency dashboard saved → ./results/fft_8/pareto_latency_fft8.png
+[2026-05-27 18:02:40] [INFO] All-generations CSV saved → ./results/fft_8/all_generations_fft8.csv  (17 solutions)
+[2026-05-27 18:02:40] [INFO] Compressed 17 solution log(s) → ./results/fft_8/solution_logs_fft8.zip (17 deleted)
+[2026-05-27 18:02:40] [INFO] RTL zip: 34 file(s) → ./results/fft_8/rtl_fft8.zip (originals deleted)
+[2026-05-27 18:02:40] [INFO] Results saved to ./results/fft_8  (Fallback front: 6 solutions)
+[2026-05-27 18:02:40] [INFO] Quick test complete
+[2026-05-27 19:06:40] [INFO] Initialized directory structure
+[2026-05-27 19:06:40] [INFO] Running quick test with 16-point FFT
+[2026-05-27 19:06:40] [INFO] Setting up Verilog source files
+[2026-05-27 19:06:40] [INFO] 
+============================================================
+[2026-05-27 19:06:40] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 19:06:40] [INFO] ============================================================
+
+[2026-05-27 19:06:40] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 19:06:40] [INFO] NSGA-II Configuration:
+[2026-05-27 19:06:40] [INFO]   Population size : 6
+[2026-05-27 19:06:40] [INFO]   Generations     : 3
+[2026-05-27 19:06:40] [INFO]   Crossover rate  : 0.9
+[2026-05-27 19:06:40] [INFO]   Mutation rate   : 0.05
+[2026-05-27 19:06:40] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 19:06:40] [INFO]   Parallel threads: 1
+[2026-05-27 19:06:40] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 19:06:40] [GEN] === Generation 0 ===
+[2026-05-27 19:06:40] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 19:06:40] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 19:07:10] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 19:07:10] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 19:07:10] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 19:07:10] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 19:08:15] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 19:08:15] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 19:08:15] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 19:08:15] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 19:10:18] [INFO] Genus metrics parsed — Power=0.754mW  Area=4275.3µm²  CritDelay=2.576ns
+[2026-05-27 19:10:18] [INFO] Solution 2: P=0.754mW, A=4275.3µm², CritDelay=2.576ns → NormLat=0.859x
+[2026-05-27 19:10:18] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 19:10:18] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 19:12:22] [INFO] Genus metrics parsed — Power=0.752mW  Area=4277.4µm²  CritDelay=2.554ns
+[2026-05-27 19:12:22] [INFO] Solution 3: P=0.752mW, A=4277.4µm², CritDelay=2.554ns → NormLat=0.851x
+[2026-05-27 19:12:22] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 19:12:22] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 19:13:10] [INFO] Genus metrics parsed — Power=0.448mW  Area=2754.1µm²  CritDelay=1.921ns
+[2026-05-27 19:13:10] [INFO] Solution 4: P=0.448mW, A=2754.1µm², CritDelay=1.921ns → NormLat=0.640x
+[2026-05-27 19:13:10] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 19:13:10] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 19:13:59] [INFO] Genus metrics parsed — Power=0.528mW  Area=2960.7µm²  CritDelay=1.824ns
+[2026-05-27 19:13:59] [INFO] Solution 5: P=0.528mW, A=2960.7µm², CritDelay=1.824ns → NormLat=0.608x
+[2026-05-27 19:13:59] [INFO] Generation 0 complete
+[2026-05-27 19:13:59] [GEN] === Generation 1 ===
+[2026-05-27 19:13:59] [INFO] Evaluating solution 0: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 19:13:59] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-27 19:16:41] [INFO] Genus metrics parsed — Power=0.920mW  Area=4908.0µm²  CritDelay=2.613ns
+[2026-05-27 19:16:41] [INFO] Solution 0: P=0.920mW, A=4908.0µm², CritDelay=2.613ns → NormLat=0.871x
+[2026-05-27 19:16:41] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 19:16:41] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-27 19:18:08] [INFO] Genus metrics parsed — Power=0.545mW  Area=3221.0µm²  CritDelay=1.867ns
+[2026-05-27 19:18:08] [INFO] Solution 1: P=0.545mW, A=3221.0µm², CritDelay=1.867ns → NormLat=0.622x
+[2026-05-27 19:18:08] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 19:18:08] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-27 19:19:34] [INFO] Genus metrics parsed — Power=0.552mW  Area=3206.2µm²  CritDelay=1.940ns
+[2026-05-27 19:19:34] [INFO] Solution 2: P=0.552mW, A=3206.2µm², CritDelay=1.940ns → NormLat=0.647x
+[2026-05-27 19:19:34] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 19:19:34] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-27 19:20:42] [INFO] Genus metrics parsed — Power=0.468mW  Area=3110.1µm²  CritDelay=2.034ns
+[2026-05-27 19:20:42] [INFO] Solution 3: P=0.468mW, A=3110.1µm², CritDelay=2.034ns → NormLat=0.678x
+[2026-05-27 19:20:42] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 19:20:42] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-27 19:23:29] [INFO] Genus metrics parsed — Power=0.895mW  Area=4934.4µm²  CritDelay=2.601ns
+[2026-05-27 19:23:29] [INFO] Solution 4: P=0.895mW, A=4934.4µm², CritDelay=2.601ns → NormLat=0.867x
+[2026-05-27 19:23:29] [INFO] Evaluating solution 5: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 19:23:29] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-27 19:26:18] [INFO] Genus metrics parsed — Power=0.896mW  Area=4895.7µm²  CritDelay=2.540ns
+[2026-05-27 19:26:18] [INFO] Solution 5: P=0.896mW, A=4895.7µm², CritDelay=2.540ns → NormLat=0.847x
+[2026-05-27 19:26:18] [INFO] Generation 1 complete
+[2026-05-27 19:26:18] [GEN] === Generation 2 ===
+[2026-05-27 19:26:18] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 19:26:18] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-27 19:27:47] [INFO] Genus metrics parsed — Power=0.724mW  Area=4201.5µm²  CritDelay=1.997ns
+[2026-05-27 19:27:47] [INFO] Solution 0: P=0.724mW, A=4201.5µm², CritDelay=1.997ns → NormLat=0.666x
+[2026-05-27 19:27:47] [INFO] Evaluating solution 1: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-27 19:27:47] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-27 19:29:16] [INFO] Genus metrics parsed — Power=0.706mW  Area=4200.1µm²  CritDelay=2.005ns
+[2026-05-27 19:29:16] [INFO] Solution 1: P=0.706mW, A=4200.1µm², CritDelay=2.005ns → NormLat=0.668x
+[2026-05-27 19:29:16] [INFO] Evaluating solution 2: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 19:29:16] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-27 19:30:23] [INFO] Genus metrics parsed — Power=0.467mW  Area=3102.6µm²  CritDelay=2.001ns
+[2026-05-27 19:30:23] [INFO] Solution 2: P=0.467mW, A=3102.6µm², CritDelay=2.001ns → NormLat=0.667x
+[2026-05-27 19:30:23] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 19:30:23] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-27 19:31:28] [INFO] Genus metrics parsed — Power=0.479mW  Area=3092.7µm²  CritDelay=2.023ns
+[2026-05-27 19:31:28] [INFO] Solution 3: P=0.479mW, A=3092.7µm², CritDelay=2.023ns → NormLat=0.674x
+[2026-05-27 19:31:28] [INFO] Evaluating solution 4: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1)]
+[2026-05-27 19:31:28] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen3
+[2026-05-27 19:33:29] [INFO] Genus metrics parsed — Power=0.799mW  Area=4491.5µm²  CritDelay=2.621ns
+[2026-05-27 19:33:29] [INFO] Solution 4: P=0.799mW, A=4491.5µm², CritDelay=2.621ns → NormLat=0.874x
+[2026-05-27 19:33:29] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 19:33:29] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-27 19:34:59] [INFO] Genus metrics parsed — Power=0.548mW  Area=3212.1µm²  CritDelay=1.902ns
+[2026-05-27 19:34:59] [INFO] Solution 5: P=0.548mW, A=3212.1µm², CritDelay=1.902ns → NormLat=0.634x
+[2026-05-27 19:34:59] [INFO] Generation 2 complete
+[2026-05-27 19:34:59] [INFO] Optimisation complete for 8-point FFT
+[2026-05-27 19:34:59] [INFO] Saving optimization results...
+[2026-05-27 19:34:59] [INFO] Summary saved → ./results/fft_8/summary.txt
+[2026-05-27 19:34:59] [INFO] Solution CSV saved → ./results/fft_8/all_solutions_fft8.csv  (6 rows)
+[2026-05-27 19:34:59] [INFO] 2-D Pareto plot (3 panels) saved → ./results/fft_8/pareto_2d_fft8.png
+[2026-05-27 19:34:59] [INFO] Latency dashboard saved → ./results/fft_8/pareto_latency_fft8.png
+[2026-05-27 19:34:59] [INFO] All-generations CSV saved → ./results/fft_8/all_generations_fft8.csv  (18 solutions)
+[2026-05-27 19:34:59] [INFO] Compressed 18 solution log(s) → ./results/fft_8/solution_logs_fft8.zip (18 deleted)
+[2026-05-27 19:34:59] [INFO] RTL zip: 36 file(s) → ./results/fft_8/rtl_fft8.zip (originals deleted)
+[2026-05-27 19:34:59] [INFO] Results saved to ./results/fft_8  (Pareto front: 1 solutions)
+[2026-05-27 19:34:59] [INFO] Quick test complete
+[2026-05-27 19:50:22] [INFO] Initialized directory structure
+[2026-05-27 19:50:22] [INFO] Running quick test with 16-point FFT
+[2026-05-27 19:50:22] [INFO] Setting up Verilog source files
+[2026-05-27 19:50:22] [INFO] 
+============================================================
+[2026-05-27 19:50:22] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 19:50:22] [INFO] ============================================================
+
+[2026-05-27 19:50:22] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 19:50:22] [INFO] NSGA-II Configuration:
+[2026-05-27 19:50:22] [INFO]   Population size : 6
+[2026-05-27 19:50:22] [INFO]   Generations     : 3
+[2026-05-27 19:50:22] [INFO]   Crossover rate  : 0.9
+[2026-05-27 19:50:22] [INFO]   Mutation rate   : 0.05
+[2026-05-27 19:50:22] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 19:50:22] [INFO]   Parallel threads: 1
+[2026-05-27 19:50:22] [INFO]   Clock target    : 1.5 ns
+[2026-05-27 19:50:22] [GEN] === Generation 0 ===
+[2026-05-27 19:50:22] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 19:50:22] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 19:51:00] [INFO] Genus metrics parsed — Power=0.591mW  Area=1996.3µm²  CritDelay=1.121ns
+[2026-05-27 19:51:00] [INFO] Solution 0: P=0.591mW, A=1996.3µm², CritDelay=1.121ns → NormLat=0.747x
+[2026-05-27 19:51:00] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 19:51:00] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 21:42:20] [INFO] Initialized directory structure
+[2026-05-27 21:42:20] [INFO] Running quick test with 16-point FFT
+[2026-05-27 21:42:20] [INFO] Setting up Verilog source files
+[2026-05-27 21:42:20] [INFO] 
+============================================================
+[2026-05-27 21:42:20] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 21:42:20] [INFO] ============================================================
+
+[2026-05-27 21:42:20] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 21:42:20] [INFO] NSGA-II Configuration:
+[2026-05-27 21:42:20] [INFO]   Population size : 6
+[2026-05-27 21:42:20] [INFO]   Generations     : 3
+[2026-05-27 21:42:20] [INFO]   Crossover rate  : 0.9
+[2026-05-27 21:42:20] [INFO]   Mutation rate   : 0.05
+[2026-05-27 21:42:20] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 21:42:20] [INFO]   Parallel threads: 4
+[2026-05-27 21:42:20] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 21:42:20] [GEN] === Generation 0 ===
+[2026-05-27 21:42:20] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:42:20] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:42:20] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 21:42:20] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:42:20] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:42:20] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 21:42:20] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 21:42:20] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 21:43:57] [INFO] Initialized directory structure
+[2026-05-27 21:43:57] [INFO] Running quick test with 16-point FFT
+[2026-05-27 21:43:57] [INFO] Setting up Verilog source files
+[2026-05-27 21:43:57] [INFO] 
+============================================================
+[2026-05-27 21:43:57] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 21:43:57] [INFO] ============================================================
+
+[2026-05-27 21:43:57] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 21:43:57] [INFO] NSGA-II Configuration:
+[2026-05-27 21:43:57] [INFO]   Population size : 6
+[2026-05-27 21:43:57] [INFO]   Generations     : 3
+[2026-05-27 21:43:57] [INFO]   Crossover rate  : 0.9
+[2026-05-27 21:43:57] [INFO]   Mutation rate   : 0.05
+[2026-05-27 21:43:57] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 21:43:57] [INFO]   Parallel threads: 4
+[2026-05-27 21:43:57] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 21:43:57] [GEN] === Generation 0 ===
+[2026-05-27 21:43:57] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:43:57] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:43:57] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:43:57] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 21:43:57] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:43:57] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 21:43:57] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 21:43:57] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 21:44:29] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 21:44:29] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 21:44:29] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 21:44:29] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 21:45:09] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 21:45:09] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 21:45:09] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 21:45:09] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 21:45:20] [INFO] Genus metrics parsed — Power=0.448mW  Area=2754.1µm²  CritDelay=1.921ns
+[2026-05-27 21:45:20] [INFO] Solution 4: P=0.448mW, A=2754.1µm², CritDelay=1.921ns → NormLat=0.640x
+[2026-05-27 21:46:01] [INFO] Genus metrics parsed — Power=0.528mW  Area=2960.7µm²  CritDelay=1.824ns
+[2026-05-27 21:46:01] [INFO] Solution 5: P=0.528mW, A=2960.7µm², CritDelay=1.824ns → NormLat=0.608x
+[2026-05-27 21:46:11] [INFO] Genus metrics parsed — Power=0.752mW  Area=4277.4µm²  CritDelay=2.554ns
+[2026-05-27 21:46:11] [INFO] Solution 3: P=0.752mW, A=4277.4µm², CritDelay=2.554ns → NormLat=0.851x
+[2026-05-27 21:46:11] [INFO] Genus metrics parsed — Power=0.754mW  Area=4275.3µm²  CritDelay=2.576ns
+[2026-05-27 21:46:11] [INFO] Solution 2: P=0.754mW, A=4275.3µm², CritDelay=2.576ns → NormLat=0.859x
+[2026-05-27 21:46:11] [INFO] Generation 0 complete
+[2026-05-27 21:46:11] [GEN] === Generation 1 ===
+[2026-05-27 21:46:11] [INFO] Evaluating solution 0: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 21:46:11] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 21:46:11] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:46:11] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 21:46:11] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-27 21:46:11] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-27 21:46:11] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-27 21:46:11] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-27 21:47:24] [INFO] Genus metrics parsed — Power=0.468mW  Area=3110.1µm²  CritDelay=2.034ns
+[2026-05-27 21:47:24] [INFO] Solution 3: P=0.468mW, A=3110.1µm², CritDelay=2.034ns → NormLat=0.678x
+[2026-05-27 21:47:24] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 21:47:24] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-27 21:47:47] [INFO] Genus metrics parsed — Power=0.552mW  Area=3206.2µm²  CritDelay=1.940ns
+[2026-05-27 21:47:47] [INFO] Solution 2: P=0.552mW, A=3206.2µm², CritDelay=1.940ns → NormLat=0.647x
+[2026-05-27 21:47:47] [INFO] Evaluating solution 5: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:47:47] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-27 21:47:47] [INFO] Genus metrics parsed — Power=0.545mW  Area=3221.0µm²  CritDelay=1.867ns
+[2026-05-27 21:47:47] [INFO] Solution 1: P=0.545mW, A=3221.0µm², CritDelay=1.867ns → NormLat=0.622x
+[2026-05-27 21:49:11] [INFO] Genus metrics parsed — Power=0.920mW  Area=4908.0µm²  CritDelay=2.613ns
+[2026-05-27 21:49:11] [INFO] Solution 0: P=0.920mW, A=4908.0µm², CritDelay=2.613ns → NormLat=0.871x
+[2026-05-27 21:50:22] [INFO] Genus metrics parsed — Power=0.895mW  Area=4934.4µm²  CritDelay=2.601ns
+[2026-05-27 21:50:22] [INFO] Solution 4: P=0.895mW, A=4934.4µm², CritDelay=2.601ns → NormLat=0.867x
+[2026-05-27 21:50:40] [INFO] Genus metrics parsed — Power=0.896mW  Area=4895.7µm²  CritDelay=2.540ns
+[2026-05-27 21:50:40] [INFO] Solution 5: P=0.896mW, A=4895.7µm², CritDelay=2.540ns → NormLat=0.847x
+[2026-05-27 21:50:40] [INFO] Generation 1 complete
+[2026-05-27 21:50:40] [GEN] === Generation 2 ===
+[2026-05-27 21:50:40] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 21:50:40] [INFO] Evaluating solution 1: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-27 21:50:40] [INFO] Evaluating solution 2: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:50:40] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 21:50:40] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-27 21:50:40] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-27 21:50:40] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-27 21:50:40] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-27 21:51:51] [INFO] Genus metrics parsed — Power=0.479mW  Area=3092.7µm²  CritDelay=2.023ns
+[2026-05-27 21:51:51] [INFO] Solution 3: P=0.479mW, A=3092.7µm², CritDelay=2.023ns → NormLat=0.674x
+[2026-05-27 21:51:51] [INFO] Evaluating solution 4: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1)]
+[2026-05-27 21:51:51] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen3
+[2026-05-27 21:51:52] [INFO] Genus metrics parsed — Power=0.467mW  Area=3102.6µm²  CritDelay=2.001ns
+[2026-05-27 21:51:52] [INFO] Solution 2: P=0.467mW, A=3102.6µm², CritDelay=2.001ns → NormLat=0.667x
+[2026-05-27 21:51:52] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 21:51:52] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-27 21:52:15] [INFO] Genus metrics parsed — Power=0.724mW  Area=4201.5µm²  CritDelay=1.997ns
+[2026-05-27 21:52:15] [INFO] Solution 0: P=0.724mW, A=4201.5µm², CritDelay=1.997ns → NormLat=0.666x
+[2026-05-27 21:52:15] [INFO] Genus metrics parsed — Power=0.706mW  Area=4200.1µm²  CritDelay=2.005ns
+[2026-05-27 21:52:15] [INFO] Solution 1: P=0.706mW, A=4200.1µm², CritDelay=2.005ns → NormLat=0.668x
+[2026-05-27 21:53:22] [INFO] Genus metrics parsed — Power=0.548mW  Area=3212.1µm²  CritDelay=1.902ns
+[2026-05-27 21:53:22] [INFO] Solution 5: P=0.548mW, A=3212.1µm², CritDelay=1.902ns → NormLat=0.634x
+[2026-05-27 21:53:54] [INFO] Genus metrics parsed — Power=0.799mW  Area=4491.5µm²  CritDelay=2.621ns
+[2026-05-27 21:53:54] [INFO] Solution 4: P=0.799mW, A=4491.5µm², CritDelay=2.621ns → NormLat=0.874x
+[2026-05-27 21:53:54] [INFO] Generation 2 complete
+[2026-05-27 21:53:54] [INFO] Optimisation complete for 8-point FFT
+[2026-05-27 21:53:54] [INFO] Saving optimization results...
+[2026-05-27 21:53:54] [INFO] Summary saved → ./results/fft_8/summary.txt
+[2026-05-27 21:53:54] [INFO] Solution CSV saved → ./results/fft_8/all_solutions_fft8.csv  (6 rows)
+[2026-05-27 21:53:54] [INFO] 2-D Pareto plot (3 panels) saved → ./results/fft_8/pareto_2d_fft8.png
+[2026-05-27 21:53:54] [INFO] Latency dashboard saved → ./results/fft_8/pareto_latency_fft8.png
+[2026-05-27 21:53:54] [INFO] All-generations CSV saved → ./results/fft_8/all_generations_fft8.csv  (18 solutions)
+[2026-05-27 21:53:54] [INFO] Compressed 18 solution log(s) → ./results/fft_8/solution_logs_fft8.zip (18 deleted)
+[2026-05-27 21:53:54] [INFO] RTL zip: 36 file(s) → ./results/fft_8/rtl_fft8.zip (originals deleted)
+[2026-05-27 21:53:54] [INFO] Results saved to ./results/fft_8  (Pareto front: 1 solutions)
+[2026-05-27 21:53:54] [INFO] Quick test complete
+[2026-05-27 21:59:45] [INFO] Initialized directory structure
+[2026-05-27 21:59:45] [INFO] Running quick test with 16-point FFT
+[2026-05-27 21:59:45] [INFO] Setting up Verilog source files
+[2026-05-27 21:59:45] [INFO] 
+============================================================
+[2026-05-27 21:59:45] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 21:59:45] [INFO] ============================================================
+
+[2026-05-27 21:59:45] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 21:59:45] [INFO] NSGA-II Configuration:
+[2026-05-27 21:59:45] [INFO]   Population size : 6
+[2026-05-27 21:59:45] [INFO]   Generations     : 3
+[2026-05-27 21:59:45] [INFO]   Crossover rate  : 0.9
+[2026-05-27 21:59:45] [INFO]   Mutation rate   : 0.05
+[2026-05-27 21:59:45] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 21:59:45] [INFO]   Parallel threads: 4
+[2026-05-27 21:59:45] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 21:59:45] [GEN] === Generation 0 ===
+[2026-05-27 21:59:45] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:59:45] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:59:45] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 21:59:45] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 21:59:45] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 21:59:45] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 21:59:45] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 21:59:45] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 22:00:18] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 22:00:18] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 22:00:18] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:00:18] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 22:00:58] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 22:00:58] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 22:00:58] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:00:58] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 22:01:08] [INFO] Genus metrics parsed — Power=0.448mW  Area=2754.1µm²  CritDelay=1.921ns
+[2026-05-27 22:01:08] [INFO] Solution 4: P=0.448mW, A=2754.1µm², CritDelay=1.921ns → NormLat=0.640x
+[2026-05-27 22:01:49] [INFO] Genus metrics parsed — Power=0.528mW  Area=2960.7µm²  CritDelay=1.824ns
+[2026-05-27 22:01:49] [INFO] Solution 5: P=0.528mW, A=2960.7µm², CritDelay=1.824ns → NormLat=0.608x
+[2026-05-27 22:01:59] [INFO] Genus metrics parsed — Power=0.752mW  Area=4277.4µm²  CritDelay=2.554ns
+[2026-05-27 22:01:59] [INFO] Solution 3: P=0.752mW, A=4277.4µm², CritDelay=2.554ns → NormLat=0.851x
+[2026-05-27 22:01:59] [INFO] Genus metrics parsed — Power=0.754mW  Area=4275.3µm²  CritDelay=2.576ns
+[2026-05-27 22:01:59] [INFO] Solution 2: P=0.754mW, A=4275.3µm², CritDelay=2.576ns → NormLat=0.859x
+[2026-05-27 22:01:59] [INFO] Generation 0 complete
+[2026-05-27 22:01:59] [GEN] === Generation 1 ===
+[2026-05-27 22:01:59] [INFO] Evaluating solution 0: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:01:59] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 22:01:59] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:01:59] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:01:59] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-27 22:01:59] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-27 22:01:59] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-27 22:01:59] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-27 22:03:10] [INFO] Genus metrics parsed — Power=0.468mW  Area=3110.1µm²  CritDelay=2.034ns
+[2026-05-27 22:03:10] [INFO] Solution 3: P=0.468mW, A=3110.1µm², CritDelay=2.034ns → NormLat=0.678x
+[2026-05-27 22:03:10] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:03:10] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-27 22:03:32] [INFO] Genus metrics parsed — Power=0.545mW  Area=3221.0µm²  CritDelay=1.867ns
+[2026-05-27 22:03:32] [INFO] Genus metrics parsed — Power=0.552mW  Area=3206.2µm²  CritDelay=1.940ns
+[2026-05-27 22:03:32] [INFO] Solution 1: P=0.545mW, A=3221.0µm², CritDelay=1.867ns → NormLat=0.622x
+[2026-05-27 22:03:32] [INFO] Evaluating solution 5: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:03:32] [INFO] Solution 2: P=0.552mW, A=3206.2µm², CritDelay=1.940ns → NormLat=0.647x
+[2026-05-27 22:03:32] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-27 22:13:45] [INFO] Initialized directory structure
+[2026-05-27 22:13:45] [INFO] Running quick test with 16-point FFT
+[2026-05-27 22:13:45] [INFO] Setting up Verilog source files
+[2026-05-27 22:13:45] [INFO] 
+============================================================
+[2026-05-27 22:13:45] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 22:13:45] [INFO] ============================================================
+
+[2026-05-27 22:13:45] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 22:13:45] [INFO] NSGA-II Configuration:
+[2026-05-27 22:13:45] [INFO]   Population size : 6
+[2026-05-27 22:13:45] [INFO]   Generations     : 3
+[2026-05-27 22:13:45] [INFO]   Crossover rate  : 0.9
+[2026-05-27 22:13:45] [INFO]   Mutation rate   : 0.05
+[2026-05-27 22:13:45] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 22:13:45] [INFO]   Parallel threads: 4
+[2026-05-27 22:13:45] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 22:13:45] [GEN] === Generation 0 ===
+[2026-05-27 22:13:45] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:13:45] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:13:45] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 22:13:45] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:13:45] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 22:13:45] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:13:45] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 22:13:45] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 22:14:22] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 22:14:22] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 22:14:22] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:14:22] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 22:15:02] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 22:15:02] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 22:15:02] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:15:02] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 22:15:13] [INFO] Genus metrics parsed — Power=0.448mW  Area=2754.1µm²  CritDelay=1.921ns
+[2026-05-27 22:15:13] [INFO] Solution 4: P=0.448mW, A=2754.1µm², CritDelay=1.921ns → NormLat=0.640x
+[2026-05-27 22:15:55] [INFO] Genus metrics parsed — Power=0.528mW  Area=2960.7µm²  CritDelay=1.824ns
+[2026-05-27 22:15:55] [INFO] Solution 5: P=0.528mW, A=2960.7µm², CritDelay=1.824ns → NormLat=0.608x
+[2026-05-27 22:15:59] [INFO] Genus metrics parsed — Power=0.754mW  Area=4275.3µm²  CritDelay=2.576ns
+[2026-05-27 22:15:59] [INFO] Genus metrics parsed — Power=0.752mW  Area=4277.4µm²  CritDelay=2.554ns
+[2026-05-27 22:15:59] [INFO] Solution 2: P=0.754mW, A=4275.3µm², CritDelay=2.576ns → NormLat=0.859x
+[2026-05-27 22:15:59] [INFO] Solution 3: P=0.752mW, A=4277.4µm², CritDelay=2.554ns → NormLat=0.851x
+[2026-05-27 22:15:59] [INFO] Generation 0 complete
+[2026-05-27 22:15:59] [GEN] === Generation 1 ===
+[2026-05-27 22:15:59] [INFO] Evaluating solution 0: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:15:59] [INFO] Evaluating solution 1: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 22:15:59] [INFO] Evaluating solution 2: [np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:15:59] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:15:59] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen2
+[2026-05-27 22:15:59] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen2
+[2026-05-27 22:15:59] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen2
+[2026-05-27 22:15:59] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen2
+[2026-05-27 22:17:10] [INFO] Genus metrics parsed — Power=0.468mW  Area=3110.1µm²  CritDelay=2.034ns
+[2026-05-27 22:17:10] [INFO] Solution 3: P=0.468mW, A=3110.1µm², CritDelay=2.034ns → NormLat=0.678x
+[2026-05-27 22:17:10] [INFO] Evaluating solution 4: [np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:17:10] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen2
+[2026-05-27 22:17:32] [INFO] Genus metrics parsed — Power=0.545mW  Area=3221.0µm²  CritDelay=1.867ns
+[2026-05-27 22:17:32] [INFO] Genus metrics parsed — Power=0.552mW  Area=3206.2µm²  CritDelay=1.940ns
+[2026-05-27 22:17:32] [INFO] Solution 1: P=0.545mW, A=3221.0µm², CritDelay=1.867ns → NormLat=0.622x
+[2026-05-27 22:17:32] [INFO] Evaluating solution 5: [np.int64(1), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:17:32] [INFO] Solution 2: P=0.552mW, A=3206.2µm², CritDelay=1.940ns → NormLat=0.647x
+[2026-05-27 22:17:32] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen2
+[2026-05-27 22:18:53] [INFO] Genus metrics parsed — Power=0.920mW  Area=4908.0µm²  CritDelay=2.613ns
+[2026-05-27 22:18:53] [INFO] Solution 0: P=0.920mW, A=4908.0µm², CritDelay=2.613ns → NormLat=0.871x
+[2026-05-27 22:20:05] [INFO] Genus metrics parsed — Power=0.895mW  Area=4934.4µm²  CritDelay=2.601ns
+[2026-05-27 22:20:05] [INFO] Solution 4: P=0.895mW, A=4934.4µm², CritDelay=2.601ns → NormLat=0.867x
+[2026-05-27 22:20:22] [INFO] Genus metrics parsed — Power=0.896mW  Area=4895.7µm²  CritDelay=2.540ns
+[2026-05-27 22:20:22] [INFO] Solution 5: P=0.896mW, A=4895.7µm², CritDelay=2.540ns → NormLat=0.847x
+[2026-05-27 22:20:22] [INFO] Generation 1 complete
+[2026-05-27 22:20:22] [GEN] === Generation 2 ===
+[2026-05-27 22:20:22] [INFO] Evaluating solution 0: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(1)]
+[2026-05-27 22:20:22] [INFO] Evaluating solution 1: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1), np.int64(0)]
+[2026-05-27 22:20:22] [INFO] Evaluating solution 3: [np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:20:22] [INFO] Evaluating solution 2: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:20:22] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen3
+[2026-05-27 22:20:22] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen3
+[2026-05-27 22:20:22] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen3
+[2026-05-27 22:20:22] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen3
+[2026-05-27 22:21:32] [INFO] Genus metrics parsed — Power=0.479mW  Area=3092.7µm²  CritDelay=2.023ns
+[2026-05-27 22:21:32] [INFO] Solution 3: P=0.479mW, A=3092.7µm², CritDelay=2.023ns → NormLat=0.674x
+[2026-05-27 22:21:32] [INFO] Evaluating solution 4: [np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(1)]
+[2026-05-27 22:21:32] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen3
+[2026-05-27 22:21:33] [INFO] Genus metrics parsed — Power=0.467mW  Area=3102.6µm²  CritDelay=2.001ns
+[2026-05-27 22:21:33] [INFO] Solution 2: P=0.467mW, A=3102.6µm², CritDelay=2.001ns → NormLat=0.667x
+[2026-05-27 22:21:33] [INFO] Evaluating solution 5: [np.int64(0), np.int64(0), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 22:21:33] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen3
+[2026-05-27 22:21:56] [INFO] Genus metrics parsed — Power=0.724mW  Area=4201.5µm²  CritDelay=1.997ns
+[2026-05-27 22:21:56] [INFO] Solution 0: P=0.724mW, A=4201.5µm², CritDelay=1.997ns → NormLat=0.666x
+[2026-05-27 22:21:56] [INFO] Genus metrics parsed — Power=0.706mW  Area=4200.1µm²  CritDelay=2.005ns
+[2026-05-27 22:21:56] [INFO] Solution 1: P=0.706mW, A=4200.1µm², CritDelay=2.005ns → NormLat=0.668x
+[2026-05-27 22:23:03] [INFO] Genus metrics parsed — Power=0.548mW  Area=3212.1µm²  CritDelay=1.902ns
+[2026-05-27 22:23:03] [INFO] Solution 5: P=0.548mW, A=3212.1µm², CritDelay=1.902ns → NormLat=0.634x
+[2026-05-27 22:23:34] [INFO] Genus metrics parsed — Power=0.799mW  Area=4491.5µm²  CritDelay=2.621ns
+[2026-05-27 22:23:34] [INFO] Solution 4: P=0.799mW, A=4491.5µm², CritDelay=2.621ns → NormLat=0.874x
+[2026-05-27 22:23:34] [INFO] Generation 2 complete
+[2026-05-27 22:23:34] [INFO] Optimisation complete for 8-point FFT
+[2026-05-27 22:23:34] [INFO] Saving optimization results...
+[2026-05-27 22:23:34] [INFO] Summary saved → ./results/fft_8/summary.txt
+[2026-05-27 22:23:34] [INFO] Solution CSV saved → ./results/fft_8/all_solutions_fft8.csv  (6 rows)
+[2026-05-27 22:23:35] [INFO] 2-D Pareto plot (3 panels) saved → ./results/fft_8/pareto_2d_fft8.png
+[2026-05-27 22:23:35] [INFO] Latency dashboard saved → ./results/fft_8/pareto_latency_fft8.png
+[2026-05-27 22:23:35] [INFO] All-generations CSV saved → ./results/fft_8/all_generations_fft8.csv  (18 solutions)
+[2026-05-27 22:23:35] [INFO] Compressed 18 solution log(s) → ./results/fft_8/solution_logs_fft8.zip (18 deleted)
+[2026-05-27 22:23:35] [INFO] RTL zip: 36 file(s) → ./results/fft_8/rtl_fft8.zip (originals deleted)
+[2026-05-27 22:23:35] [INFO] Results saved to ./results/fft_8  (Pareto front: 1 solutions)
+[2026-05-27 22:23:35] [INFO] Quick test complete
+[2026-05-27 22:48:29] [INFO] Initialized directory structure
+[2026-05-27 22:48:29] [INFO] Running quick test with 16-point FFT
+[2026-05-27 22:48:29] [INFO] Setting up Verilog source files
+[2026-05-27 22:48:29] [INFO] 
+============================================================
+[2026-05-27 22:48:29] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 22:48:29] [INFO] ============================================================
+
+[2026-05-27 22:48:29] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 22:48:29] [INFO] NSGA-II Configuration:
+[2026-05-27 22:48:29] [INFO]   Population size : 6
+[2026-05-27 22:48:29] [INFO]   Generations     : 3
+[2026-05-27 22:48:29] [INFO]   Crossover rate  : 0.9
+[2026-05-27 22:48:29] [INFO]   Mutation rate   : 0.05
+[2026-05-27 22:48:29] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 22:48:29] [INFO]   Parallel threads: 4
+[2026-05-27 22:48:29] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 22:48:29] [GEN] === Generation 0 ===
+[2026-05-27 22:48:29] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:48:29] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:48:29] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:48:29] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 22:48:29] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:48:29] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 22:48:29] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 22:48:29] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 22:51:43] [INFO] Initialized directory structure
+[2026-05-27 22:51:43] [INFO] Running quick test with 16-point FFT
+[2026-05-27 22:51:43] [INFO] Setting up Verilog source files
+[2026-05-27 22:51:43] [INFO] 
+============================================================
+[2026-05-27 22:51:43] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 22:51:43] [INFO] ============================================================
+
+[2026-05-27 22:51:43] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 22:51:43] [INFO] NSGA-II Configuration:
+[2026-05-27 22:51:43] [INFO]   Population size : 6
+[2026-05-27 22:51:43] [INFO]   Generations     : 3
+[2026-05-27 22:51:43] [INFO]   Crossover rate  : 0.9
+[2026-05-27 22:51:43] [INFO]   Mutation rate   : 0.05
+[2026-05-27 22:51:43] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 22:51:43] [INFO]   Parallel threads: 4
+[2026-05-27 22:51:43] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 22:51:43] [GEN] === Generation 0 ===
+[2026-05-27 22:51:43] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:51:43] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:51:43] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 22:51:43] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 22:51:43] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 22:51:43] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 22:51:43] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 22:51:43] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 22:52:15] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 22:52:15] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 22:52:15] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 22:52:15] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 23:07:46] [INFO] Initialized directory structure
+[2026-05-27 23:07:46] [INFO] Running quick test with 16-point FFT
+[2026-05-27 23:07:46] [INFO] Setting up Verilog source files
+[2026-05-27 23:07:46] [INFO] 
+============================================================
+[2026-05-27 23:07:46] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 23:07:46] [INFO] ============================================================
+
+[2026-05-27 23:07:46] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 23:07:46] [INFO] NSGA-II Configuration:
+[2026-05-27 23:07:46] [INFO]   Population size : 6
+[2026-05-27 23:07:46] [INFO]   Generations     : 3
+[2026-05-27 23:07:46] [INFO]   Crossover rate  : 0.9
+[2026-05-27 23:07:46] [INFO]   Mutation rate   : 0.05
+[2026-05-27 23:07:46] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 23:07:46] [INFO]   Parallel threads: 4
+[2026-05-27 23:07:46] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 23:07:46] [GEN] === Generation 0 ===
+[2026-05-27 23:07:46] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 23:07:46] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 23:07:46] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 23:07:46] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 23:07:46] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 23:07:46] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 23:07:46] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 23:07:46] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 23:08:20] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 23:08:20] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 23:08:20] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 23:08:20] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 23:08:59] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 23:08:59] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 23:08:59] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 23:08:59] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1
+[2026-05-27 23:09:11] [INFO] Genus metrics parsed — Power=0.448mW  Area=2754.1µm²  CritDelay=1.921ns
+[2026-05-27 23:09:11] [INFO] Solution 4: P=0.448mW, A=2754.1µm², CritDelay=1.921ns → NormLat=0.640x
+[2026-05-27 23:13:59] [INFO] Initialized directory structure
+[2026-05-27 23:13:59] [INFO] Running quick test with 16-point FFT
+[2026-05-27 23:13:59] [INFO] Setting up Verilog source files
+[2026-05-27 23:13:59] [INFO] 
+============================================================
+[2026-05-27 23:13:59] [INFO] Starting optimisation for 8-point FFT
+[2026-05-27 23:13:59] [INFO] ============================================================
+
+[2026-05-27 23:13:59] [INFO] Initialized FFT-8 problem — Cadence Genus ASIC synthesis for Power/Area/Delay extraction [SQNR disabled — no iverilog]
+[2026-05-27 23:13:59] [INFO] NSGA-II Configuration:
+[2026-05-27 23:13:59] [INFO]   Population size : 6
+[2026-05-27 23:13:59] [INFO]   Generations     : 3
+[2026-05-27 23:13:59] [INFO]   Crossover rate  : 0.9
+[2026-05-27 23:13:59] [INFO]   Mutation rate   : 0.05
+[2026-05-27 23:13:59] [INFO]   Objectives      : 3  (Power, Area, CritDelay)  [SQNR disabled]
+[2026-05-27 23:13:59] [INFO]   Parallel threads: 4
+[2026-05-27 23:13:59] [INFO]   Clock target    : 3.0 ns
+[2026-05-27 23:13:59] [GEN] === Generation 0 ===
+[2026-05-27 23:13:59] [INFO] Evaluating solution 1: [np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 23:13:59] [INFO] Evaluating solution 0: [np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 23:13:59] [INFO] Evaluating solution 3: [np.int64(0), np.int64(0), np.int64(1), np.int64(1), np.int64(1), np.int64(1)]
+[2026-05-27 23:13:59] [INFO] Evaluating solution 2: [np.int64(1), np.int64(1), np.int64(0), np.int64(0), np.int64(0), np.int64(0)]
+[2026-05-27 23:13:59] [INFO] Running Cadence Genus synthesis for fft_8_sol3_gen1
+[2026-05-27 23:13:59] [INFO] Running Cadence Genus synthesis for fft_8_sol1_gen1
+[2026-05-27 23:13:59] [INFO] Running Cadence Genus synthesis for fft_8_sol0_gen1
+[2026-05-27 23:13:59] [INFO] Running Cadence Genus synthesis for fft_8_sol2_gen1
+[2026-05-27 23:14:56] [INFO] Genus metrics parsed — Power=0.289mW  Area=2005.8µm²  CritDelay=1.630ns
+[2026-05-27 23:14:56] [INFO] Solution 0: P=0.289mW, A=2005.8µm², CritDelay=1.630ns → NormLat=0.543x
+[2026-05-27 23:14:56] [INFO] Evaluating solution 4: [np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0)]
+[2026-05-27 23:14:56] [INFO] Running Cadence Genus synthesis for fft_8_sol4_gen1
+[2026-05-27 23:15:44] [INFO] Genus metrics parsed — Power=0.688mW  Area=3757.2µm²  CritDelay=2.536ns
+[2026-05-27 23:15:44] [INFO] Solution 1: P=0.688mW, A=3757.2µm², CritDelay=2.536ns → NormLat=0.845x
+[2026-05-27 23:15:44] [INFO] Evaluating solution 5: [np.int64(0), np.int64(1), np.int64(0), np.int64(1), np.int64(0), np.int64(1)]
+[2026-05-27 23:15:44] [INFO] Running Cadence Genus synthesis for fft_8_sol5_gen1

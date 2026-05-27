@@ -4,11 +4,11 @@ Solution ID       : 0
 Chromosome        : [0, 0, 0, 0, 0, 0]
 
 Results (ASIC - Cadence Genus):
-  Power             : 1000.0000 mW
-  Area              : 400000.00 um2
+  Power             : 0.2888 mW
+  Area              : 2005.83 um2
   SQNR              : N/A (iverilog not available)
-  Crit Path Delay   : 200.000 ns
-  Norm Latency      : 10.0000x
+  Crit Path Delay   : 1.630 ns
+  Norm Latency      : 0.5433x
 
 Precision Stats:
   fp8_mult: 0

@@ -84,6 +84,8 @@ syn_generic
 syn_map
 syn_opt
 
+write_hdl -mapped > ${RPT_DIR}/${DESIGN_NAME}_netlist.v
+
 # -----------------------------------------------------------------------
 # 7. Write reports
 # -----------------------------------------------------------------------
@@ -92,8 +94,33 @@ report_area   > ${RPT_DIR}/${DESIGN_NAME}_area.rpt
 report_timing > ${RPT_DIR}/${DESIGN_NAME}_timing.rpt
 
 puts "Reports written to $RPT_DIR"
+
+# -----------------------------------------------------------------------
+# 8. Logical Equivalence Checking (LEC) Setup & Execution
+# -----------------------------------------------------------------------
+set LEC_DOFILE ${WORK_DIR}/${DESIGN_NAME}_lec.do
+set LEC_LOG ${RPT_DIR}/${DESIGN_NAME}_lec.log
+
+write_do_lec -golden_design RTL -revised_design ${RPT_DIR}/${DESIGN_NAME}_netlist.v > $LEC_DOFILE
+
+puts "Running Cadence Conformal LEC..."
+
+# >& redirects both stdout and stderr. 
+if {[catch {exec lec -lpgxl -nogui -dofile $LEC_DOFILE >& $LEC_LOG} result]}  {
+    puts "WARNING: LEC execution failed."
+    puts "TCL Error: $result"
+    
+    # Manually append the caught error to the log file so it isn't empty
+    set log_id [open $LEC_LOG a]
+    puts $log_id "\n--- LEC EXECUTION FAILED ---"
+    puts $log_id "Error details: $result"
+    close $log_id
+} else {
+    puts "LEC execution complete. Log written to $LEC_LOG"
+}
+
 puts "================================================================"
-puts "Genus synthesis complete: $DESIGN_NAME"
+puts "Genus synthesis and LEC complete: $DESIGN_NAME"
 puts "================================================================"
 
 exit 0
