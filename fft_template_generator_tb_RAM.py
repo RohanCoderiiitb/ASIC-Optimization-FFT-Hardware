@@ -713,7 +713,7 @@ module {top_module_name} (
         .ext_rd_addr  ({unload_addr_expr}),
         .ext_rd_data  (core_rd_data),
 
-        .ext_bank_sel (bank_sel),
+        .ext_bank_sel (load_en ? 1'b1 : bank_sel),
         
         // External RAM pass-through to Top ports
         .mem_bank_sel (mem_bank_sel),

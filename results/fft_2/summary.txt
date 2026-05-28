@@ -1,0 +1,59 @@
+Mixed-Precision FFT Optimization Results
+========================================================================
+
+FFT Size              : 2
+Population            : 6
+Generations           : 3
+Objectives            : 4  (Power, Area, SQNR, Critical-Path Delay)
+Clock target          : 3.0 ns
+ASIC process          : 40nm_Typical_1v0_25C
+
+Pareto Front Solutions: 3
+
+Timing pass rate      : 3/3 (100%)
+
+ID    Power(mW)    Area(µm²)      SQNR(dB)   NormLat    CritDelay(ns)   MeetsTiming 
+------------------------------------------------------------------------------------
+0     0.1023       745            24.46      0.5410     1.623           YES         
+1     0.4806       2246           100.00     0.7620     2.286           YES         
+2     0.3504       1665           41.48      0.5413     1.624           YES         
+
+
+Best Solutions by Objective:
+------------------------------------------------------------
+
+Best Power (min):
+  Solution ID       : 0
+  Power             : 0.1023 mW
+  Area              : 745 µm²
+  SQNR              : 24.46 dB
+  Norm Latency      : 0.5410x (clock = 3.0 ns)
+  Crit Path Delay   : 1.623 ns    ← MEETS TIMING
+  Chromosome        : [np.int64(0), np.int64(0)]
+
+Best Area (min):
+  Solution ID       : 0
+  Power             : 0.1023 mW
+  Area              : 745 µm²
+  SQNR              : 24.46 dB
+  Norm Latency      : 0.5410x (clock = 3.0 ns)
+  Crit Path Delay   : 1.623 ns    ← MEETS TIMING
+  Chromosome        : [np.int64(0), np.int64(0)]
+
+Best SQNR (max):
+  Solution ID       : 1
+  Power             : 0.4806 mW
+  Area              : 2246 µm²
+  SQNR              : 100.00 dB
+  Norm Latency      : 0.7620x (clock = 3.0 ns)
+  Crit Path Delay   : 2.286 ns    ← MEETS TIMING
+  Chromosome        : [np.int64(1), np.int64(1)]
+
+Best Crit-Path (min):
+  Solution ID       : 0
+  Power             : 0.1023 mW
+  Area              : 745 µm²
+  SQNR              : 24.46 dB
+  Norm Latency      : 0.5410x (clock = 3.0 ns)
+  Crit Path Delay   : 1.623 ns    ← MEETS TIMING
+  Chromosome        : [np.int64(0), np.int64(0)]

@@ -1,0 +1,5 @@
+generation,solution_id,fft_size,s0_mult,s0_add,power_mW,area_um2,sqnr_db,norm_latency,crit_delay_ns,meets_timing,fp4_mult_pct,fp8_mult_pct,fp4_add_pct,fp8_add_pct
+1,0,2,0,0,0.1023,745.56,24.46,0.5410,1.623,1,nan,nan,nan,nan
+1,1,2,1,1,0.4806,2246.60,100.00,0.7620,2.286,1,nan,nan,nan,nan
+1,2,2,1,0,0.2447,1298.92,24.46,0.5797,1.739,1,nan,nan,nan,nan
+1,3,2,0,1,0.3504,1665.20,41.48,0.5413,1.624,1,nan,nan,nan,nan

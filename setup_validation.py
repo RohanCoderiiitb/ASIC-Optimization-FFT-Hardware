@@ -162,16 +162,22 @@ class SetupValidator:
     # Unchanged checks
     # ------------------------------------------------------------------
     def check_simulator(self):
-        """
-        Verilog simulator check — SKIPPED.
-        SQNR evaluation via iverilog is disabled in this run;
-        only Cadence Genus is needed.
-        """
-        print("\nVerilog simulator check: SKIPPED (SQNR/iverilog disabled)")
-        self.warnings.append(
-            "iverilog / ModelSim not checked — SQNR objective is disabled"
-        )
-        return True
+        """Check for iverilog and vvp"""
+        print("\nChecking Verilog simulator (iverilog/vvp):")
+        import shutil
+        all_present = True
+        
+        for sim in ['iverilog', 'vvp']:
+            if shutil.which(sim):
+                print(f"  ✓ {sim} found")
+                self.checks_passed += 1
+            else:
+                print(f"  ✗ {sim} NOT FOUND")
+                self.errors.append(f"Simulator missing: {sim}. Please ensure Icarus Verilog is on your PATH.")
+                all_present = False
+                self.checks_failed += 1
+
+        return all_present
 
     def check_verilog_sources(self):
         """

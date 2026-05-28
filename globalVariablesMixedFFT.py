@@ -18,7 +18,7 @@ GENERATIONS = 100
 SEED = 42
 MUTATION_RATE = 0.05
 CROSSOVER_RATE = 0.9
-OBJECTIVES = 3               # Power, Area, Latency (from Genus) — SQNR removed (no iverilog)
+OBJECTIVES = 4              # Power, Area, Latency (from Genus) - SQNR (from IVerilog)
 
 CURRENT_GEN = 0
 SOLUTION_THREADS = 4
@@ -73,22 +73,18 @@ RESULTS_DIR          = './results'
 
 # ======================= Optimization Weights =======================
 WEIGHT_POWER       = 1.0
-# Area is now in µm² (hundreds–thousands) rather than LUT count (tens–hundreds),
-# so the weight is scaled down accordingly to keep objectives on comparable magnitudes.
 WEIGHT_AREA        = 1e-4
-# WEIGHT_PERFORMANCE removed — SQNR objective disabled (no iverilog)
+WEIGHT_PERFORMANCE = 100
 WEIGHT_LATENCY     = 8.0
 
 # ======================= Constraint Thresholds =======================
-# Power in milliwatts — Genus report_power returns mW.
-# 500 mW is a generous upper bound for an ASIC FFT core at 28nm; tighten as needed.
+
 MAX_POWER_MW   = 500.0
 
-# Area in µm² — calibrate against your PDK's standard-cell density.
-# 200 000 µm² ≈ a few hundred kGE at 28nm; adjust to your die-area budget.
 MAX_AREA_UM2   = 200000.0
 
-# MIN_SQNR_DB removed — SQNR objective disabled (no iverilog)
+MIN_SQNR_DB       = -15.0
+
 MAX_LATENCY_NORM = 3.0   # normalised latency ceiling (same semantics as before)
 MIN_FREQ_MHZ   = 80.0
 

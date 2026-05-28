@@ -67,7 +67,7 @@ module twiddle_factor_unified_synthesizable #(
         if (scaled_k == 11'd512) begin
             is_mid   = 1'b1;
         end else if (scaled_k > 11'd511) begin
-            rom_addr = 11'd1024 - scaled_k[9:0];
+            rom_addr = 11'd1024 - scaled_k;
             use_conj = 1'b1;
         end else begin
             rom_addr = scaled_k[9:0];
@@ -92,7 +92,7 @@ module twiddle_factor_unified_synthesizable #(
             11'd7  : rom_data = 24'h389328;
             11'd8  : rom_data = 24'h389528;
             11'd9  : rom_data = 24'h389628;
-            11'd11 : rom_data = 24'h389828;
+            11'd10 : rom_data = 24'h389828;
             11'd11 : rom_data = 24'h389928;
             11'd12 : rom_data = 24'h389928;
             11'd13 : rom_data = 24'h389A28;
