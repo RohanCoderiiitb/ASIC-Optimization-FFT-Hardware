@@ -2,171 +2,11 @@
  "filetype": "conformal-table",
  "data": [
   {
-   "Object": "/core/X_reg_reg[9]",
+   "Object": "/core/twiddle_rom/twiddle_out_reg[12]",
    "Type": "DFF",
    "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[10]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[11]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[12]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[13]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[14]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/X_reg_reg[15]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[8]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[9]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[10]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[11]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[12]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[13]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[14]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/Y_reg_reg[15]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/out_was_fp8_reg",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/X_reg_reg[8]",
-   "LEC representative": "/core/X_reg_reg[8]",
-   "User Setup phase": "+",
-   "LEC phase": "+",
-   "highlite": 0
-  },
-  {
-   "Object": "/core/twiddle_rom/twiddle_out_reg[9]",
-   "Type": "DFF",
-   "Design": "G",
-   "User Setup representative": "/core/twiddle_rom_twiddle_out_reg[8]",
-   "LEC representative": "/core/twiddle_rom/twiddle_out_reg[8]",
+   "User Setup representative": "/core/twiddle_rom_twiddle_out_reg[11]",
+   "LEC representative": "/core/twiddle_rom/twiddle_out_reg[11]",
    "User Setup phase": "+",
    "LEC phase": "+",
    "highlite": 0
@@ -175,8 +15,8 @@
    "Object": "/core/twiddle_rom/twiddle_out_reg[13]",
    "Type": "DFF",
    "Design": "G",
-   "User Setup representative": "/core/twiddle_rom_twiddle_out_reg[12]",
-   "LEC representative": "/core/twiddle_rom/twiddle_out_reg[12]",
+   "User Setup representative": "/core/twiddle_rom_twiddle_out_reg[11]",
+   "LEC representative": "/core/twiddle_rom/twiddle_out_reg[11]",
    "User Setup phase": "+",
    "LEC phase": "+",
    "highlite": 0

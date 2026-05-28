@@ -40,30 +40,14 @@
 set_system_mode setup
 vpxmode
 delete set_seq_merge
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[9] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[10] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[11] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[12] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[13] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[14] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/X_reg_reg[15] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[8] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[9] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[10] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[11] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[12] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[13] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[14] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/Y_reg_reg[15] -Golden
-set_seq_merge /core/X_reg_reg[8]  /core/out_was_fp8_reg -Golden
-set_seq_merge /core/twiddle_rom_twiddle_out_reg[8]  /core/twiddle_rom_twiddle_out_reg[9] -Golden
-set_seq_merge /core/twiddle_rom_twiddle_out_reg[12]  /core/twiddle_rom_twiddle_out_reg[13] -Golden
+set_seq_merge /core/twiddle_rom_twiddle_out_reg[11]  /core/twiddle_rom_twiddle_out_reg[12] -Golden
+set_seq_merge /core/twiddle_rom_twiddle_out_reg[11]  /core/twiddle_rom_twiddle_out_reg[13] -Golden
 tclmode
 # Root Modules
 # Comparing
 #-------------------------------------------------------------------------------
-# MODULE fft_8_sol4_gen1_top (G) INSTANCE / (G)
-# MODULE fft_8_sol4_gen1_top (R) INSTANCE / (R)
+# MODULE fft_2_sol1_gen1_top (G) INSTANCE / (G)
+# MODULE fft_2_sol1_gen1_top (R) INSTANCE / (R)
 # Wrapper size: (G) = 0  (R) = 0
 # Periphery size: (G) = 0  (R) = 0
 #-------------------------------------------------------------------------------
@@ -72,8 +56,6 @@ tclmode
 # IN (G) rst (REP)  =   (R) rst (REP) (by name)
 # IN (G) start (REP)  =   (R) start (REP) (by name)
 # IN (G) load_en (REP)  =   (R) load_en (REP) (by name)
-# IN (G) load_addr[2] (REP)  =   (R) load_addr[2] (REP) (by name)
-# IN (G) load_addr[1] (REP)  =   (R) load_addr[1] (REP) (by name)
 # IN (G) load_addr[0] (REP)  =   (R) load_addr[0] (REP) (by name)
 # IN (G) load_data[15] (REP)  =   (R) load_data[15] (REP) (by name)
 # IN (G) load_data[14] (REP)  =   (R) load_data[14] (REP) (by name)
@@ -92,8 +74,6 @@ tclmode
 # IN (G) load_data[1] (REP)  =   (R) load_data[1] (REP) (by name)
 # IN (G) load_data[0] (REP)  =   (R) load_data[0] (REP) (by name)
 # IN (G) unload_en (REP)  =   (R) unload_en (REP) (by name)
-# IN (G) unload_addr[2] (REP)  =   (R) unload_addr[2] (REP) (by name)
-# IN (G) unload_addr[1] (REP)  =   (R) unload_addr[1] (REP) (by name)
 # IN (G) unload_addr[0] (REP)  =   (R) unload_addr[0] (REP) (by name)
 # IN (G) mem_rd_data[15] (REP)  =   (R) mem_rd_data[15] (REP) (by name)
 # IN (G) mem_rd_data[14] (REP)  =   (R) mem_rd_data[14] (REP) (by name)
@@ -130,29 +110,29 @@ tclmode
 # OUT (G) unload_data[1] (REP)  =   (R) unload_data[1] (REP) (by name)
 # OUT (G) unload_data[0] (REP)  =   (R) unload_data[0] (REP) (by name)
 # OUT (G) mem_bank_sel (REP)  =   (R) mem_bank_sel (REP) (by name)
-# OUT (G) mem_rd_addr[10] (REP)  =   (R) mem_rd_addr[10] (REP) (by name)
-# OUT (G) mem_rd_addr[9] (REP)  =   (R) mem_rd_addr[9] (REP) (by name)
-# OUT (G) mem_rd_addr[8] (REP)  =   (R) mem_rd_addr[8] (REP) (by name)
-# OUT (G) mem_rd_addr[7] (REP)  =   (R) mem_rd_addr[7] (REP) (by name)
-# OUT (G) mem_rd_addr[6] (REP)  =   (R) mem_rd_addr[6] (REP) (by name)
-# OUT (G) mem_rd_addr[5] (REP)  =   (R) mem_rd_addr[5] (REP) (by name)
-# OUT (G) mem_rd_addr[4] (REP)  =   (R) mem_rd_addr[4] (REP) (by name)
-# OUT (G) mem_rd_addr[3] (REP)  =   (R) mem_rd_addr[3] (REP) (by name)
-# OUT (G) mem_rd_addr[2] (REP)  =   (R) mem_rd_addr[2] (REP) (by name)
-# OUT (G) mem_rd_addr[1] (REP)  =   (R) mem_rd_addr[1] (REP) (by name)
+# OUT (G) mem_rd_addr[10] 0(REP)  =   (R) mem_rd_addr[10] 0(REP) (by name)
+# OUT (G) mem_rd_addr[9] 0(REP)  =   (R) mem_rd_addr[9] 0(REP) (by name)
+# OUT (G) mem_rd_addr[8] 0(REP)  =   (R) mem_rd_addr[8] 0(REP) (by name)
+# OUT (G) mem_rd_addr[7] 0(REP)  =   (R) mem_rd_addr[7] 0(REP) (by name)
+# OUT (G) mem_rd_addr[6] 0(REP)  =   (R) mem_rd_addr[6] 0(REP) (by name)
+# OUT (G) mem_rd_addr[5] 0(REP)  =   (R) mem_rd_addr[5] 0(REP) (by name)
+# OUT (G) mem_rd_addr[4] 0(REP)  =   (R) mem_rd_addr[4] 0(REP) (by name)
+# OUT (G) mem_rd_addr[3] 0(REP)  =   (R) mem_rd_addr[3] 0(REP) (by name)
+# OUT (G) mem_rd_addr[2] 0(REP)  =   (R) mem_rd_addr[2] 0(REP) (by name)
+# OUT (G) mem_rd_addr[1] 0(REP)  =   (R) mem_rd_addr[1] 0(REP) (by name)
 # OUT (G) mem_rd_addr[0] (REP)  =   (R) mem_rd_addr[0] (REP) (by name)
-# OUT (G) mem_rd_prec (REP)  =   (R) mem_rd_prec (REP) (by name)
+# OUT (G) mem_rd_prec 1(REP)  =   (R) mem_rd_prec 1(REP) (by name)
 # OUT (G) mem_wr_en (REP)  =   (R) mem_wr_en (REP) (by name)
-# OUT (G) mem_wr_addr[10] (REP)  =   (R) mem_wr_addr[10] (REP) (by name)
-# OUT (G) mem_wr_addr[9] (REP)  =   (R) mem_wr_addr[9] (REP) (by name)
-# OUT (G) mem_wr_addr[8] (REP)  =   (R) mem_wr_addr[8] (REP) (by name)
-# OUT (G) mem_wr_addr[7] (REP)  =   (R) mem_wr_addr[7] (REP) (by name)
-# OUT (G) mem_wr_addr[6] (REP)  =   (R) mem_wr_addr[6] (REP) (by name)
-# OUT (G) mem_wr_addr[5] (REP)  =   (R) mem_wr_addr[5] (REP) (by name)
-# OUT (G) mem_wr_addr[4] (REP)  =   (R) mem_wr_addr[4] (REP) (by name)
-# OUT (G) mem_wr_addr[3] (REP)  =   (R) mem_wr_addr[3] (REP) (by name)
-# OUT (G) mem_wr_addr[2] (REP)  =   (R) mem_wr_addr[2] (REP) (by name)
-# OUT (G) mem_wr_addr[1] (REP)  =   (R) mem_wr_addr[1] (REP) (by name)
+# OUT (G) mem_wr_addr[10] 0(REP)  =   (R) mem_wr_addr[10] 0(REP) (by name)
+# OUT (G) mem_wr_addr[9] 0(REP)  =   (R) mem_wr_addr[9] 0(REP) (by name)
+# OUT (G) mem_wr_addr[8] 0(REP)  =   (R) mem_wr_addr[8] 0(REP) (by name)
+# OUT (G) mem_wr_addr[7] 0(REP)  =   (R) mem_wr_addr[7] 0(REP) (by name)
+# OUT (G) mem_wr_addr[6] 0(REP)  =   (R) mem_wr_addr[6] 0(REP) (by name)
+# OUT (G) mem_wr_addr[5] 0(REP)  =   (R) mem_wr_addr[5] 0(REP) (by name)
+# OUT (G) mem_wr_addr[4] 0(REP)  =   (R) mem_wr_addr[4] 0(REP) (by name)
+# OUT (G) mem_wr_addr[3] 0(REP)  =   (R) mem_wr_addr[3] 0(REP) (by name)
+# OUT (G) mem_wr_addr[2] 0(REP)  =   (R) mem_wr_addr[2] 0(REP) (by name)
+# OUT (G) mem_wr_addr[1] 0(REP)  =   (R) mem_wr_addr[1] 0(REP) (by name)
 # OUT (G) mem_wr_addr[0] (REP)  =   (R) mem_wr_addr[0] (REP) (by name)
 # OUT (G) mem_wr_data[23] (REP)  =   (R) mem_wr_data[23] (REP) (by name)
 # OUT (G) mem_wr_data[22] (REP)  =   (R) mem_wr_data[22] (REP) (by name)
@@ -178,10 +158,53 @@ tclmode
 # OUT (G) mem_wr_data[2] (REP)  =   (R) mem_wr_data[2] (REP) (by name)
 # OUT (G) mem_wr_data[1] (REP)  =   (R) mem_wr_data[1] (REP) (by name)
 # OUT (G) mem_wr_data[0] (REP)  =   (R) mem_wr_data[0] (REP) (by name)
-set_root_module fft_8_sol4_gen1_top -Golden
-set_root_module fft_8_sol4_gen1_top -Revised
+set_root_module fft_2_sol1_gen1_top -Golden
+set_root_module fft_2_sol1_gen1_top -Revised
 set_module_property -instance / -Golden
 set_module_property -instance / -Revised
+# Constraint commands 
+add_output_stuck_at 0 {mem_rd_addr[10]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[9]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[8]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[7]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[6]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[5]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[4]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[3]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[2]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[1]} -Golden -hier
+add_output_stuck_at 1 mem_rd_prec -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[10]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[9]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[8]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[7]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[6]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[5]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[4]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[3]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[2]} -Golden -hier
+add_output_stuck_at 0 {mem_wr_addr[1]} -Golden -hier
+add_output_stuck_at 0 {mem_rd_addr[10]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[9]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[8]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[7]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[6]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[5]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[4]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[3]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[2]} -Revised -hier
+add_output_stuck_at 0 {mem_rd_addr[1]} -Revised -hier
+add_output_stuck_at 1 mem_rd_prec -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[10]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[9]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[8]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[7]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[6]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[5]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[4]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[3]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[2]} -Revised -hier
+add_output_stuck_at 0 {mem_wr_addr[1]} -Revised -hier
 report_black_box -NOHidden
 set_system_mode lec
 report_design_data; report_unmapped_points -summary; report_unmapped_points -notmapped; analyze_datapath -module -verbose; eval analyze_datapath -flowgraph -verbose
@@ -199,63 +222,26 @@ report_hier_compare_result -Uncompared
 #-------------------------------------------------------------------------------
 # The following Golden modules are not written because of non-matching
 # instance names in Revised:
-# fp8_add_sub_0_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/a1) (G)
+# fp8_mul (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/m1) (G)
+# fp8_cmul (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst) (G)
+# fp8_mul_0 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/m2) (G)
+# fp8_add_sub_2_0 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/sub_inst/adder_imag) (G)
+# fp8_mul_1 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/m3) (G)
+# fft_2_sol1_gen1_core_MAX_N1024_ADDR_WIDTH11 (Instance: core) (G)
+# fp8_complex_add_sub (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/adder_inst) (G)
+# fp8_mul_2 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/m4) (G)
+# fp8_add_sub_0 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/a1) (G)
 # complex_fp8_to_fp4 (Instance: core/rd_conv_down) (G)
-# bit_reverse_MAX_N1024_WIDTH11 (Instance: br) (G)
 # twiddle_factor_unified_synthesizable_MAX_N1024_ADDR_WIDTH11 (Instance: core/twiddle_rom) (G)
-# fp4_complex_add_sub_2 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst) (G)
-# fp8_cmul (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst) (G)
-# fp8_cmul_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst) (G)
-# fp8_cmul_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst) (G)
-# fp4_add_sub_0_4 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_imag) (G)
-# fp8_add_sub_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/a1) (G)
-# fp4_add_sub_3 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_real) (G)
-# fp8_mul_3 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m1) (G)
-# fp4_add_sub_0_1 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_imag) (G)
-# fp8_mul_0_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m2) (G)
-# fp4_complex_add_sub_1 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst) (G)
-# fp8_mul_1_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m3) (G)
-# fft_8_sol4_gen1_core_MAX_N1024_ADDR_WIDTH11 (Instance: core) (G)
-# fp8_add_sub_1 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/s1) (G)
-# fp8_mul_2_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m4) (G)
-# fp8_add_sub_0_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/a1) (G)
-# butterfly_generation_unit_4add_8mul_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst) (G)
-# fp8_mul (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m1) (G)
-# fp4_add_sub_5 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_real) (G)
-# fp8_mul_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m2) (G)
-# fp4_complex_add_sub_0_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst) (G)
-# fp4_add_sub_0_3 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_imag) (G)
-# fp4_complex_add_sub (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst) (G)
-# fp4_add_sub_1 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_real) (G)
-# fp8_mul_1 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m3) (G)
-# fp8_add_sub (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/s1) (G)
-# butterfly_wrapper_MULT_PRECISION1_ADD_PRECISION0 (Instance: core/bf_st0) (G)
-# fp4_add_sub_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_imag) (G)
-# fp8_mul_2 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m4) (G)
-# fp8_mul_4 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m1) (G)
-# fp8_mul_0_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m2) (G)
-# butterfly_wrapper_MULT_PRECISION1_ADD_PRECISION0_0 (Instance: core/bf_st1) (G)
-# complex_fp8_to_fp4_0_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/conv_wb) (G)
-# fp8_add_sub_2 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/s1) (G)
-# fp8_mul_1_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m3) (G)
-# butterfly_wrapper_MULT_PRECISION1_ADD_PRECISION0_1 (Instance: core/bf_st2) (G)
-# fp4_complex_add_sub_0_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst) (G)
-# complex_fp8_to_fp4_0_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/conv_wb) (G)
-# fp8_mul_2_1 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/complex_mult_inst/m4) (G)
-# complex_fp8_to_fp4_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/conv_wb) (G)
-# fp4_add_sub_4 (Instance: core/bf_st2/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_real) (G)
-# fp4_add_sub_0_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_imag) (G)
-# fp4_add_sub (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_real) (G)
+# fp8_butterfly_generation_unit (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst) (G)
+# fp8_add_sub_1 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/adder_inst/adder_real) (G)
+# fp8_complex_add_sub_0 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/sub_inst) (G)
 # dit_fft_agu_variable_MAX_N1024_ADDR_WIDTH11 (Instance: core/agu) (G)
-# fp4_complex_add_sub_0 (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst) (G)
-# butterfly_generation_unit_4add_8mul (Instance: core/bf_st0/USE_FP8mul_FP4add.fp8mul_fp4add_inst) (G)
-# butterfly_generation_unit_4add_8mul_0 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst) (G)
+# bit_reverse_MAX_N1024_WIDTH11 (Instance: br) (G)
+# fp8_add_sub_2 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/adder_inst/adder_imag) (G)
+# fp8_add_sub (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/cmul_inst/s1) (G)
+# fp8_add_sub_1_0 (Instance: core/bf_st0/USE_PURE_FP8.fp8_butterfly_inst/sub_inst/adder_real) (G)
+# butterfly_wrapper_MULT_PRECISION1_ADD_PRECISION1 (Instance: core/bf_st0) (G)
 # complex_fp4_to_fp8 (Instance: core/rd_conv_up) (G)
-# fp4_add_sub_0_2 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/sub_inst/adder_imag) (G)
-# fp4_add_sub_2 (Instance: core/bf_st1/USE_FP8mul_FP4add.fp8mul_fp4add_inst/add_inst/adder_real) (G)
-#-------------------------------------------------------------------------------
-# The following Revised modules are not written because of non-matching
-# instance names in Golden:
-# WALLACE_CSA_DUMMY_OP_group_1024 (Instance: core_WALLACE_CSA_DUMMY_OP_groupi4246) (R)
 #-------------------------------------------------------------------------------
 # _END_OF_LEC_HIERARCHICAL_DOFILE_

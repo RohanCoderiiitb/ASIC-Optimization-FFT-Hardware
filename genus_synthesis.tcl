@@ -106,7 +106,7 @@ write_do_lec -golden_design RTL -revised_design ${RPT_DIR}/${DESIGN_NAME}_netlis
 puts "Running Cadence Conformal LEC..."
 
 # >& redirects both stdout and stderr. 
-if {[catch {exec lec -lpgxl -nogui -dofile $LEC_DOFILE >& $LEC_LOG} result]}  {
+if {[catch {exec /mnt/cadence_tools/CONFRML211/bin/lec -lpgxl -nogui -dofile $LEC_DOFILE >& $LEC_LOG} result]} {
     puts "WARNING: LEC execution failed."
     puts "TCL Error: $result"
     

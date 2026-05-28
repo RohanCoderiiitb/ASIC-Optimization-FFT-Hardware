@@ -26,7 +26,15 @@
    "highlite": 0
   },
   {
-   "Object": "/core/X_reg_reg[8]",
+   "Object": "/core/agu/curr_stage_reg[0]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/curr_stage_reg[1]",
    "Type": "DFF",
    "Design": "G",
    "User Setup constant": "0",
@@ -106,6 +114,110 @@
    "highlite": 0
   },
   {
+   "Object": "/core/agu/stride_reg[0]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "1",
+   "LEC constant": "1",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[1]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[2]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[3]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[4]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[5]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[6]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[7]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[9]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/stride_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[0]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[1]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
    "Object": "/core/twiddle_rom/twiddle_out_reg[2]",
    "Type": "DFF",
    "Design": "G",
@@ -114,7 +226,231 @@
    "highlite": 0
   },
   {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[4]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[9]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
    "Object": "/core/twiddle_rom/twiddle_out_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[0]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[1]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[2]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[3]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[4]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[5]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[6]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[7]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[9]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/butterfly_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[0]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[1]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[2]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[3]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[4]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[5]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[6]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[7]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[8]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[9]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/agu/group_reg[10]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[3]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[7]",
+   "Type": "DFF",
+   "Design": "G",
+   "User Setup constant": "0",
+   "LEC constant": "0",
+   "highlite": 0
+  },
+  {
+   "Object": "/core/twiddle_rom/twiddle_out_reg[15]",
    "Type": "DFF",
    "Design": "G",
    "User Setup constant": "0",

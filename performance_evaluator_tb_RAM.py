@@ -499,14 +499,24 @@ module tb_{design_name};
     reg [23:0] bank0 [0:1023];
     reg [23:0] bank1 [0:1023];
 
-    // Read Logic (1-cycle latency)
-    wire [23:0] active_rd_word = (mem_bank_sel) ? bank1[mem_rd_addr] : bank0[mem_rd_addr];
+    // Read Logic (2-cycle latency)
+    reg [23:0] active_rd_word_reg;
+    reg        mem_rd_prec_reg;
     always @(posedge clk) begin
-        // Output FP8 slice if rd_prec=1, else zero-padded FP4 slice
-        if (mem_rd_prec) 
-            mem_rd_data <= active_rd_word[23:8];
+        // Stage 1: Synchronous read
+        if (mem_bank_sel) 
+            active_rd_word_reg <= bank1[mem_rd_addr];
+        else              
+            active_rd_word_reg <= bank0[mem_rd_addr];
+            
+        mem_rd_prec_reg <= mem_rd_prec;
+    end
+    always @(posedge clk) begin
+        // Stage 2: Precision formatting
+        if (mem_rd_prec_reg) 
+            mem_rd_data <= active_rd_word_reg[23:8];
         else             
-            mem_rd_data <= {{{{8'h00, active_rd_word[7:0]}}}};
+            mem_rd_data <= {{8'h00, active_rd_word_reg[7:0]}};
     end
 
     // Write Logic 
