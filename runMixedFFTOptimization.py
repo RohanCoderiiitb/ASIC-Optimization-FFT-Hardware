@@ -1,6 +1,6 @@
 """
 Main Script for Mixed-Precision FFT Optimization
-Orchestrates the complete NSGA-II optimization flow with Vivado integration.
+Orchestrates the complete NSGA-II optimization flow with Yosys + OpenSTA integration.
 """
 
 import numpy as np
@@ -14,9 +14,7 @@ import math
 import matplotlib
 matplotlib.use('Agg')           # non-interactive — safe on headless servers
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-
+import matplotlib.gridspec as gridspec 
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.operators.sampling.rnd import IntegerRandomSampling
 from pymoo.termination import get_termination
@@ -27,88 +25,57 @@ from objectiveEvaluationFFT import MixedPrecisionFFTProblem
 from optimizationUtils import (
     MyCallback,
     SmartInitialSampling,
-    BlockwiseMutation,
+    StagewiseMutation,
     StagewiseCrossover,
 )
 
 
-# ---------------------------------------------------------------------------
-# Objective decoding helpers
-# ---------------------------------------------------------------------------
+def _sqnr_from_perf_obj(perf_obj_scaled):
+    perf_obj = perf_obj_scaled / WEIGHT_PERFORMANCE
+    # Apply square root to reverse the quadratic encoding
+    sqnr = SQNR_OFFSET - (math.sqrt(perf_obj) * REF_SQNR_RANGE)
+    return sqnr
 
 def _crit_delay_ns_from_norm_latency(norm_latency, fft_size):
-    """
-    Invert the normalisation applied in
-    objectiveEvaluationFFT._compute_actual_normalized_latency():
-
-        norm = crit_delay_ns / REFERENCE_CLOCK_PERIOD_NS
-        pipeline_factor = max(1.0, num_stages / 6.0)
-        return min(norm * pipeline_factor, 10.0)
-
-    Returns crit_delay_ns estimate (float).  When norm == 10.0 (clamped) the
-    returned value is a lower bound and is flagged as '>=' in display strings.
-    """
     num_stages = int(math.log2(fft_size))
     pipeline_factor = max(1.0, num_stages / 6.0)
     crit_delay = (norm_latency / pipeline_factor) * REFERENCE_CLOCK_PERIOD_NS
     return crit_delay
 
-def _sqnr_from_perf_error(perf_error):
-    """
-    Invert  perf_error = WEIGHT_PERFORMANCE / (sqnr + 1)  → SQNR (dB).
-    Returns inf when perf_error == 0.
-    """
-    raw_pe = perf_error / WEIGHT_PERFORMANCE
-    if raw_pe <= 0:
-        return float('inf')
-    return 1.0 / raw_pe - 1.0
 
 def _decode_objectives(obj_row, fft_size):
-    """Decode a raw 4-element objective vector into physical quantities."""
-    power_w      = obj_row[0] / WEIGHT_POWER
-    area_luts    = obj_row[1] / WEIGHT_AREA
+    power_mw     = (obj_row[0] / WEIGHT_POWER) * REF_POWER_MW
+    area_um2     = (obj_row[1] / WEIGHT_AREA)  * REF_AREA_UM2
+    sqnr_db      = _sqnr_from_perf_obj(obj_row[2])
+    norm_latency = (obj_row[3] / WEIGHT_LATENCY) * REF_LATENCY
     
-    # Reverse engineer SQNR from perf_error
-    perf_error   = obj_row[2] / WEIGHT_PERFORMANCE
-    sqnr_db      = (1.0 / perf_error) - 1.0 if perf_error > 0 else float('inf')
-    
-    norm_latency = obj_row[3] / WEIGHT_LATENCY
     crit_delay   = _crit_delay_ns_from_norm_latency(norm_latency, fft_size)
     meets_timing = crit_delay <= REFERENCE_CLOCK_PERIOD_NS
 
     return {
-        'power_W':       power_w,
-        'area_luts':     area_luts,
+        'power_mW':      power_mw,
+        'area_um2':      area_um2,
         'sqnr_db':       sqnr_db,
         'norm_latency':  norm_latency,
         'crit_delay_ns': crit_delay,
         'meets_timing':  meets_timing,
     }
 
-
-# ---------------------------------------------------------------------------
-# Setup helper
-# ---------------------------------------------------------------------------
-
 def setup_verilog_sources():
-    """Copy Verilog source files to the working directory."""
     log_message("Setting up Verilog source files")
     wrapper_src = '../verilog_sources/mixed_precision_wrappers.v'
     wrapper_dst = os.path.join(VERILOG_SOURCES_DIR, 'mixed_precision_wrappers.v')
+    macro_src = '../verilog_sources/sram_512x24_2rw.v'
+    macro_dst = os.path.join(VERILOG_SOURCES_DIR, 'sram_512x24_2rw.v')
     if os.path.exists(wrapper_src):
         shutil.copy(wrapper_src, wrapper_dst)
         log_message("Copied wrapper file")
+    if os.path.exists(macro_src):
+        shutil.copy(macro_src, macro_dst)
+        log_message("Copied SRAM macro file")
 
-
-# ---------------------------------------------------------------------------
-# CSV export — final population
-# ---------------------------------------------------------------------------
 
 def export_solutions_csv(result, fft_size, results_subdir):
-    """
-    Write every solution from the final population (+ Pareto front) to
-    all_solutions_fft{fft_size}.csv.
-    """
     from fft_template_generator import FFTTemplateGenerator
     num_stages = FFTTemplateGenerator(fft_size).num_stages
 
@@ -143,22 +110,34 @@ def export_solutions_csv(result, fft_size, results_subdir):
         writer = csv.writer(csvfile)
         writer.writerow(
             ['solution_id', 'fft_size'] + gene_headers +
-            ['power_W', 'area_um2', 'sqnr_db',
+            ['power_mW', 'area_um2', 'sqnr_dB',
              'norm_latency', 'crit_delay_ns', 'meets_timing',
+             'avg_exec_cycles', 'tot_sim_cycles',
              'on_pareto_front']
         )
         for idx, (x_row, f_row) in enumerate(zip(combined_X, combined_F)):
-            dec   = _decode_objectives(f_row, fft_size)
-            on_pf = int(tuple(int(v) for v in x_row) in pareto_set)
+            dec      = _decode_objectives(f_row, fft_size)
+            sqnr_val = dec['sqnr_db']
+            on_pf    = int(tuple(int(v) for v in x_row) in pareto_set)
+
+            chrom_key = ''.join(str(int(v)) for v in x_row)
+            cached    = RESULT_CACHE.get(
+                __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+            )
+            avg_exec = cached.get('avg_exec_cycles', -1)
+            tot_sim  = cached.get('tot_sim_cycles',  -1)
+
             writer.writerow(
                 [idx, fft_size] +
                 [int(v) for v in x_row] +
-                [f"{dec['power_W']:.6f}",
-                 int(dec['area_luts']),
-                 f"{dec['sqnr_db']:.2f}",
+                [f"{dec['power_mW']:.6f}",
+                 int(dec['area_um2']),
+                 f"{sqnr_val:.4f}" if not math.isinf(sqnr_val) else "inf",
                  f"{dec['norm_latency']:.4f}",
                  f"{dec['crit_delay_ns']:.3f}",
                  int(dec['meets_timing']),
+                 avg_exec,
+                 tot_sim,
                  on_pf]
             )
 
@@ -166,15 +145,7 @@ def export_solutions_csv(result, fft_size, results_subdir):
     return csv_path
 
 
-# ---------------------------------------------------------------------------
-# Solution .txt parsing → all-generations CSV
-# ---------------------------------------------------------------------------
-
 def parse_solution_txts_to_csv(fft_size, results_subdir):
-    """
-    Parse every gen{G}_sol{S}.txt file that belongs to this FFT size and
-    write all_generations_fft{N}.csv.
-    """
     import ast as _ast, re
 
     num_stages   = int(math.log2(fft_size))
@@ -204,39 +175,45 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             chrom_raw   = _field('Chromosome')
             chromosome  = _ast.literal_eval(chrom_raw) if chrom_raw else []
 
-            power_m  = re.search(r'Power\s*:\s*([\d.]+)\s*mW',   content)
-            area_m   = re.search(r'Area\s*:\s*([\d.]+)\s*um2',    content)
-            sqnr_m   = re.search(r'SQNR\s*:\s*([\d.-]+)\s*dB',    content)
+            power_m  = re.search(r'Power\s*:\s*([\d.]+)\s*mW',    content)
+            area_m   = re.search(r'Area\s*:\s*([\d.]+)\s*um2',   content)
+            sqnr_m   = re.search(r'SQNR\s*:\s*([\d.\-]+)\s*dB',  content)
             cpd_m    = re.search(r'Crit Path Delay\s*:\s*([\d.]+)\s*ns', content)
             nlat_m   = re.search(r'Norm Latency\s*:\s*([\d.]+)',  content)
+            aec_m    = re.search(r'Avg Exec Cycles\s*:\s*([-\d]+)', content)
+            tsc_m    = re.search(r'Tot Sim Cycles\s*:\s*([-\d]+)',  content)
             fp4mt_m  = re.search(r'FP4 Multipliers:\s*\d+\s*\(([\d.]+)%\)', content)
             fp8mt_m  = re.search(r'FP8 Multipliers:\s*\d+\s*\(([\d.]+)%\)', content)
             fp4ad_m  = re.search(r'FP4 Adders\s*:\s*\d+\s*\(([\d.]+)%\)',   content)
             fp8ad_m  = re.search(r'FP8 Adders\s*:\s*\d+\s*\(([\d.]+)%\)',   content)
 
             power        = float(power_m.group(1))  if power_m  else float('nan')
-            area         = float(area_m.group(1))   if area_m   else float('nan')
+            area         = float(area_m.group(1))     if area_m   else -1
             sqnr         = float(sqnr_m.group(1))   if sqnr_m   else float('nan')
             crit_delay   = float(cpd_m.group(1))    if cpd_m    else float('nan')
             norm_latency = float(nlat_m.group(1))   if nlat_m   else float('nan')
+            avg_exec     = int(aec_m.group(1))      if aec_m    else -1
+            tot_sim      = int(tsc_m.group(1))      if tsc_m    else -1
             meets_timing = int(crit_delay <= REFERENCE_CLOCK_PERIOD_NS) \
                            if not math.isnan(crit_delay) else -1
 
             rows.append({
-                'generation':   generation,
-                'solution_id':  solution_id,
-                'fft_size':     fft_size,
-                'chromosome':   chromosome,
-                'power_mW':     power,
-                'area_um2':     area,
-                'sqnr_db':      sqnr,
-                'norm_latency': norm_latency,
+                'generation':    generation,
+                'solution_id':   solution_id,
+                'fft_size':      fft_size,
+                'chromosome':    chromosome,
+                'power_mW':      power,
+                'area_um2':      area,
+                'sqnr_dB':       sqnr,
+                'norm_latency':  norm_latency,
                 'crit_delay_ns': crit_delay,
-                'meets_timing': meets_timing,
-                'fp4_mult':     float(fp4mt_m.group(1)) if fp4mt_m else float('nan'),
-                'fp8_mult':     float(fp8mt_m.group(1)) if fp8mt_m else float('nan'),
-                'fp4_add':      float(fp4ad_m.group(1)) if fp4ad_m else float('nan'),
-                'fp8_add':      float(fp8ad_m.group(1)) if fp8ad_m else float('nan'),
+                'meets_timing':  meets_timing,
+                'avg_exec_cycles': avg_exec,
+                'tot_sim_cycles':  tot_sim,
+                'fp4_mult':      float(fp4mt_m.group(1)) if fp4mt_m else float('nan'),
+                'fp8_mult':      float(fp8mt_m.group(1)) if fp8mt_m else float('nan'),
+                'fp4_add':       float(fp4ad_m.group(1)) if fp4ad_m else float('nan'),
+                'fp8_add':       float(fp8ad_m.group(1)) if fp8ad_m else float('nan'),
             })
         except Exception as e:
             log_message(f"  Could not parse {fpath}: {e}", level='WARN')
@@ -248,22 +225,26 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
         writer.writerow(
             ['generation', 'solution_id', 'fft_size'] +
             gene_headers +
-            ['power_mW', 'area_um2', 'sqnr_db',
+            ['power_mW', 'area_um2', 'sqnr_dB',
              'norm_latency', 'crit_delay_ns', 'meets_timing',
+             'avg_exec_cycles', 'tot_sim_cycles',
              'fp4_mult_pct', 'fp8_mult_pct', 'fp4_add_pct', 'fp8_add_pct']
         )
         n = num_stages * 2
         for r in rows:
             chrom = (r['chromosome'] + [0] * n)[:n]
+            sqnr_str = f"{r['sqnr_dB']:.4f}" if not math.isnan(r['sqnr_dB']) else "nan"
             writer.writerow(
                 [r['generation'], r['solution_id'], r['fft_size']] +
                 chrom +
-                [f"{r['power_mW']:.4f}",
-                 f"{r['area_um2']:.2f}",
-                 f"{r['sqnr_db']:.2f}",
+                [f"{r['power_mW']:.6f}",
+                 r['area_um2'],
+                 sqnr_str,
                  f"{r['norm_latency']:.4f}",
                  f"{r['crit_delay_ns']:.3f}",
                  r['meets_timing'],
+                 r['avg_exec_cycles'],
+                 r['tot_sim_cycles'],
                  f"{r['fp4_mult']:.1f}",
                  f"{r['fp8_mult']:.1f}",
                  f"{r['fp4_add']:.1f}",
@@ -275,10 +256,6 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
     )
     return txt_files
 
-
-# ---------------------------------------------------------------------------
-# Compression helpers
-# ---------------------------------------------------------------------------
 
 def compress_solution_txt_files(fft_size, results_subdir, txt_files):
     if not txt_files:
@@ -348,28 +325,20 @@ def compress_rtl_files(results_subdir, fft_size):
     else:
         log_message("RTL zip creation failed — cleanup skipped.", level='WARN')
 
+
 def compress_reports(results_subdir, fft_size):
-    """
-    Finds all Genus output files (reports, logs, netlists) for the current 
-    FFT size, zips them into the results directory, and deletes the originals.
-    """
     zip_path = os.path.join(results_subdir, f"reports_fft{fft_size}.zip")
     zipped_files = []
 
     with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-        # CHANGED: Match ALL files starting with fft_{fft_size}_ to catch .log and .v files too
         pattern = os.path.join(REPORTS_DIR, f"fft_{fft_size}_*")
-        
         for f in glob.glob(pattern):
-            # Ensure we only process files, just in case a subfolder gets created
             if os.path.isfile(f):
-                # Store inside the zip under a 'reports/' folder structure
                 arcname = os.path.join('reports', os.path.basename(f))
                 zf.write(f, arcname)
                 zipped_files.append(f)
 
     if os.path.exists(zip_path) and zipped_files:
-        # Clean up the original files
         for f in zipped_files:
             try:
                 os.remove(f)
@@ -384,114 +353,52 @@ def compress_reports(results_subdir, fft_size):
     else:
         log_message("Reports zip creation failed — cleanup skipped.", level='WARN')
 
-def compress_genus_work(results_subdir, fft_size):
-    """
-    Finds all Cadence Genus working directories for the current FFT size, 
-    zips their entire contents recursively, and deletes the original folders.
-    """
-    zip_path = os.path.join(results_subdir, f"genus_work_fft{fft_size}.zip")
+
+def compress_synth_work(results_subdir, fft_size):
+    zip_path = os.path.join(results_subdir, f"synth_work_fft{fft_size}.zip")
     zipped_dirs = []
 
     with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-        # Match all subdirectories for this FFT size (e.g., fft_64_sol0_gen1)
-        pattern = os.path.join(GENUS_WORK_DIR, f"fft_{fft_size}_*")
-        
+        pattern = os.path.join(SYNTH_WORK_DIR, f"fft_{fft_size}_*")
         for target_dir in glob.glob(pattern):
             if os.path.isdir(target_dir):
-                # Recursively walk through the directory to grab all internal files
                 for root, _, files in os.walk(target_dir):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        # Maintain the folder structure inside the zip
-                        arcname = os.path.relpath(file_path, GENUS_WORK_DIR)
-                        arcname = os.path.join('genus_work', arcname)
+                        arcname = os.path.relpath(file_path, SYNTH_WORK_DIR)
+                        arcname = os.path.join('synth_work', arcname)
                         zf.write(file_path, arcname)
-                
                 zipped_dirs.append(target_dir)
 
     if os.path.exists(zip_path) and zipped_dirs:
-        # Clean up the original directories using shutil.rmtree
         for d in zipped_dirs:
             try:
                 shutil.rmtree(d)
             except OSError as e:
                 log_message(f"Could not remove directory {d}: {e}", level='WARN')
-                
         log_message(
-            f"Genus work zip: {len(zipped_dirs)} directory/ies → {zip_path} "
+            f"Synth work zip: {len(zipped_dirs)} directory/ies → {zip_path} "
             f"(originals deleted)"
         )
     elif not zipped_dirs:
-        log_message(f"No genus_work directories found to zip for FFT-{fft_size}.", level='WARN')
+        log_message(f"No synth_work directories found to zip for FFT-{fft_size}.", level='WARN')
     else:
-        log_message("Genus work zip creation failed — cleanup skipped.", level='WARN')
-
-def compress_fv_work(results_subdir, fft_size):
-    """
-    Finds all Formal Verification (LEC) directories for the current FFT size, 
-    zips their entire contents recursively, and deletes the original folders.
-    """
-    zip_path = os.path.join(results_subdir, f"fv_work_fft{fft_size}.zip")
-    zipped_dirs = []
-    fv_base_dir = os.path.abspath('./fv')
-
-    with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-        # Match all subdirectories for this FFT size (e.g., fft_2_sol0_gen1_top)
-        pattern = os.path.join(fv_base_dir, f"fft_{fft_size}_*")
-        
-        for target_dir in glob.glob(pattern):
-            if os.path.isdir(target_dir):
-                # Recursively walk through the directory to grab all internal files
-                for root, _, files in os.walk(target_dir):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        # Maintain the folder structure inside the zip
-                        arcname = os.path.relpath(file_path, fv_base_dir)
-                        arcname = os.path.join('fv', arcname)
-                        zf.write(file_path, arcname)
-                
-                zipped_dirs.append(target_dir)
-
-    if os.path.exists(zip_path) and zipped_dirs:
-        # Clean up the original directories using shutil.rmtree
-        for d in zipped_dirs:
-            try:
-                shutil.rmtree(d)
-            except OSError as e:
-                log_message(f"Could not remove directory {d}: {e}", level='WARN')
-                
-        log_message(
-            f"FV work zip: {len(zipped_dirs)} directory/ies → {zip_path} "
-            f"(originals deleted)"
-        )
-    elif not zipped_dirs:
-        log_message(f"No fv directories found to zip for FFT-{fft_size}.", level='WARN')
-    else:
-        log_message("FV work zip creation failed — cleanup skipped.", level='WARN')
+        log_message("Synth work zip creation failed — cleanup skipped.", level='WARN')
 
 
-# ---------------------------------------------------------------------------
-# Pareto front visualisation 
-# ---------------------------------------------------------------------------
-
-# Consistent colour palette for the 4 objectives
 _OBJ_COLORS = {
-    'power':   '#2196F3',   # blue
-    'area':    '#FF9800',   # orange
-    'sqnr':    '#4CAF50',   # green
-    'latency': '#E91E63',   # pink/red
+    'power':   '#2196F3',   
+    'area':    '#FF9800',   
+    'sqnr':    '#4CAF50',   
+    'latency': '#E91E63',   
 }
 
-_TIMING_OK_COLOR  = '#4CAF50'   # green  — meets clock
-_TIMING_BAD_COLOR = '#E91E63'   # red    — violates clock
+_TIMING_OK_COLOR  = '#4CAF50'   
+_TIMING_BAD_COLOR = '#E91E63'   
 
 
 def _scatter_with_timing(ax, xdata, ydata, meets_timing_arr,
                          xlabel, ylabel, title, size=60):
-    """
-    Scatter helper that colours points green (meets timing) or red (violates).
-    Also overlays a small timing-legend.
-    """
     ok  = meets_timing_arr.astype(bool)
     bad = ~ok
 
@@ -514,15 +421,6 @@ def _scatter_with_timing(ax, xdata, ydata, meets_timing_arr,
 
 
 def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True):
-    """
-    Save three PNG files per FFT run:
-
-      pareto_2d_fft{N}.png      — 6-panel grid of all pairwise 2-D projections
-                                   (colour coding = timing pass/fail)
-      pareto_3d_fft{N}.png      — 3-D scatter Power × Area × SQNR,
-                                   colour-mapped by critical path delay
-      pareto_latency_fft{N}.png — dedicated 3-panel latency dashboard
-    """
     if pareto_objectives is None or len(pareto_objectives) == 0:
         log_message("No objectives to plot — Pareto plots skipped.", level='WARN')
         return
@@ -530,14 +428,14 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     obj = np.array(pareto_objectives)
     n   = len(obj)
 
-    # ── Decode all 4 objectives ──────────────────────────────────────────
-    power        = obj[:, 0] / WEIGHT_POWER
-    area         = obj[:, 1] / WEIGHT_AREA
-    perf_err     = obj[:, 2]
-    norm_latency = obj[:, 3] / WEIGHT_LATENCY
+    power        = (obj[:, 0] / WEIGHT_POWER) * REF_POWER_MW
+    area         = (obj[:, 1] / WEIGHT_AREA)  * REF_AREA_UM2
+    norm_latency = (obj[:, 3] / WEIGHT_LATENCY) * REF_LATENCY
 
-    sqnr = np.array([_sqnr_from_perf_error(pe) for pe in perf_err])
-    sqnr = np.where(np.isinf(sqnr), np.nan, sqnr)
+    perf_objs    = obj[:, 2] / WEIGHT_PERFORMANCE
+    # Apply math.sqrt(po) to reverse the quadratic encoding for the plots
+    sqnr         = np.array([SQNR_OFFSET - (math.sqrt(po) * REF_SQNR_RANGE) for po in perf_objs])
+    sqnr         = np.where(np.isinf(sqnr), np.nan, sqnr)
 
     crit_delay    = np.array([
         _crit_delay_ns_from_norm_latency(nl, fft_size) for nl in norm_latency
@@ -547,8 +445,6 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     status_label  = "Pareto Front" if feasible else "Least-Infeasible Solutions"
     pct_ok        = 100.0 * meets_timing.sum() / n
 
-    # ── Figure 1: 6-panel 2-D pairwise ──────────────────────────────────
-    # CHANGED: Updated labels to ASIC metrics (mW and µm²)
     pairs = [
         (power,        area,         "Power (mW)",         "Area (µm²)",          "Power vs Area"),
         (power,        sqnr,         "Power (mW)",         "SQNR (dB)",           "Power vs SQNR"),
@@ -569,7 +465,6 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     for ax, (xd, yd, xl, yl, title) in zip(axes.flat, pairs):
         _scatter_with_timing(ax, xd, yd, meets_timing, xl, yl, title)
 
-    # Add a shared reference line on every crit_delay axis (column 2)
     for ax in [axes[0, 2], axes[1, 2]]:
         ylo, yhi = ax.get_ylim()
         ax.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linestyle='--',
@@ -583,23 +478,20 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     plt.close(fig)
     log_message(f"2-D Pareto plot (6 panels) saved → {path_2d}")
 
-    # ── Figure 2: 3-D scatter coloured by crit path delay ───────────────
     fig3d = plt.figure(figsize=(10, 8))
     ax3d  = fig3d.add_subplot(111, projection='3d')
 
-    # Use crit_delay as colour; clamp colour scale to [0, 2×clock_period]
     clim_max = 2.0 * REFERENCE_CLOCK_PERIOD_NS
     c_vals   = np.clip(crit_delay, 0, clim_max)
 
     sc = ax3d.scatter(
         power, area, sqnr,
-        c=c_vals, cmap='RdYlGn_r',          # red = slow, green = fast
+        c=c_vals, cmap='RdYlGn_r',          
         vmin=0, vmax=clim_max,
         alpha=0.85, edgecolors='k', linewidths=0.4, s=70
     )
 
-    # CHANGED: Updated labels to ASIC metrics (mW and µm²)
-    ax3d.set_xlabel("Power (mW)",   fontsize=9, labelpad=8)
+    ax3d.set_xlabel("Power (mW)",  fontsize=9, labelpad=8)
     ax3d.set_ylabel("Area (µm²)",  fontsize=9, labelpad=8)
     ax3d.set_zlabel("SQNR (dB)",   fontsize=9, labelpad=8)
     ax3d.set_title(
@@ -622,7 +514,6 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     plt.close(fig3d)
     log_message(f"3-D Pareto plot saved → {path_3d}")
 
-    # ── Figure 3: dedicated latency dashboard ────────────────────────────
     fig_lat, axes_lat = plt.subplots(1, 3, figsize=(18, 5))
     fig_lat.suptitle(
         f"FFT-{fft_size}  |  Critical Path Delay Analysis  |  "
@@ -632,7 +523,6 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
         fontsize=12, fontweight='bold'
     )
 
-    # Panel A: histogram of critical path delay
     ax_hist = axes_lat[0]
     bins    = min(20, max(5, n // 3))
     ok_vals  = crit_delay[meets_timing.astype(bool)]
@@ -652,7 +542,6 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     ax_hist.legend(fontsize=9)
     ax_hist.grid(True, linestyle='--', alpha=0.4)
 
-    # Panel B: norm latency vs SQNR
     ax_nlat = axes_lat[1]
     _scatter_with_timing(
         ax_nlat, sqnr, norm_latency, meets_timing,
@@ -664,10 +553,9 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
                     label='Timing budget = 1.0')
     ax_nlat.legend(fontsize=8)
 
-    # Panel C: crit delay vs power (scatter sized by area)
     ax_cpd = axes_lat[2]
     area_norm = (area - area.min()) / (area.max() - area.min() + 1e-9)
-    sizes_cpd = 30 + 200 * area_norm        # bubble area proportional to cell area (µm²)
+    sizes_cpd = 30 + 200 * area_norm        
 
     sc_cpd = ax_cpd.scatter(
         power, crit_delay,
@@ -677,16 +565,13 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     ax_cpd.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy',
                    linestyle='--', linewidth=1.5,
                    label=f'Target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
-    
-    # CHANGED: Updated label to ASIC metric (mW)
-    ax_cpd.set_xlabel("Power (mW)",               fontsize=10)
+    ax_cpd.set_xlabel("Power (mW)",             fontsize=10)
     ax_cpd.set_ylabel("Critical Path Delay (ns)", fontsize=10)
-    ax_cpd.set_title("Crit Delay vs Power\n(bubble size ∝ Area)",
+    ax_cpd.set_title("Crit Delay vs Power\n(bubble size proportional to Area)",
                      fontsize=11)
     ax_cpd.legend(fontsize=8)
     ax_cpd.grid(True, linestyle='--', alpha=0.4)
 
-    # Fake legend for timing colours
     from matplotlib.lines import Line2D
     legend_handles = [
         Line2D([0], [0], marker='o', color='w',
@@ -705,28 +590,12 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     log_message(f"Latency dashboard saved → {path_lat}")
 
 
-# ---------------------------------------------------------------------------
-# Per-FFT-size results saving
-# ---------------------------------------------------------------------------
-
 def save_optimization_results(result, callback, fft_size):
-    """
-    Persist all artefacts for one FFT run:
-      • pareto_objectives.npy / pareto_solutions.npy
-      • fitness_history.npz
-      • summary.txt                         ← latency column + Best Latency section
-      • all_solutions_fft{N}.csv            ← norm_latency + crit_delay_ns columns
-      • pareto_2d_fft{N}.png               ← 6-panel pairwise (timing-colour-coded)
-      • pareto_latency_fft{N}.png          ← dedicated latency dashboard
-      • solution_logs_fft{N}.zip
-      • rtl_fft{N}.zip
-    """
     log_message("Saving optimization results...")
 
     results_subdir = os.path.join(RESULTS_DIR, f"fft_{fft_size}")
     os.makedirs(results_subdir, exist_ok=True)
 
-    # ── Determine Pareto front (or least-infeasible fallback) ────────────
     pareto_objectives = result.F
     pareto_solutions  = result.X
     feasible = pareto_solutions is not None
@@ -753,7 +622,6 @@ def save_optimization_results(result, callback, fft_size):
     np.save(os.path.join(results_subdir, 'pareto_solutions.npy'),  pareto_solutions)
     np.savez(os.path.join(results_subdir, 'fitness_history.npz'), *callback.data)
 
-    # ── Summary text ─────────────────────────────────────────────────────
     front_label  = "Pareto" if feasible else "Fallback"
     summary_file = os.path.join(results_subdir, 'summary.txt')
 
@@ -766,7 +634,7 @@ def save_optimization_results(result, callback, fft_size):
         f.write(f"Objectives            : {OBJECTIVES}  "
                 f"(Power, Area, SQNR, Critical-Path Delay)\n")
         f.write(f"Clock target          : {REFERENCE_CLOCK_PERIOD_NS:.1f} ns\n")
-        f.write(f"ASIC process          : {ASIC_PROCESS}\n\n")
+        f.write(f"ASIC Process          : {ASIC_PROCESS}\n\n")
 
         if not feasible:
             f.write("*** WARNING: No feasible solutions found. ***\n")
@@ -785,21 +653,33 @@ def save_optimization_results(result, callback, fft_size):
             f.write(f"Timing pass rate      : {n_timing_ok}/{n_sol} "
                     f"({100*n_timing_ok/n_sol:.0f}%)\n\n")
 
-            hdr = (f"{'ID':<5} {'Power(mW)':<12} {'Area(µm²)':<14} "
-                   f"{'SQNR(dB)':<10} {'NormLat':<10} {'CritDelay(ns)':<15} {'MeetsTiming':<12}")
+            hdr = (f"{'ID':<5} {'Power(mW)':<12} {'Area(µm²)':<12} "
+                   f"{'SQNR(dB)':<12} {'NormLat':<10} "
+                   f"{'CritDelay(ns)':<15} {'MeetsTiming':<13} "
+                   f"{'ExecCycles':<12} {'TotSimCycles':<12}")
             f.write(hdr + "\n")
             f.write('-' * len(hdr) + '\n')
 
             for i, d in enumerate(decoded):
-                crit_str   = f"{d['crit_delay_ns']:.3f}"
+                sqnr_str = (f"{d['sqnr_db']:.2f}"
+                            if not math.isinf(d['sqnr_db']) else "  inf")
+                crit_str = f"{d['crit_delay_ns']:.3f}"
                 if d['norm_latency'] >= 10.0:
-                    crit_str = f">={crit_str}"
+                    crit_str = f">={crit_str}"   
                 timing_str = "YES" if d['meets_timing'] else "NO "
+
+                chrom_key = ''.join(str(int(v)) for v in pareto_solutions[i])
+                cached    = RESULT_CACHE.get(
+                    __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+                )
+                avg_exec = cached.get('avg_exec_cycles', -1)
+                tot_sim  = cached.get('tot_sim_cycles',  -1)
+
                 f.write(
-                    f"{i:<5} {d['power_W']:<12.4f} {int(d['area_luts']):<14} "
-                    f"{d['sqnr_db']:<10.2f} "
-                    f"{d['norm_latency']:<10.4f} "
-                    f"{crit_str:<15} {timing_str:<12}\n"
+                    f"{i:<5} {d['power_mW']:<12.6f} {int(d['area_um2']):<12} "
+                    f"{sqnr_str:<12} {d['norm_latency']:<10.4f} "
+                    f"{crit_str:<15} {timing_str:<13} "
+                    f"{str(avg_exec):<12} {str(tot_sim):<12}\n"
                 )
 
             obj_arr = np.array(pareto_objectives)
@@ -807,44 +687,47 @@ def save_optimization_results(result, callback, fft_size):
             f.write('-' * 60 + '\n')
 
             best_specs = [
-                ("Best Power (min)",       0, "power_W",      "mW"),
-                ("Best Area (min)",        1, "area_luts",    "µm²"),
-                ("Best SQNR (max)",        2, "sqnr_db",      "dB"),
+                ("Best Power (min)",       0, "power_mW",     "mW"),
+                ("Best Area (min)",        1, "area_um2",     "µm²"),
+                ("Best SQNR (max perf)",   2, "sqnr_db",      "dB"),
                 ("Best Crit-Path (min)",   3, "norm_latency", "norm"),
             ]
 
             for label, col, key, unit in best_specs:
                 idx = int(np.argmin(obj_arr[:, col]))
                 d   = decoded[idx]
+
+                chrom_key = ''.join(str(int(v)) for v in pareto_solutions[idx])
+                cached    = RESULT_CACHE.get(
+                    __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+                )
+                avg_exec = cached.get('avg_exec_cycles', -1)
+                tot_sim  = cached.get('tot_sim_cycles',  -1)
+
                 f.write(f"\n{label}:\n")
                 f.write(f"  Solution ID       : {idx}\n")
-                f.write(f"  Power             : {d['power_W']:.4f} mW\n")
-                f.write(f"  Area              : {int(d['area_luts'])} µm²\n")
-                f.write(f"  SQNR              : {d['sqnr_db']:.2f} dB\n")
+                f.write(f"  Power             : {d['power_mW']:.6f} mW\n")
+                f.write(f"  Area              : {int(d['area_um2'])} µm²\n")
+                sqnr_str = (f"{d['sqnr_db']:.2f} dB"
+                            if not math.isinf(d['sqnr_db']) else "inf dB")
+                f.write(f"  SQNR              : {sqnr_str}\n")
                 f.write(f"  Norm Latency      : {d['norm_latency']:.4f}x "
                         f"(clock = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns)\n")
-                f.write(f"  Crit Path Delay   : {d['crit_delay_ns']:.3f} ns")
-                f.write(f"  {'  ← MEETS TIMING' if d['meets_timing'] else '  ← VIOLATES TIMING'}\n")
-                f.write(f"  Chromosome        : {list(pareto_solutions[idx])}\n")
+                f.write(f"  Crit Path Delay   : {d['crit_delay_ns']:.3f} ns"
+                        f"  {'  <- MEETS TIMING' if d['meets_timing'] else '  <- VIOLATES TIMING'}\n")
+                f.write(f"  Avg Exec Cycles   : {avg_exec}\n")
+                f.write(f"  Tot Sim Cycles    : {tot_sim}\n")
+                f.write(f"  Chromosome        : {[int(v) for v in pareto_solutions[idx]]}\n")
 
     log_message(f"Summary saved → {summary_file}")
 
-    # ── CSV of all evaluated solutions ────────────────────────────────────
     export_solutions_csv(result, fft_size, results_subdir)
-
-    # ── Pareto front plots (4-objective, redesigned) ──────────────────────
     plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible)
-
-    # ── Parse gen*_sol*.txt → all-generations CSV, then zip+delete them ──
     txt_files = parse_solution_txts_to_csv(fft_size, results_subdir)
     compress_solution_txt_files(fft_size, results_subdir, txt_files)
-
-    # ── Compress RTL files ────────────────────────────────────────────────
     compress_rtl_files(results_subdir, fft_size)
-
     compress_reports(results_subdir, fft_size)
-
-    compress_genus_work(results_subdir, fft_size)
+    compress_synth_work(results_subdir, fft_size)
 
     log_message(
         f"Results saved to {results_subdir}  "
@@ -852,12 +735,7 @@ def save_optimization_results(result, callback, fft_size):
     )
 
 
-# ---------------------------------------------------------------------------
-# Per-size optimisation runner
-# ---------------------------------------------------------------------------
-
 def run_optimization_for_fft_size(fft_size):
-    """Run NSGA-II optimisation for a specific FFT size; returns pymoo result."""
     import globalVariablesMixedFFT
     globalVariablesMixedFFT.CURRENT_FFT_SIZE = fft_size
 
@@ -872,7 +750,7 @@ def run_optimization_for_fft_size(fft_size):
         pop_size=POPULATION,
         sampling=SmartInitialSampling(),
         crossover=StagewiseCrossover(fft_size=fft_size, prob=CROSSOVER_RATE),
-        mutation=BlockwiseMutation(fft_size=fft_size),
+        mutation=StagewiseMutation(fft_size=fft_size),
     )
     termination = get_termination("n_gen", GENERATIONS)
 
@@ -900,24 +778,13 @@ def run_optimization_for_fft_size(fft_size):
     return result
 
 
-# ---------------------------------------------------------------------------
-# Full sweep + cross-FFT summary outputs
-# ---------------------------------------------------------------------------
-
 def generate_comprehensive_summary(all_results):
-    """
-    After the full sweep write:
-      results/comprehensive_summary.txt     ← latency range + Min Latency row
-      results/all_pareto_solutions.csv      ← norm_latency + crit_delay_ns columns
-      results/comparison_all_fft_sizes.png  ← 4-metric sweep plot
-    """
-    # ── Text summary ──────────────────────────────────────────────────────
     summary_file = os.path.join(RESULTS_DIR, 'comprehensive_summary.txt')
     with open(summary_file, 'w') as f:
         f.write("Mixed-Precision FFT Optimization — Comprehensive Summary\n")
         f.write("=" * 72 + "\n\n")
         f.write(f"Clock target: {REFERENCE_CLOCK_PERIOD_NS:.1f} ns  |  "
-                f"ASIC process: {ASIC_PROCESS}\n\n")
+                f"ASIC Process: {ASIC_PROCESS}\n\n")
 
         for fft_size, result in sorted(all_results.items()):
             f.write(f"\nFFT Size: {fft_size}\n")
@@ -935,44 +802,46 @@ def generate_comprehensive_summary(all_results):
 
             decoded = [_decode_objectives(pf[i], fft_size) for i in range(n)]
 
-            powers  = np.array([d['power_W']      for d in decoded])
-            areas   = np.array([d['area_luts']    for d in decoded])
-            sqnrs   = np.array([d['sqnr_db']      for d in decoded])
+            powers  = np.array([d['power_mW']      for d in decoded])
+            areas   = np.array([d['area_um2']     for d in decoded])
+            sqnrs   = np.array([d['sqnr_db']       for d in decoded
+                                if not math.isinf(d['sqnr_db'])])
             delays  = np.array([d['crit_delay_ns'] for d in decoded])
             n_ok    = sum(1 for d in decoded if d['meets_timing'])
 
-            f.write(f"  Power range        : {powers.min():.4f} – {powers.max():.4f} mW\n")
+            f.write(f"  Power range        : {powers.min():.6f} – {powers.max():.6f} mW\n")
             f.write(f"  Area range         : {areas.min():.0f} – {areas.max():.0f} µm²\n")
-            f.write(f"  SQNR range         : {sqnrs.min():.2f} – {sqnrs.max():.2f} dB\n")
+            if len(sqnrs):
+                f.write(f"  SQNR range         : {sqnrs.min():.2f} – {sqnrs.max():.2f} dB\n")
             f.write(f"  Crit-path range    : {delays.min():.3f} – {delays.max():.3f} ns\n")
             f.write(f"  Timing pass rate   : {n_ok}/{n} ({100*n_ok/n:.0f}%)\n")
 
     log_message(f"Comprehensive summary → {summary_file}")
 
-    # ── Combined CSV ───────────────────────────────────────────────────────
     combined_csv = os.path.join(RESULTS_DIR, 'all_pareto_solutions.csv')
     with open(combined_csv, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['fft_size', 'solution_id',
-                         'power_mW', 'area_um2', 'sqnr_db',
+                         'power_mW', 'area_um2', 'sqnr_dB',
                          'norm_latency', 'crit_delay_ns', 'meets_timing'])
         for fft_size, result in sorted(all_results.items()):
             if result is None or result.F is None:
                 continue
             for i, obj in enumerate(result.F):
                 d = _decode_objectives(obj, fft_size)
+                sqnr_str = (f"{d['sqnr_db']:.4f}"
+                            if not math.isinf(d['sqnr_db']) else "inf")
                 writer.writerow([
                     fft_size, i,
-                    f"{d['power_W']:.4f}",
-                    int(d['area_luts']),
-                    f"{d['sqnr_db']:.2f}",
+                    f"{d['power_mW']:.6f}",
+                    int(d['area_um2']),
+                    sqnr_str,
                     f"{d['norm_latency']:.4f}",
                     f"{d['crit_delay_ns']:.3f}",
                     int(d['meets_timing']),
                 ])
     log_message(f"Combined Pareto CSV → {combined_csv}")
 
-    # ── 4-metric comparison plot ───────────────────────────────────────────
     sizes      = []
     best_power, best_area, best_sqnr, best_delay = [], [], [], []
 
@@ -982,31 +851,32 @@ def generate_comprehensive_summary(all_results):
         pf      = result.F
         decoded = [_decode_objectives(pf[i], fft_size) for i in range(len(pf))]
 
-        powers = [d['power_W']       for d in decoded]
-        areas  = [d['area_luts']     for d in decoded]
-        sqnrs  = [d['sqnr_db']       for d in decoded]
-        delays = [d['crit_delay_ns'] for d in decoded]
+        powers  = [d['power_mW']      for d in decoded]
+        areas   = [d['area_um2']      for d in decoded]
+        delays  = [d['crit_delay_ns'] for d in decoded]
+        sqnrs_f = [d['sqnr_db']       for d in decoded
+                   if not math.isinf(d['sqnr_db']) and not math.isnan(d['sqnr_db'])]
 
         sizes.append(fft_size)
         best_power.append(min(powers))
         best_area.append(min(areas))
-        best_sqnr.append(max(sqnrs)) # Maximize SQNR
         best_delay.append(min(delays))
+        best_sqnr.append(max(sqnrs_f) if sqnrs_f else 0.0)
 
     if sizes:
-        fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+        fig, axes = plt.subplots(2, 2, figsize=(16, 11))
         fig.suptitle(
             "Best Achievable Metrics vs FFT Size\n"
             f"(Clock target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns  |  "
-            f"ASIC: {ASIC_PROCESS})",
+            f"ASIC Process: {ASIC_PROCESS})",
             fontsize=13, fontweight='bold'
         )
 
         metrics = [
-            (best_power, "Min Power (mW)",           _OBJ_COLORS['power'],   axes.flat[0], False),
-            (best_area,  "Min Area (µm²)",            _OBJ_COLORS['area'],    axes.flat[1], False),
-            (best_sqnr,  "Max SQNR (dB)",             _OBJ_COLORS['sqnr'],    axes.flat[2], False),
-            (best_delay, "Min Crit Path Delay (ns)",  _OBJ_COLORS['latency'], axes.flat[3], True),
+            (best_power, "Min Power (mW)",           _OBJ_COLORS['power'],   axes[0, 0], False),
+            (best_area,  "Min Area (µm²)",            _OBJ_COLORS['area'],    axes[0, 1], False),
+            (best_sqnr,  "Max SQNR (dB)",             _OBJ_COLORS['sqnr'],    axes[1, 0], False),
+            (best_delay, "Min Crit Path Delay (ns)",  _OBJ_COLORS['latency'], axes[1, 1], True),
         ]
 
         for ydata, ylabel, color, ax, add_ref in metrics:
@@ -1033,7 +903,7 @@ def generate_comprehensive_summary(all_results):
                     ha='center', fontsize=8, color=color
                 )
 
-        plt.tight_layout(rect=[0, 0, 1, 0.94])
+        plt.tight_layout()
         comp_plot = os.path.join(RESULTS_DIR, 'comparison_all_fft_sizes.png')
         fig.savefig(comp_plot, dpi=DPI, bbox_inches='tight')
         plt.close(fig)
@@ -1041,7 +911,6 @@ def generate_comprehensive_summary(all_results):
 
 
 def run_full_optimization_sweep():
-    """Run optimisation for every FFT size in FFT_SIZES (2 – 1024)."""
     log_message("\n" + "=" * 60)
     log_message("Mixed-Precision FFT Optimization Framework")
     log_message("=" * 60 + "\n")
@@ -1069,12 +938,7 @@ def run_full_optimization_sweep():
     log_message("=" * 60)
 
 
-# ---------------------------------------------------------------------------
-# Quick smoke-test
-# ---------------------------------------------------------------------------
-
 def quick_test():
-    """Quick smoke-test: 16-point FFT with reduced pop/gen."""
     log_message("Running quick test with 16-point FFT")
     setup_verilog_sources()
 
@@ -1083,22 +947,15 @@ def quick_test():
     orig_pop, orig_gen = POPULATION, GENERATIONS
     POPULATION, GENERATIONS = 6, 3
 
-    run_optimization_for_fft_size(fft_size=2)
+    run_optimization_for_fft_size(fft_size=16)
 
     POPULATION, GENERATIONS = orig_pop, orig_gen
     log_message("Quick test complete")
 
 
-# ---------------------------------------------------------------------------
-# Entry-points
-# ---------------------------------------------------------------------------
-
 def main():
-    """
-    Default entry-point: full sweep across all FFT sizes (2 → 1024).
-    """
-    #run_full_optimization_sweep()
-    quick_test()
+    #quick_test()
+    run_full_optimization_sweep()
 
 
 if __name__ == "__main__":

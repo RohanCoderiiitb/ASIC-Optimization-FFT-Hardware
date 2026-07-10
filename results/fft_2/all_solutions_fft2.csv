@@ -1,5 +1,5 @@
-solution_id,fft_size,s0_mult,s0_add,power_W,area_um2,sqnr_db,norm_latency,crit_delay_ns,meets_timing,on_pareto_front
-0,2,0,0,0.102281,745,24.46,0.5410,1.623,1,1
-1,2,0,1,0.350404,1665,41.48,0.5413,1.624,1,1
-2,2,1,0,0.244746,1298,24.46,0.5797,1.739,1,0
-3,2,1,1,0.480645,2246,100.00,0.7620,2.286,1,1
+solution_id,fft_size,s0_mult,s0_add,power_mW,area_um2,sqnr_dB,norm_latency,crit_delay_ns,meets_timing,avg_exec_cycles,tot_sim_cycles,on_pareto_front
+0,2,0,0,5.990000,209647,0.0000,0.7950,7.950,1,16,275,1
+1,2,0,1,5.930000,209775,41.4807,0.7940,7.940,1,16,275,1
+2,2,1,0,5.970000,209850,0.0000,0.7950,7.950,1,16,275,0
+3,2,1,1,5.900000,209747,0.0000,0.7940,7.940,1,16,275,1

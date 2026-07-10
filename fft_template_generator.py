@@ -1,55 +1,32 @@
 """
-Mixed-Precision FFT Template Generator
-=======================================
-Generates per-solution core + top Verilog files for a DIT radix-2 FFT.
-
-Design includes:
-  - Active-low async reset (negedge rst)
-  - Mixed-precision butterfly_wrapper (parameterised per stage)
-  - Unified 24-bit ping-pong memory  (mixed_memory_unified)
-  - Single AGU (dit_fft_agu_variable)
-  - Bit-reversal on load  (bit_reverse)
-  - Single twiddle ROM    (twiddle_factor_unified)
-  - 2-cycle memory read latency → READ_A/READ_B/WAIT_A/WAIT_B
-
-Top module wraps the core and exposes a streaming 24-bit I/O interface
-compatible with the performance evaluator testbench.
-
-Chromosome encoding (2 genes per stage):
-  gene[2*s]   → MULT_PRECISION for stage s  (0=FP4, 1=FP8)
-  gene[2*s+1] → ADD_PRECISION  for stage s  (0=FP4, 1=FP8)
+Mixed-Precision FFT Template Generator (Pipelined II=1 Edition)
+===============================================================
+Generates per-solution core + top Verilog files for a high-performance,
+fully pipelined DIT radix-2 FFT.
 """
 
 import os
 import math
 
-
 class FFTTemplateGenerator:
-    # ------------------------------------------------------------------
-    # Construction
-    # ------------------------------------------------------------------
     def __init__(self, fft_size):
         self.fft_size          = fft_size
         self.num_stages        = int(math.log2(fft_size))
-        self.addr_width        = 11          # fixed 10-bit address (matches AGU/memory)
+        self.addr_width        = 11
         self.butterflies_per_stage = fft_size // 2
         self.total_butterflies = self.butterflies_per_stage * self.num_stages
         self.chromosome_length = self.num_stages * 2
         self.MAX_N_HW          = 1024
 
-        print(f"FFTTemplateGenerator FFT-{fft_size}:")
-        print(f"  Stages            : {self.num_stages}")
-        print(f"  Butterflies/stage : {self.butterflies_per_stage}")
-        print(f"  Chromosome length : {self.chromosome_length}")
+        self.MEM_RD_LATENCY    = 1
+        self.TWIDDLE_LATENCY   = 10
+        self.BUTTERFLY_LATENCY = 0
+        self.TOTAL_PIPE_LATENCY = self.TWIDDLE_LATENCY + self.BUTTERFLY_LATENCY + 1
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
     def get_chromosome_length(self):
         return self.chromosome_length
 
     def chromosome_to_config(self, chromosome):
-        """Convert flat chromosome list to structured stage configuration."""
         config = {
             'fft_size'  : self.fft_size,
             'num_stages': self.num_stages,
@@ -71,16 +48,25 @@ class FFTTemplateGenerator:
             })
         return config
 
-    # ------------------------------------------------------------------
-    # File generation helpers
-    # ------------------------------------------------------------------~
-    def generate_verilog(self, chromosome, output_file):
-        """
-        Generate core + top into the directory of output_file.
-        Returns (core_file_path, top_file_path).
-        """
+    def analyze_chromosome_statistics(self, chromosome):
+        """Analyze the composition of the chromosome for logging."""
         config = self.chromosome_to_config(chromosome)
+        num_stages = len(config['stages'])
+        
+        fp8_mult = sum(1 for s in config['stages'] if s['mult_precision'] == 1)
+        fp4_mult = num_stages - fp8_mult
+        fp8_add  = sum(1 for s in config['stages'] if s['add_precision'] == 1)
+        fp4_add  = num_stages - fp8_add
+        
+        return {
+            "FP8 Multipliers": f"{fp8_mult} ({fp8_mult/num_stages*100:.1f}%)",
+            "FP4 Multipliers": f"{fp4_mult} ({fp4_mult/num_stages*100:.1f}%)",
+            "FP8 Adders": f"{fp8_add} ({fp8_add/num_stages*100:.1f}%)",
+            "FP4 Adders": f"{fp4_add} ({fp4_add/num_stages*100:.1f}%)",
+        }
 
+    def generate_verilog(self, chromosome, output_file):
+        config = self.chromosome_to_config(chromosome)
         out_dir = os.path.dirname(os.path.abspath(output_file))
         os.makedirs(out_dir, exist_ok=True)
 
@@ -116,42 +102,15 @@ class FFTTemplateGenerator:
         with open(top_file, 'w') as f:
             f.write(self._generate_top(config, core_module_name, top_module_name))
 
-        print(f"✓ Generated: {core_file}")
-        print(f"✓ Generated: {top_file}")
         return top_file
 
-    def analyze_chromosome_statistics(self, chromosome):
-        config   = self.chromosome_to_config(chromosome)
-        fp8_mult = sum(s['mult_precision'] for s in config['stages'])
-        fp8_add  = sum(s['add_precision']  for s in config['stages'])
-        return {
-            'fp8_mult'   : fp8_mult,
-            'fp4_mult'   : self.num_stages - fp8_mult,
-            'fp8_add'    : fp8_add,
-            'fp4_add'    : self.num_stages - fp8_add,
-            'stage_stats': [
-                {
-                    'stage'   : s['stage_num'],
-                    'fp8_mult': s['mult_precision'],
-                    'fp4_mult': 1 - s['mult_precision'],
-                    'fp8_add' : s['add_precision'],
-                    'fp4_add' : 1 - s['add_precision'],
-                }
-                for s in config['stages']
-            ],
-        }
-
-    # ==================================================================
-    # Core Verilog generator
-    # ==================================================================
     def _generate_core(self, config, core_module_name):
         n    = config['fft_size']
-        aw   = self.addr_width        # always 10
+        aw   = self.addr_width        
         ns   = config['num_stages']
         MAXn = config['MAX_N_HW']
         stages = config['stages']
 
-        # ---- stage localparams ----
         lparams_lines = []
         for s in stages:
             sn = s['stage_num']
@@ -161,23 +120,24 @@ class FFTTemplateGenerator:
                 f"    localparam STAGE{sn}_OUT_PREC  = {s['output_precision']};",
             ]
         lparams = '\n'.join(lparams_lines)
-
-        # ---- output precision of last stage (for read-back) ----
         last_out_prec = stages[-1]['output_precision']
 
-        # ---- precision mux (combinational, driven by curr_stage) ----
-        prec_cases = []
+        rd_prec_cases = []
         for s in stages:
             sn       = s['stage_num']
-            # Read precision = output precision of previous stage
-            # (stage 0 reads the loaded data which is always FP8)
-            rd_prec  = "1'b1" if sn == 0 else f"STAGE{sn-1}_OUT_PREC"
-            rd_comment = "// Input always loaded as FP8" if sn == 0 else f"// previous stage output precision"
-            prec_cases.append(
-                f"            10'd{sn}: begin\n"
+            rd_prec  = f"STAGE{sn}_ADD_PREC" if sn == 0 else f"STAGE{sn-1}_OUT_PREC"
+            rd_prec_cases.append(
+                f"            4'd{sn}: begin\n"
                 f"                cur_mult_prec = STAGE{sn}_MULT_PREC;\n"
-                f"                cur_add_prec  = STAGE{sn}_ADD_PREC;\n"
-                f"                cur_rd_prec   = {rd_prec};  {rd_comment}\n"
+                f"                cur_rd_prec   = {rd_prec};\n"
+                f"            end"
+            )
+
+        wr_prec_cases = []
+        for s in stages:
+            sn       = s['stage_num']
+            wr_prec_cases.append(
+                f"            4'd{sn}: begin\n"
                 f"                cur_wr_prec   = STAGE{sn}_OUT_PREC;\n"
                 f"            end"
             )
@@ -185,137 +145,105 @@ class FFTTemplateGenerator:
         prec_mux = (
             "    always @(*) begin\n"
             "        if (ext_reading) begin\n"
-            f"            cur_mult_prec = 1'b0;\n"
-            f"            cur_add_prec  = 1'b0;\n"
-            f"            cur_rd_prec   = 1'b{last_out_prec};  // Read FFT result at final-stage precision ({last_out_prec}=FP{'8' if last_out_prec else '4'})\n"
-            f"            cur_wr_prec   = 1'b0;\n"
+            "            cur_mult_prec = 1'b0;\n"
+            f"            cur_rd_prec   = 1'b{last_out_prec};\n"
             "        end else begin\n"
-            "            case (curr_stage)\n"
-            + '\n'.join(prec_cases) + "\n"
+            "            case (current_stage_stable)\n"
+            + '\n'.join(rd_prec_cases) + "\n"
             "                default: begin\n"
-            "                    cur_mult_prec = 1'b0; cur_add_prec = 1'b0;\n"
-            "                    cur_rd_prec = 1'b1; cur_wr_prec = 1'b0;\n"
+            "                    cur_mult_prec = 1'b0; cur_rd_prec = 1'b1;\n"
             "                end\n"
             "            endcase\n"
             "        end\n"
+            "    end\n\n"
+            "    always @(*) begin\n"
+            "        case (current_stage_stable_delayed)\n"
+            + '\n'.join(wr_prec_cases) + "\n"
+            "            default: cur_wr_prec = 1'b0;\n"
+            "        endcase\n"
             "    end"
         )
 
-        pad_bits = aw - int(math.log2(n))   # may be 0 for n==MAX_N
-
-        # ---- per-stage butterfly instantiations ----
-        bf_lines = ["    // Per-stage butterfly wrappers (precision baked in)"]
-        for s in stages:
-            sn = s['stage_num']
-            bf_lines += [
-                f"    wire [15:0] X_st{sn}, Y_st{sn};",
-                f"    wire        fp8_out_st{sn};",
-            ]
-        bf_lines.append("")
+        bf_lines = [
+            "    // SINGLE SHARED BUTTERFLY UNIT",
+            "    reg bf_mult_prec, bf_add_prec;",
+            "    always @(*) begin",
+            "        case (current_stage_stable_delayed)",
+        ]
         for s in stages:
             sn = s['stage_num']
             mp = s['mult_precision']
             ap = s['add_precision']
-            bf_lines += [
-                f"    butterfly_wrapper #(",
-                f"        .MULT_PRECISION({mp}),",
-                f"        .ADD_PRECISION ({ap})",
-                f"    ) bf_st{sn} (",
-                f"        .A            (A_24),",
-                f"        .B            (B_24),",
-                f"        .W            (twiddle),",
-                f"        .X            (X_st{sn}),",
-                f"        .Y            (Y_st{sn}),",
-                f"        .output_is_fp8(fp8_out_st{sn})",
-                f"    );",
-                "",
-            ]
-        # Mux: select active butterfly output
+            bf_lines.append(f"            4'd{sn}: begin bf_mult_prec = 1'b{mp}; bf_add_prec = 1'b{ap}; end")
+        
         bf_lines += [
-            "    // Select butterfly output for the active stage",
-            "    reg [15:0] X_bf, Y_bf;",
-            "    reg        bf_is_fp8;",
-            "    always @(*) begin",
-            "        case (curr_stage)",
-        ]
-        for s in stages:
-            sn = s['stage_num']
-            bf_lines += [
-                f"            10'd{sn}: begin X_bf = X_st{sn}; Y_bf = Y_st{sn}; bf_is_fp8 = fp8_out_st{sn}; end",
-            ]
-        bf_lines += [
-            "            default: begin X_bf = 16'h0; Y_bf = 16'h0; bf_is_fp8 = 1'b0; end",
+            "            default: begin bf_mult_prec = 1'b0; bf_add_prec = 1'b0; end",
             "        endcase",
             "    end",
+            "",
+            "    wire [15:0] X_bf, Y_bf;",
+            "    wire        bf_is_fp8;",
+            "    butterfly_wrapper shared_bf (",
+            "        .A            (A_24_aligned),",
+            "        .B            (B_24_aligned),",
+            "        .W            (twiddle),",
+            "        .mult_prec    (bf_mult_prec),",
+            "        .add_prec     (bf_add_prec),",
+            "        .X            (X_bf),",
+            "        .Y            (Y_bf),",
+            "        .output_is_fp8(bf_is_fp8)",
+            "    );"
         ]
         butterfly_block = '\n'.join(bf_lines)
 
-        # ---- 16→24 expansion for butterfly inputs ----
-        # Memory outputs 16-bit (FP8 or FP4 zero-padded).
-        # butterfly_wrapper expects 24-bit unified format:
-        #   [23:16]=FP8_real, [15:8]=FP8_imag, [7:4]=FP4_real, [3:0]=FP4_imag
         mem_expand = (
-            "    // Expand 16-bit memory read to full 24-bit unified format\n"
-            "    // [23:8] = FP8 complex, [7:0] = FP4 complex\n"
-            "    // Both slots must always be populated so any butterfly_wrapper\n"
-            "    // configuration can read the correct slice.\n"
+            "    wire [7:0]  rd_a_fp8_as_fp4, rd_b_fp8_as_fp4;\n"
+            "    complex_fp8_to_fp4 dec_a (.complex_fp8(rd_data_a_16), .complex_fp4(rd_a_fp8_as_fp4));\n"
+            "    complex_fp8_to_fp4 dec_b (.complex_fp8(rd_data_b_16), .complex_fp4(rd_b_fp8_as_fp4));\n"
             "\n"
-            "    // Cross-convert: FP8 read → downconvert to fill FP4 slot\n"
-            "    wire [7:0]  rd_fp8_as_fp4;\n"
-            "    complex_fp8_to_fp4 rd_conv_down (\n"
-            "        .complex_fp8(rd_data_16),\n"
-            "        .complex_fp4(rd_fp8_as_fp4)\n"
-            "    );\n"
+            "    wire [15:0] rd_a_fp4_as_fp8, rd_b_fp4_as_fp8;\n"
+            "    complex_fp4_to_fp8 enc_a (.complex_fp4(rd_data_a_16[7:0]), .complex_fp8(rd_a_fp4_as_fp8));\n"
+            "    complex_fp4_to_fp8 enc_b (.complex_fp4(rd_data_b_16[7:0]), .complex_fp8(rd_b_fp4_as_fp8));\n"
             "\n"
-            "    // Cross-convert: FP4 read → upconvert to fill FP8 slot\n"
-            "    wire [15:0] rd_fp4_as_fp8;\n"
-            "    complex_fp4_to_fp8 rd_conv_up (\n"
-            "        .complex_fp4(rd_data_16[7:0]),\n"
-            "        .complex_fp8(rd_fp4_as_fp8)\n"
-            "    );\n"
+            "    wire [23:0] mem_rd_a_24 = cur_rd_prec ? {rd_data_a_16, rd_a_fp8_as_fp4} : {rd_a_fp4_as_fp8, rd_data_a_16[7:0]};\n"
+            "    wire [23:0] mem_rd_b_24 = cur_rd_prec ? {rd_data_b_16, rd_b_fp8_as_fp4} : {rd_b_fp4_as_fp8, rd_data_b_16[7:0]};\n"
             "\n"
-            "    wire [23:0] mem_rd_24;\n"
-            "    assign mem_rd_24 = cur_rd_prec\n"
-            "                       ? {rd_data_16,    rd_fp8_as_fp4}   // FP8 primary + FP4 downconverted\n"
-            "                       : {rd_fp4_as_fp8, rd_data_16[7:0]};// FP8 upconverted + FP4 primary\n"
-            "\n"
-            "    reg [23:0] A_24, B_24;"
+            "    (* srl_style = \"srl\" *) reg [23:0] A_24_pipe [0:9];\n"
+            "    (* srl_style = \"srl\" *) reg [23:0] B_24_pipe [0:9];\n"
+            "    integer j;\n"
+            "    always @(posedge clk) begin\n"
+            "        A_24_pipe[0] <= mem_rd_a_24;\n"
+            "        B_24_pipe[0] <= mem_rd_b_24;\n"
+            "        for (j = 1; j < 10; j = j + 1) begin\n"
+            "            A_24_pipe[j] <= A_24_pipe[j-1];\n"
+            "            B_24_pipe[j] <= B_24_pipe[j-1];\n"
+            "        end\n"
+            "    end\n"
+            "    wire [23:0] A_24_aligned = A_24_pipe[9];\n"
+            "    wire [23:0] B_24_aligned = B_24_pipe[9];"
         )
 
-        # ---- write-back packing ----
-        # We always write 24-bit unified format.
-        # If butterfly output is FP8 (bf_is_fp8): result is in X_bf[15:0]
-        #   → pack as {X_bf[15:0], convert_to_fp4(X_bf)}
-        # If FP4: result is in X_bf[7:0]
-        #   → pack as {convert_to_fp8(X_bf[7:0]), X_bf[7:0]}
         writeback_block = (
-            "    // Write-back: always store both FP8 and FP4 slots\n"
             "    wire [7:0]  X_fp4_packed, Y_fp4_packed;\n"
             "    wire [15:0] X_fp8_packed, Y_fp8_packed;\n"
             "\n"
-            "    // FP8→FP4 converters (used when butterfly output is FP8)\n"
-            "    fp8_to_fp4_converter conv_xr (.fp8_in(X_reg[15:8]), .fp4_out(X_fp4_packed[7:4]));\n"
-            "    fp8_to_fp4_converter conv_xi (.fp8_in(X_reg[7:0]),  .fp4_out(X_fp4_packed[3:0]));\n"
-            "    fp8_to_fp4_converter conv_yr (.fp8_in(Y_reg[15:8]), .fp4_out(Y_fp4_packed[7:4]));\n"
-            "    fp8_to_fp4_converter conv_yi (.fp8_in(Y_reg[7:0]),  .fp4_out(Y_fp4_packed[3:0]));\n"
+            "    fp8_to_fp4_converter conv_xr (.fp8_in(X_bf[15:8]), .fp4_out(X_fp4_packed[7:4]));\n"
+            "    fp8_to_fp4_converter conv_xi (.fp8_in(X_bf[7:0]),  .fp4_out(X_fp4_packed[3:0]));\n"
+            "    fp8_to_fp4_converter conv_yr (.fp8_in(Y_bf[15:8]), .fp4_out(Y_fp4_packed[7:4]));\n"
+            "    fp8_to_fp4_converter conv_yi (.fp8_in(Y_bf[7:0]),  .fp4_out(Y_fp4_packed[3:0]));\n"
             "\n"
-            "    // FP4→FP8 converters (used when butterfly output is FP4)\n"
-            "    fp4_to_fp8_converter conv_xr8 (.fp4_in(X_reg[7:4]), .fp8_out(X_fp8_packed[15:8]));\n"
-            "    fp4_to_fp8_converter conv_xi8 (.fp4_in(X_reg[3:0]), .fp8_out(X_fp8_packed[7:0]));\n"
-            "    fp4_to_fp8_converter conv_yr8 (.fp4_in(Y_reg[7:4]), .fp8_out(Y_fp8_packed[15:8]));\n"
-            "    fp4_to_fp8_converter conv_yi8 (.fp4_in(Y_reg[3:0]), .fp8_out(Y_fp8_packed[7:0]));\n"
+            "    fp4_to_fp8_converter conv_xr8 (.fp4_in(X_bf[7:4]), .fp8_out(X_fp8_packed[15:8]));\n"
+            "    fp4_to_fp8_converter conv_xi8 (.fp4_in(X_bf[3:0]), .fp8_out(X_fp8_packed[7:0]));\n"
+            "    fp4_to_fp8_converter conv_yr8 (.fp4_in(Y_bf[7:4]), .fp8_out(Y_fp8_packed[15:8]));\n"
+            "    fp4_to_fp8_converter conv_yi8 (.fp4_in(Y_bf[3:0]), .fp8_out(Y_fp8_packed[7:0]));\n"
             "\n"
-            "    // Final 24-bit write data\n"
-            "    assign X_wr_24 = out_was_fp8 ? {X_reg,       X_fp4_packed}\n"
-            "                                 : {X_fp8_packed, X_reg[7:0]};\n"
-            "    assign Y_wr_24 = out_was_fp8 ? {Y_reg,       Y_fp4_packed}\n"
-            "                                 : {Y_fp8_packed, Y_reg[7:0]};"
+            "    assign X_wr_24 = bf_is_fp8 ? {X_bf, X_fp4_packed} : {X_fp8_packed, X_bf[7:0]};\n"
+            "    assign Y_wr_24 = bf_is_fp8 ? {Y_bf, Y_fp4_packed} : {Y_fp8_packed, Y_bf[7:0]};"
         )
 
         return f"""\
 // =============================================================================
-// Mixed-Precision FFT Core – {n}-point
-// Auto-generated by FFTTemplateGenerator
+// Mixed-Precision FFT Core - {n}-point FULLY PIPELINED II=1 ARCHITECTURE
 // Active-low asynchronous reset (negedge rst).
 // =============================================================================
 `timescale 1ns/1ps
@@ -325,347 +253,311 @@ module {core_module_name} #(
     parameter ADDR_WIDTH = {aw}
 )(
     input  wire        clk,
-    input  wire        rst,     // active-low async reset
+    input  wire        rst,
 
-    // Control
     input  wire        start,
     output reg         done,
 
-    // External load interface (write input samples, bit-reversed externally)
     input  wire                  ext_wr_en,
     input  wire [ADDR_WIDTH-1:0] ext_wr_addr,
-    input  wire [23:0]           ext_wr_data,  // 24-bit unified format
+    input  wire [23:0]           ext_wr_data,
 
-    // External unload interface
     input  wire                  ext_reading,
     input  wire [ADDR_WIDTH-1:0] ext_rd_addr,
-    output wire [15:0]           ext_rd_data,  // 16-bit (precision = last stage output)
+    output wire [15:0]           ext_rd_data,
 
-    // bank_sel driven by top during load/unload
     input  wire                  ext_bank_sel
 );
 
-    // =========================================================================
-    // FSM states
-    // =========================================================================
-    localparam IDLE           = 4'd0,
-               START_AGU      = 4'd1,
-               WAIT_AGU_START = 4'd2,
-               READ_A         = 4'd3,
-               READ_B         = 4'd4,
-               WAIT_A         = 4'd5,
-               WAIT_B         = 4'd6,
-               COMPUTE        = 4'd7,
-               WRITE_X        = 4'd8,
-               WRITE_Y        = 4'd9,
-               WAIT_AGU       = 4'd10,
-               EVAL_AGU       = 4'd11,
-               DONE_STATE     = 4'd12;
-
-    reg [3:0] state;
-
-    // =========================================================================
-    // Per-stage precision localparams (baked in from chromosome)
-    // =========================================================================
 {lparams}
 
-    // =========================================================================
-    // Runtime precision signals (combinational, from curr_stage)
-    // =========================================================================
     reg cur_mult_prec;
-    reg cur_add_prec;
     reg cur_rd_prec;
     reg cur_wr_prec;
 
-    // =========================================================================
-    // AGU
-    // =========================================================================
     reg  start_agu_reg;
-    reg  next_step_reg;
+    wire streaming_enable;
     wire [ADDR_WIDTH-1:0] idx_a, idx_b, k;
     wire done_stage, done_fft;
     wire [ADDR_WIDTH-1:0] curr_stage;
 
-    dit_fft_agu_variable #(
-        .MAX_N     ({MAXn}),
+    reg [5:0] pipeline_stall_cnt;
+    wire agu_stall = (pipeline_stall_cnt > 0);
+    
+    // GHOST STALL FIX: Prevents the AGU from double-triggering after a flush
+    reg just_unstalled;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) just_unstalled <= 1'b0;
+        else if (agu_stall) just_unstalled <= 1'b1;
+        else just_unstalled <= 1'b0;
+    end
+
+    wire safe_done_stage = done_stage && !just_unstalled;
+    wire safe_done_fft   = done_fft && !just_unstalled;
+    
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            pipeline_stall_cnt <= 0;
+        end else if (safe_done_stage && !safe_done_fft) begin
+            pipeline_stall_cnt <= {self.TOTAL_PIPE_LATENCY + 1};
+        end else if (pipeline_stall_cnt > 0) begin
+            pipeline_stall_cnt <= pipeline_stall_cnt - 1;
+        end
+    end
+
+    // STALL-ALIGNED STAGE TRACKER
+    reg [3:0] current_stage_stable;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            current_stage_stable <= 0;
+        end else if (start) begin
+            current_stage_stable <= 0;
+        end else if (pipeline_stall_cnt == 1) begin
+            current_stage_stable <= current_stage_stable + 1;
+        end
+    end
+
+    dit_fft_agu_streaming #(
+        .MAX_N     (MAX_N),
         .ADDR_WIDTH(ADDR_WIDTH)
     ) agu (
         .clk          (clk),
         .reset        (rst),
+        .stall        (agu_stall),
         .start        (start_agu_reg),
         .N            ({aw}'d{n}),
-        .next_step    (next_step_reg),
+        .stream_en    (streaming_enable),
         .idx_a        (idx_a),
         .idx_b        (idx_b),
         .k            (k),
         .done_stage   (done_stage),
         .done_fft     (done_fft),
-        .curr_stage   (curr_stage),
-        .twiddle_output()
+        .curr_stage   (curr_stage)
     );
 
-    // =========================================================================
-    // Precision mux
-    // =========================================================================
-{prec_mux}
+    wire [15:0] twiddle_rom_out;
+    localparam TWIDDLE_LATENCY = {self.TWIDDLE_LATENCY};
 
-    // =========================================================================
-    // Twiddle ROM  – precision follows cur_mult_prec
-    // =========================================================================
-    wire [15:0] twiddle;
-
+    // Instantiate your Static Unified ROM (1-cycle registered execution)
     twiddle_factor_unified #(
-        .MAX_N     ({MAXn}),
+        .MAX_N(MAX_N),
         .ADDR_WIDTH(ADDR_WIDTH)
-    ) twiddle_rom (
+    ) twiddle_gen (
+        .clk        (clk),       // FIXED: Connected the clock!
         .k          (k),
         .n          ({aw}'d{n}),
         .PRECISION  (cur_mult_prec),
-        .twiddle_out(twiddle)
+        .twiddle_out(twiddle_rom_out)
     );
 
-    // =========================================================================
-    // Memory signals
-    // =========================================================================
-    // bank_sel: during FFT computation the core owns it;
-    //           during IDLE (load) and external read the top drives ext_bank_sel.
-    reg  fft_bank_sel;
-    wire active_bank_sel = (state == IDLE || ext_reading) ? ext_bank_sel : fft_bank_sel;
+    // FIXED: Shift the pipeline to accommodate the ROM's 1-cycle delay
+    (* srl_style = "srl" *) reg [15:0] twiddle_pipe [1:TWIDDLE_LATENCY]; 
+    (* srl_style = "srl" *) reg        v_pipe       [0:TWIDDLE_LATENCY]; 
+    integer t_idx;
+    
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            for (t_idx = 1; t_idx <= TWIDDLE_LATENCY; t_idx = t_idx + 1) begin
+                twiddle_pipe[t_idx] <= 16'd0;
+            end
+            for (t_idx = 0; t_idx <= TWIDDLE_LATENCY; t_idx = t_idx + 1) begin
+                v_pipe[t_idx]       <= 1'b0;
+            end
+        end else begin
+            v_pipe[0] <= streaming_enable;
+            
+            // Stage 1 catches the ROM output and aligns perfectly with v_pipe[1]
+            twiddle_pipe[1] <= twiddle_rom_out;
+            v_pipe[1]       <= v_pipe[0];
+            
+            for (t_idx = 2; t_idx <= TWIDDLE_LATENCY; t_idx = t_idx + 1) begin
+                twiddle_pipe[t_idx] <= twiddle_pipe[t_idx-1];
+                v_pipe[t_idx]       <= v_pipe[t_idx-1];
+            end
+        end
+    end
+    
+    // Tap off the END of the 11-stage pipeline, gating with valid_in
+    wire [15:0] twiddle = v_pipe[TWIDDLE_LATENCY] ? twiddle_pipe[TWIDDLE_LATENCY] : 16'h0000;
+    localparam TOTAL_LATENCY = {self.TOTAL_PIPE_LATENCY};
 
-    // Read address mux: external read takes priority
-    wire [ADDR_WIDTH-1:0] mem_rd_addr = ext_reading ? ext_rd_addr :
-                                        (state == READ_A) ? idx_a :
-                                        (state == READ_B) ? idx_b : {aw}'d0;
+    (* srl_style = "srl" *) reg [TOTAL_LATENCY-1:0]  wr_en_pipe;
+    (* srl_style = "srl" *) reg [ADDR_WIDTH-1:0]     wr_addr_a_pipe    [0:TOTAL_LATENCY-1];
+    (* srl_style = "srl" *) reg [ADDR_WIDTH-1:0]     wr_addr_b_pipe    [0:TOTAL_LATENCY-1];
+    (* srl_style = "srl" *) reg [3:0]                stable_stage_pipe [0:TOTAL_LATENCY-1];
 
-    // Write mux: external load takes priority; otherwise butterfly results
-    wire        mem_wr_en   = ext_wr_en ? 1'b1 :
-                              (state == WRITE_X || state == WRITE_Y) ? 1'b1 : 1'b0;
+    reg                      fft_bank_sel;
 
-    wire [ADDR_WIDTH-1:0] mem_wr_addr = ext_wr_en ? ext_wr_addr :
-                                        (state == WRITE_X) ? idx_a :
-                                        (state == WRITE_Y) ? idx_b : {aw}'d0;
+    integer i;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            wr_en_pipe <= 0;
+            for (i = 0; i < TOTAL_LATENCY; i = i + 1) begin
+                wr_addr_a_pipe[i]  <= 0;  
+                wr_addr_b_pipe[i]  <= 0;
+                stable_stage_pipe[i] <= 0;
+            end
+        end else begin
+            wr_en_pipe <= {{wr_en_pipe[TOTAL_LATENCY-2:0], streaming_enable}};
+            
+            wr_addr_a_pipe[0]  <= idx_a;
+            wr_addr_b_pipe[0]  <= idx_b;
+            stable_stage_pipe[0] <= current_stage_stable;
 
+            for (i = 1; i < TOTAL_LATENCY; i = i + 1) begin
+                wr_addr_a_pipe[i]  <= wr_addr_a_pipe[i-1];
+                wr_addr_b_pipe[i]  <= wr_addr_b_pipe[i-1];
+                stable_stage_pipe[i] <= stable_stage_pipe[i-1];
+            end
+        end
+    end
+
+    wire                  mem_wr_en       = wr_en_pipe[TOTAL_LATENCY-1];
+    wire [ADDR_WIDTH-1:0] mem_wr_addr_a   = wr_addr_a_pipe[TOTAL_LATENCY-1];
+    wire [ADDR_WIDTH-1:0] mem_wr_addr_b   = wr_addr_b_pipe[TOTAL_LATENCY-1];
+    
+    // CRITICAL FIX: Eliminate the 11-cycle delay on the write bank!
+    // Stalls guarantee writes finish before the next stage starts.
+    wire                  mem_wr_bank     = fft_bank_sel;
+    wire [3:0]            current_stage_stable_delayed = stable_stage_pipe[TOTAL_LATENCY-1];
+
+{prec_mux}
+
+    wire                  active_rd_bank = ext_reading ? ext_bank_sel : fft_bank_sel;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_a  = ext_reading ? ext_rd_addr  : idx_a;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_b  = ext_reading ? ext_rd_addr  : idx_b;
+
+    wire [15:0] rd_data_a_16, rd_data_b_16;
     wire [23:0] X_wr_24, Y_wr_24;
+    assign ext_rd_data = rd_data_a_16;
 
-    wire [23:0] mem_wr_data = ext_wr_en ? ext_wr_data :
-                              (state == WRITE_X) ? X_wr_24 :
-                              (state == WRITE_Y) ? Y_wr_24 : 24'd0;
-
-    wire [15:0] rd_data_16;
-
-    mixed_memory_unified #(
-        .n         ({MAXn}),
+    mixed_dual_bank_memory_concurrent #(
+        .n         ({n}),
         .ADDR_WIDTH(ADDR_WIDTH)
     ) mem (
         .clk          (clk),
         .rst          (rst),
-        .bank_sel     (active_bank_sel),
-        .rd_addr_0    (mem_rd_addr),
-        .rd_precision_0(cur_rd_prec),
-        .rd_data_0    (rd_data_16),
-        .wr_en_1      (mem_wr_en),
-        .wr_addr_1    (mem_wr_addr),
-        .wr_data_1    (mem_wr_data)
+        
+        .bank_pingpong (active_rd_bank),
+        .stage_mask    (11'h001),
+        .rd_addr_a     (mem_rd_addr_a),
+        .rd_addr_b     (mem_rd_addr_b),
+        .rd_precision  (cur_rd_prec),
+        .rd_data_a     (rd_data_a_16),
+        .rd_data_b     (rd_data_b_16),
+        
+        .wr_en         (ext_wr_en ? 1'b1 : mem_wr_en),
+        .wr_addr_a     (ext_wr_en ? ext_wr_addr : mem_wr_addr_a),
+        .wr_addr_b     (ext_wr_en ? ext_wr_addr : mem_wr_addr_b),
+        .wr_data_a     (ext_wr_en ? ext_wr_data : X_wr_24),
+        .wr_data_b     (ext_wr_en ? ext_wr_data : Y_wr_24),
+
+        .bank_pingpong_wr (ext_wr_en ? 1'b0 : mem_wr_bank),
+        .stage_mask_wr    (11'h001)
     );
 
-    assign ext_rd_data = rd_data_16;
-
-    // =========================================================================
-    // Expand 16-bit memory read to 24-bit butterfly inputs
-    // =========================================================================
 {mem_expand}
-
-    // =========================================================================
-    // Twiddle ROM already instantiated above
-    // =========================================================================
-
-    // =========================================================================
-    // Per-stage butterfly instances
-    // =========================================================================
 {butterfly_block}
-
-    // =========================================================================
-    // Write-back packing (FP4↔FP8 converters)
-    // =========================================================================
-    reg [15:0] X_reg, Y_reg;
-    reg        out_was_fp8;
-
 {writeback_block}
 
-    // =========================================================================
-    // FSM
-    // =========================================================================
+    localparam IDLE_ST   = 2'd0,
+               RUN_ST    = 2'd1,
+               FLUSH_ST  = 2'd2,
+               DONE_ST   = 2'd3;
+
+    reg [1:0]  state;
+    reg [5:0]  flush_counter;
+
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
-            state         <= IDLE;
+            state         <= IDLE_ST;
             start_agu_reg <= 1'b0;
-            next_step_reg <= 1'b0;
             fft_bank_sel  <= 1'b0;
             done          <= 1'b0;
-            A_24          <= 24'd0;
-            B_24          <= 24'd0;
-            X_reg         <= 16'd0;
-            Y_reg         <= 16'd0;
-            out_was_fp8   <= 1'b0;
+            flush_counter <= 0;
         end else begin
             case (state)
-                // -----------------------------------------------------------
-                IDLE: begin
+                IDLE_ST: begin
                     done <= 1'b0;
                     if (start) begin
-                        fft_bank_sel <= 1'b0; // Stage 0 reads Bank 0, writes Bank 1
-                        state        <= START_AGU;
+                        fft_bank_sel  <= 1'b1;
+                        start_agu_reg <= 1'b1;
+                        state         <= RUN_ST;
                     end
                 end
 
-                // -----------------------------------------------------------
-                START_AGU: begin
-                    start_agu_reg <= 1'b1;
-                    state         <= WAIT_AGU_START;
-                end
-
-                WAIT_AGU_START: begin
+                RUN_ST: begin
                     start_agu_reg <= 1'b0;
-                    state         <= READ_A;
-                end
-
-                // -----------------------------------------------------------
-                // 2-cycle synchronous memory read sequence
-                // Cycle 1 (READ_A): address idx_a is presented to memory
-                // Cycle 2 (READ_B): address idx_b is presented; A data available next cycle
-                // Cycle 3 (WAIT_A): A data sampled from rd_data_16
-                // Cycle 4 (WAIT_B): B data sampled from rd_data_16
-                // -----------------------------------------------------------
-                READ_A: begin
-                    // mem_rd_addr is idx_a (driven combinationally)
-                    state <= READ_B;
-                end
-
-                READ_B: begin
-                    // mem_rd_addr is idx_b
-                    state <= WAIT_A;
-                end
-
-                WAIT_A: begin
-                    // A data is now stable on rd_data_16
-                    A_24  <= mem_rd_24;
-                    state <= WAIT_B;
-                end
-
-                WAIT_B: begin
-                    // B data is now stable on rd_data_16
-                    B_24        <= mem_rd_24;
-                    state       <= COMPUTE;
-                end
-
-                COMPUTE: begin
-                    // Capture butterfly outputs (combinational from A_24/B_24)
-                    X_reg       <= X_bf;
-                    Y_reg       <= Y_bf;
-                    out_was_fp8 <= bf_is_fp8;
-                    state       <= WRITE_X;
-                end
-
-                // -----------------------------------------------------------
-                WRITE_X: begin
-                    // mem_wr_en=1, write X_wr_24 to idx_a  (combinational)
-                    state <= WRITE_Y;
-                end
-
-                WRITE_Y: begin
-                    // mem_wr_en=1, write Y_wr_24 to idx_b
-                    next_step_reg <= 1'b1;
-                    state         <= WAIT_AGU;
-                end
-
-                WAIT_AGU: begin
-                    next_step_reg <= 1'b0;
-                    state         <= EVAL_AGU;
-                end
-
-                EVAL_AGU: begin
-                    if (done_fft) begin
-                        // After {ns} stages (each stage flips bank), result is in bank {ns % 2}
-                        fft_bank_sel <= 1'b{ns % 2};
-                        state        <= DONE_STATE;
-                    end else if (done_stage) begin
-                        fft_bank_sel <= ~fft_bank_sel; // Ping-pong
-                        state        <= READ_A;
-                    end else begin
-                        state        <= READ_A;
+                    if (pipeline_stall_cnt == 1) begin
+                        fft_bank_sel <= ~fft_bank_sel;
+                    end
+                    if (safe_done_fft) begin
+                        state         <= FLUSH_ST;
+                        flush_counter <= TOTAL_LATENCY;
                     end
                 end
 
-                // -----------------------------------------------------------
-                DONE_STATE: begin
-                    done <= 1'b1;
-                    if (!start) state <= IDLE;
+                FLUSH_ST: begin
+                    if (flush_counter == 0) begin
+                        fft_bank_sel <= 1'b{1 ^ (ns % 2)};
+                        done         <= 1'b1;
+                        state        <= DONE_ST;
+                    end else begin
+                        flush_counter <= flush_counter - 1;
+                    end
                 end
 
-                default: state <= IDLE;
+                DONE_ST: begin
+                    if (!start) begin
+                        done  <= 1'b0;
+                        state <= IDLE_ST;
+                    end
+                end
+                default: state <= IDLE_ST;
             endcase
         end
     end
-
 endmodule
 """
 
-    # ==================================================================
-    # Top Verilog generator
-    # ==================================================================
     def _generate_top(self, config, core_module_name, top_module_name):
         n    = config['fft_size']
         aw   = self.addr_width
         ns   = config['num_stages']
         MAXn = config['MAX_N_HW']
-        # addr_bits for load/unload address ports
         addr_bits = int(math.log2(n))
-        pad_bits  = aw - addr_bits          # 0 when n == MAX_N
-        last_out_prec = config['stages'][-1]['output_precision']
-        # When pad_bits == 0 (N==MAX_N), load_addr is already aw-bits wide
+        pad_bits  = aw - addr_bits          
+        
         if pad_bits > 0:
             br_in_expr = "{{ " + str(pad_bits) + "'b0, load_addr }}"
             unload_addr_expr = "{{ " + str(pad_bits) + "'b0, unload_addr }}"
         else:
             br_in_expr = "load_addr"
             unload_addr_expr = "unload_addr"
-        addr_msb = addr_bits - 1  # for port declarations [addr_msb:0]
+        addr_msb = addr_bits - 1  
 
         return f"""\
 // =============================================================================
-// Mixed-Precision FFT TOP – {n}-point
-// Instantiates: {core_module_name}
-// Auto-generated by FFTTemplateGenerator
-//
-// Interface:
-//   load_en / load_addr / load_data   → write input samples
-//   start / done                      → FFT trigger / completion
-//   unload_en / unload_addr / unload_data → read FFT results
+// Mixed-Precision FFT TOP - {n}-point PIPELINED CONFIGURATION
 // =============================================================================
 `timescale 1ns/1ps
 
 module {top_module_name} (
     input  wire        clk,
-    input  wire        rst,     // active-low async reset
+    input  wire        rst,     
 
-    // Control
     input  wire        start,
     output reg         done,
 
-    // Load interface  (load_data is 16-bit FP8: {{real[7:0], imag[7:0]}})
     input  wire              load_en,
     input  wire [{addr_msb}:0]  load_addr,
     input  wire [15:0]       load_data,
 
-    // Unload interface (2-cycle read latency)
     input  wire              unload_en,
     input  wire [{addr_msb}:0]  unload_addr,
     output wire [15:0]       unload_data
 );
 
-    // -------------------------------------------------------------------------
-    // Bit-reversal for load addressing
-    // -------------------------------------------------------------------------
     wire [{aw-1}:0] load_addr_rev;
 
     bit_reverse #(
@@ -677,20 +569,16 @@ module {top_module_name} (
         .out (load_addr_rev)
     );
 
-    // -------------------------------------------------------------------------
-    // Bank-select management
-    //   IDLE / loading : bank_sel = 1'b1 (so writes go to Bank 0)
-    //   During FFT     : core manages internally
-    //   After FFT      : bank_sel = {ns}[0] ? 1'b1 : 1'b0
-    //                    (result ends up in bank = num_stages MOD 2)
-    // -------------------------------------------------------------------------
     reg bank_sel;
-
-    // -------------------------------------------------------------------------
-    // Core instantiation
-    // -------------------------------------------------------------------------
-    wire        core_done;
+    wire core_done;
     wire [15:0] core_rd_data;
+
+    wire [7:0] load_fp4;
+    complex_fp8_to_fp4 load_fmt_conv (
+        .complex_fp8 (load_data),
+        .complex_fp4 (load_fp4)
+    );
+    wire [23:0] load_data_24 = {{load_data, load_fp4}};
 
     {core_module_name} #(
         .MAX_N     ({MAXn}),
@@ -701,13 +589,10 @@ module {top_module_name} (
         .start        (start),
         .done         (core_done),
 
-        // Load: bit-reversed address, data packed into 24-bit unified format
-        // We always load as FP8 (upper 16 bits of 24-bit word)
         .ext_wr_en    (load_en),
         .ext_wr_addr  (load_addr_rev),
-        .ext_wr_data  ({{ load_data, 8'h00 }}),  // FP8 in [23:8], FP4=0 in [7:0]
+        .ext_wr_data  (load_data_24),
 
-        // Unload
         .ext_reading  (unload_en),
         .ext_rd_addr  ({unload_addr_expr}),
         .ext_rd_data  (core_rd_data),
@@ -717,25 +602,11 @@ module {top_module_name} (
 
     assign unload_data = core_rd_data;
 
-    // -------------------------------------------------------------------------
-    // done register and bank_sel management
-    //
-    // bank_sel state machine:
-    //   Loading phase : 1'b1  → memory writes go to bank0 (stage 0 reads bank0)
-    //   FFT running   : managed by core internally
-    //   FFT done      : ns%2  → holds result-bank pointer for unload
-    //   Next load     : restored to 1'b1 when load_en fires (before start),
-    //                   so new data always lands in bank0.
-    //
-    // -------------------------------------------------------------------------
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             done     <= 1'b0;
             bank_sel <= 1'b1;
         end else begin
-            // Restore bank_sel for loading as soon as load_en fires.
-            // This is before start, so it is safe to overwrite whatever
-            // ns%2 value was left from the previous FFT.
             if (load_en && !start)
                 bank_sel <= 1'b1;
 
@@ -744,41 +615,11 @@ module {top_module_name} (
                 bank_sel <= 1'b1;
             end else if (core_done) begin
                 done     <= 1'b1;
-                // Point at the bank that holds the FFT result:
-                //   odd  num_stages → bank 1  (bank_sel=1)
-                //   even num_stages → bank 0  (bank_sel=0)
-                bank_sel <= 1'b{ns % 2};
+                bank_sel <= 1'b{1 ^ (ns % 2)};
             end else if (!start && done) begin
-                // Clear done flag. bank_sel intentionally left at ns%2
-                // so the testbench can still read the result after done deasserts.
-                // The load_en branch above will restore it before the next FFT.
                 done <= 1'b0;
             end
         end
     end
-
 endmodule
 """
-
-
-# =============================================================================
-# Quick smoke-test
-# =============================================================================
-if __name__ == "__main__":
-    import os
-    os.makedirs("./generated_designs", exist_ok=True)
-
-    for fft_sz in [8, 16, 32]:
-        gen = FFTTemplateGenerator(fft_size=fft_sz)
-        ns  = gen.num_stages
-        # Alternating FP4/FP8 per stage as a test chromosome
-        chrom = []
-        for s in range(ns):
-            chrom += [s % 2, (s + 1) % 2]
-        print(f"\n--- FFT-{fft_sz}  chromosome: {chrom} ---")
-        core_f, top_f = gen.generate_verilog(
-            chrom,
-            f"./generated_designs/mixed_fft_{fft_sz}_test.v"
-        )
-        print(f"  Core : {core_f}")
-        print(f"  Top  : {top_f}")
