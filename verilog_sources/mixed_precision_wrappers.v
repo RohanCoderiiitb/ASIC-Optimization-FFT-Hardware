@@ -1,101 +1,54 @@
-// Wrapper modules to choose the precision
-
-module butterfly_wrapper #(
-    parameter MULT_PRECISION = 0, // 0 for FP4, 1 for FP8
-    parameter ADD_PRECISION  = 0  // 0 for FP4, 1 for FP8
-)(
-    input  [23:0] A, B,       // 24-bit unified format inputs
-    input  [15:0] W,          // twiddle factor (16-bit FP8, [7:0] used for FP4)
-    output [15:0] X, Y,       // 16-bit outputs (FP8 full / FP4 zero-padded to [7:0])
+module butterfly_wrapper (
+    input  [23:0] A, B,       
+    input  [15:0] W,          
+    input         mult_prec,  
+    input         add_prec,   
+    output [15:0] X, Y,    
     output        output_is_fp8
 );
+    wire [15:0] A_fp8 = A[23:8];
+    wire [7:0]  A_fp4 = A[7:0];
+    wire [15:0] B_fp8 = B[23:8];
+    wire [7:0]  B_fp4 = B[7:0];
 
-    // Internal wires for each precision path
-    wire [15:0] X_fp4_path, Y_fp4_path;   // FP4 result, zero-padded to 16 bits
-    wire [15:0] X_fp8_path, Y_fp8_path;   // FP8 full 16-bit result
-    wire [7:0]  X_fp4_raw,  Y_fp4_raw;    // Raw 8-bit FP4 complex output
-    wire [15:0] X_mixed_84, Y_mixed_84;   // FP4 mul / FP8 add  (8add_4mul unit)
-    wire [7:0]  X_mixed_48, Y_mixed_48;   // FP8 mul / FP4 add  (4add_8mul unit) raw
+    wire [7:0] wb_prod_fp4;
+    fp4_cmul cmul_fp4(
+        .a(B_fp4[7:4]), .b(B_fp4[3:0]),
+        .c(W[7:4]),     .d(W[3:0]),
+        .out_real(wb_prod_fp4[7:4]), .out_imag(wb_prod_fp4[3:0])
+    );
 
-    generate
-        if (MULT_PRECISION == 0 && ADD_PRECISION == 0) begin : USE_PURE_FP4
-            fp4_butterfly_generation_unit fp4_butterfly_inst (
-                .A(A[7:0]),
-                .B(B[7:0]),
-                .W(W),
-                .X(X_fp4_raw),
-                .Y(Y_fp4_raw)
-            );
-            assign X_fp4_path = {8'h00, X_fp4_raw};
-            assign Y_fp4_path = {8'h00, Y_fp4_raw};
-        end else begin
-            assign X_fp4_path = 16'h0000;
-            assign Y_fp4_path = 16'h0000;
-            assign X_fp4_raw  = 8'h00;
-            assign Y_fp4_raw  = 8'h00;
-        end
+    wire [15:0] wb_prod_fp8;
+    fp8_cmul cmul_fp8(
+        .a(B_fp8[15:8]), .b(B_fp8[7:0]),
+        .c(W[15:8]),     .d(W[7:0]),
+        .out_real(wb_prod_fp8[15:8]), .out_imag(wb_prod_fp8[7:0])
+    );
 
-        if (MULT_PRECISION == 1 && ADD_PRECISION == 1) begin : USE_PURE_FP8
-            fp8_butterfly_generation_unit fp8_butterfly_inst (
-                .A(A[23:8]),
-                .B(B[23:8]),
-                .W(W),
-                .X(X_fp8_path),
-                .Y(Y_fp8_path)
-            );
-        end else begin
-            assign X_fp8_path = 16'h0000;
-            assign Y_fp8_path = 16'h0000;
-        end
+    wire [7:0]  wb_prod_fp8_as_fp4;
+    complex_fp8_to_fp4 conv_wb84(.complex_fp8(wb_prod_fp8), .complex_fp4(wb_prod_fp8_as_fp4));
 
-        if (MULT_PRECISION == 0 && ADD_PRECISION == 1) begin : USE_FP8add_FP4mul
-            // 4-bit multiplier, 8-bit adder: A is FP8 (16-bit), B is FP4 (8-bit)
-            butterfly_generation_unit_8add_4mul fp4mul_fp8add_inst (
-                .A(A[23:8]),
-                .B(B[7:0]),
-                .W(W),
-                .X(X_mixed_84),
-                .Y(Y_mixed_84)
-            );
-        end else begin
-            assign X_mixed_84 = 16'h0000;
-            assign Y_mixed_84 = 16'h0000;
-        end
+    wire [15:0] wb_prod_fp4_as_fp8;
+    complex_fp4_to_fp8 conv_wb48(.complex_fp4(wb_prod_fp4), .complex_fp8(wb_prod_fp4_as_fp8));
 
-        if (MULT_PRECISION == 1 && ADD_PRECISION == 0) begin : USE_FP8mul_FP4add
-            // 8-bit multiplier, 4-bit adder: A is FP4 (8-bit), B is FP8 (16-bit)
-            butterfly_generation_unit_4add_8mul fp8mul_fp4add_inst (
-                .A(A[7:0]),
-                .B(B[23:8]),
-                .W(W),
-                .X(X_mixed_48),
-                .Y(Y_mixed_48)
-            );
-        end else begin
-            assign X_mixed_48 = 8'h00;
-            assign Y_mixed_48 = 8'h00;
-        end
-    endgenerate
+    wire [7:0]  add_B_fp4 = mult_prec ? wb_prod_fp8_as_fp4 : wb_prod_fp4;
+    wire [15:0] add_B_fp8 = mult_prec ? wb_prod_fp8 : wb_prod_fp4_as_fp8;
 
-    // Select output based on precision parameters (elaboration-time constants)
-    assign X = (MULT_PRECISION == 0 && ADD_PRECISION == 0) ? X_fp4_path  :
-               (MULT_PRECISION == 1 && ADD_PRECISION == 1) ? X_fp8_path  :
-               (MULT_PRECISION == 0 && ADD_PRECISION == 1) ? X_mixed_84  :
-                                                             {8'h00, X_mixed_48};
+    wire [7:0] X_fp4, Y_fp4;
+    fp4_complex_add_sub add_fp4(.a(A_fp4), .b(add_B_fp4), .sub(1'b0), .out(X_fp4));
+    fp4_complex_add_sub sub_fp4(.a(A_fp4), .b(add_B_fp4), .sub(1'b1), .out(Y_fp4));
 
-    assign Y = (MULT_PRECISION == 0 && ADD_PRECISION == 0) ? Y_fp4_path  :
-               (MULT_PRECISION == 1 && ADD_PRECISION == 1) ? Y_fp8_path  :
-               (MULT_PRECISION == 0 && ADD_PRECISION == 1) ? Y_mixed_84  :
-                                                             {8'h00, Y_mixed_48};
+    wire [15:0] X_fp8, Y_fp8;
+    fp8_complex_add_sub add_fp8(.a(A_fp8), .b(add_B_fp8), .sub(1'b0), .out(X_fp8));
+    fp8_complex_add_sub sub_fp8(.a(A_fp8), .b(add_B_fp8), .sub(1'b1), .out(Y_fp8));
 
-    // ADD_PRECISION determines whether the output is FP8 width
-    assign output_is_fp8 = (ADD_PRECISION == 1) ? 1'b1 : 1'b0;
-
+    assign X = add_prec ? X_fp8 : {8'h00, X_fp4};
+    assign Y = add_prec ? Y_fp8 : {8'h00, Y_fp4};
+    assign output_is_fp8 = add_prec;
 endmodule
 
-
 module cmul_wrapper #(
-    parameter PRECISION = 0  // 0 = FP4, 1 = FP8
+    parameter PRECISION = 0 
 )(
     input  [7:0] a,
     input  [7:0] b,

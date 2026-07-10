@@ -1,11 +1,7 @@
 """
 Global Variables for Mixed-Precision FFT Optimization
 Stage-level precision control (Option A).
-Now using actual Cadence Genus synthesis for ASIC metric extraction:
-  - Power  : total_power_mw  (dynamic + leakage) from Genus report_power
-  - Area   : cell_area_um2   from Genus report_area
-  - Delay  : critical_path_delay_ns from Genus report_timing
-  - SQNR   : unchanged — computed by performance_evaluator.py (no EDA tool)
+Now using open-source EDA tools (Yosys + OpenSTA) for ASIC metric extraction.
 """
 
 import random
@@ -18,10 +14,10 @@ GENERATIONS = 100
 SEED = 42
 MUTATION_RATE = 0.05
 CROSSOVER_RATE = 0.9
-OBJECTIVES = 4              # Power, Area, Latency (from Genus) - SQNR (from IVerilog)
+OBJECTIVES = 4               # Power, Area, Performance, Latency
 
 CURRENT_GEN = 0
-SOLUTION_THREADS = 4
+SOLUTION_THREADS = 12
 
 FITNESS = 'fitness.npy'
 DPI = 200
@@ -44,56 +40,50 @@ for size in [8, 16, 32, 64, 128, 256, 512, 1024]:
     ns = int(math.log2(size))
     print(f"  FFT-{size:<4}: {ns:>2} stages x 2 = {chrom_size:>3} genes")
 
-# ======================= Cadence Genus Configuration =======================
-# Path to the Genus executable on your EDA server.
-# Update this to match your local installation.
-GENUS_PATH = '/mnt/cadence_tools/GENUS211/bin/genus'
+# ======================= Open-Source EDA Tool Configuration =======================
+YOSYS_PATH = 'yosys'          
+OPENSTA_PATH = 'sta'          
+OPENROAD_PATH = 'openroad'    
 
-# Path to the Liberty (.lib) standard-cell library for your target process node.
-# This must be the timing/power-characterised lib for your PDK corner (e.g. TT/0.9V/25C).
-# Update this path to point to your PDK library file.
-LIBERTY_LIB_PATH = '/home/rohan/Downloads/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib'
+# Update this path to point to your PDK library
+LIBERTY_LIB_PATH = '/home/rohan-kamath/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib'
+RAM_LIBERTY_PATH = './openram_outputs/sram_512x24_2rw_TT_1p0V_25C.lib'
 
-# Target clock period in nanoseconds for synthesis constraints.
-# 3.0 ns ≈ 333 MHz — a realistic target for a 28nm ASIC FFT datapath.
-# Adjust to match your process node and design requirements.
-CLOCK_PERIOD = 3.0
-
-# Target ASIC process/device descriptor — used only for logging; Genus
-# derives all physical parameters from LIBERTY_LIB_PATH above.
-ASIC_PROCESS = '40nm_Typical_1v0_25C'
+CLOCK_PERIOD = 10.0      # nanoseconds
+CLOCK_NET_NAME = 'clk'
+TOP_MODULE_SUFFIX = '_top'
+ASIC_PROCESS = '45nm_PDK'
 
 # ======================= File Paths =======================
-VERILOG_SOURCES_DIR  = './verilog_sources'
+VERILOG_SOURCES_DIR = './verilog_sources'
 GENERATED_DESIGNS_DIR = './generated_designs'
-GENUS_WORK_DIR       = './genus_work'          # replaces vivado_projects
-REPORTS_DIR          = './reports'
-SIMULATION_DIR       = './sim'
-RESULTS_DIR          = './results'
-
-# ======================= Optimization Weights =======================
-WEIGHT_POWER       = 1.0
-WEIGHT_AREA        = 1e-4
-WEIGHT_PERFORMANCE = 100
-WEIGHT_LATENCY     = 8.0
+SYNTH_WORK_DIR = './synth_work'
+REPORTS_DIR = './reports'
+SIMULATION_DIR = './sim'
+RESULTS_DIR = './results'
 
 # ======================= Constraint Thresholds =======================
+MAX_POWER_MW = 500.0
+MAX_AREA_UM2 = 600000.0
+MIN_SQNR_DB = 10.0              
+MAX_LATENCY_NORM = 10.0        
+MIN_FREQ_MHZ = 80.0
 
-MAX_POWER_MW   = 500.0
-
-MAX_AREA_UM2   = 200000.0
-
-MIN_SQNR_DB       = -15.0
-
-MAX_LATENCY_NORM = 3.0   # normalised latency ceiling (same semantics as before)
-MIN_FREQ_MHZ   = 80.0
-
-# Reference period used for normalising Genus critical-path delay.
-# Kept equal to CLOCK_PERIOD so norm=1.0 means "exactly on target".
 REFERENCE_CLOCK_PERIOD_NS = CLOCK_PERIOD
 
-# Fallback delay constants — used ONLY if Genus fails and a penalty must be
-# applied. Not used in the normal synthesis flow.
+# ======================= Normalization References ===================
+REF_POWER_MW     = MAX_POWER_MW          
+REF_AREA_UM2     = MAX_AREA_UM2        
+REF_SQNR_RANGE   = 50.0                 
+SQNR_OFFSET      = 50.0                 
+REF_LATENCY      = MAX_LATENCY_NORM     
+
+# ======================= Optimization Weights =======================
+WEIGHT_POWER = 1.0
+WEIGHT_AREA = 1.0
+WEIGHT_PERFORMANCE = 30.0
+WEIGHT_LATENCY = 8.0          
+
 FP8_MULT_DELAY_NS = 6.5
 FP4_MULT_DELAY_NS = 3.5
 FP8_ADD_DELAY_NS  = 4.0
@@ -159,7 +149,7 @@ def generate_smart_initial_population(fft_size, pop_size):
 ENABLE_SMART_INITIALIZATION = True
 
 # ======================= Logging =======================
-VERBOSE  = True
+VERBOSE = True
 LOG_FILE = './optimization.log'
 SAVE_ALL_DESIGNS = False
 
@@ -175,20 +165,10 @@ def log_message(message, level='INFO'):
 
 def initialize_directories():
     import os
-    dirs = [VERILOG_SOURCES_DIR, GENERATED_DESIGNS_DIR, GENUS_WORK_DIR,
+    dirs = [VERILOG_SOURCES_DIR, GENERATED_DESIGNS_DIR, SYNTH_WORK_DIR,
             REPORTS_DIR, SIMULATION_DIR, RESULTS_DIR]
     for d in dirs:
         os.makedirs(d, exist_ok=True)
     log_message("Initialized directory structure")
-
-# ======================= Chromosome Encoding Notes =======================
-"""
-CHROMOSOME ENCODING (unchanged):
-  [s0_mult, s0_add, s1_mult, s1_add, ..., sN_mult, sN_add]
-  0 = FP4 precision,  1 = FP8 precision
-
-4th OBJECTIVE: Actual critical-path delay from Cadence Genus synthesis
-               timing report (replaces Vivado timing).
-"""
 
 initialize_directories()

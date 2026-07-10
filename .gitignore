@@ -1,0 +1,11 @@
+# Python artifacts
+__pycache__/
+
+# Synthesis & Simulation dumps
+synth_work/
+sim/
+reports/
+results/
+
+# Log files
+*.log

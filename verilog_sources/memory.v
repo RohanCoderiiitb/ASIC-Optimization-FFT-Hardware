@@ -1,194 +1,184 @@
 // =============================================================================
-// Mixed-Precision FFT Memory — BRAM-inferred version
-//
-// BRAM inference rules (Xilinx UG901):
-//   - Array must be written on a clock edge
-//   - Array must be read on a clock edge (synchronous read)
-//   - No asynchronous / combinational reset on the array itself
-//   - Width × Depth must fit a RAMB36 or RAMB18 primitive
-//
-// For n=1024, 24-bit word: 24 576 bits per bank → fits in one RAMB36E1 (36 Kb)
-// Two banks (ping-pong) → 2× RAMB36, 0 LUTs for storage.
+// Mixed-Precision Concurrent FFT Memory Subsystem
+// PERFECT TRUE DUAL-PORT (TDP) MEMORY INFERENCE (1-CYCLE READ)
+// USING OPENRAM MACROS (sram_512x24_2rw)
 // =============================================================================
+`timescale 1ns/1ps
 
-// -----------------------------------------------------------------------------
-// Unified Mixed-Precision Memory (ping-pong, 24-bit word)
-// Format: [23:16] FP8 Real | [15:8] FP8 Imag | [7:4] FP4 Real | [3:0] FP4 Imag
-// -----------------------------------------------------------------------------
-module mixed_memory_unified #(
+module mixed_dual_bank_memory_concurrent #(
     parameter n          = 1024,
-    parameter ADDR_WIDTH = $clog2(n) + 1
-)(
-    input  wire                  clk,
-    input  wire                  rst,        // active-low; used only for output FF
-
-    // bank_sel: 0 → read bank0 / write bank1 ; 1 → read bank1 / write bank0
-    input  wire                  bank_sel,
-
-    // Port 0 — read
-    input  wire [ADDR_WIDTH-1:0] rd_addr_0,
-    input  wire                  rd_precision_0,   // 0=FP4, 1=FP8
-    output wire [15:0]           rd_data_0,
-
-    // Port 1 — write
-    input  wire                  wr_en_1,
-    input  wire [ADDR_WIDTH-1:0] wr_addr_1,
-    input  wire [23:0]           wr_data_1         // full 24-bit write
-);
-
-    // -------------------------------------------------------------------------
-    // Memory arrays — NO reset loop so Vivado can infer BRAM
-    // -------------------------------------------------------------------------
-    (* ram_style = "block" *) reg [23:0] bank0_mem [0:n-1];
-    (* ram_style = "block" *) reg [23:0] bank1_mem [0:n-1];
-
-    // -------------------------------------------------------------------------
-    // Write port (synchronous, no reset on array)
-    // bank_sel=0 → reading bank0, so write to bank1, and vice-versa
-    // -------------------------------------------------------------------------
-    always @(posedge clk) begin
-        if (wr_en_1) begin
-            if (bank_sel == 1'b0)
-                bank1_mem[wr_addr_1] <= wr_data_1;
-            else
-                bank0_mem[wr_addr_1] <= wr_data_1;
-        end
-    end
-
-    // -------------------------------------------------------------------------
-    // Read port — synchronous (1-cycle latency), no reset on array
-    // Precision mux is pipelined one extra cycle to ease timing
-    // -------------------------------------------------------------------------
-    reg [23:0] rd_data_full;
-    reg        rd_prec_d;
-    reg [15:0] rd_data_reg;
-
-    always @(posedge clk) begin
-        // Stage 1: BRAM read (synchronous)
-        if (bank_sel == 1'b0)
-            rd_data_full <= bank0_mem[rd_addr_0];
-        else
-            rd_data_full <= bank1_mem[rd_addr_0];
-
-        rd_prec_d <= rd_precision_0;   // delay precision select to match data
-
-        // Stage 2: precision mux + output register (reset allowed on plain FF)
-        if (!rst) begin
-            rd_data_reg <= 16'b0;
-        end else begin
-            if (rd_prec_d)
-                rd_data_reg <= rd_data_full[23:8];   // FP8: upper 16 bits
-            else
-                rd_data_reg <= {8'h00, rd_data_full[7:0]};  // FP4: lower 8 bits, zero-extended
-        end
-    end
-
-    assign rd_data_0 = rd_data_reg;
-
-endmodule
-
-
-// -----------------------------------------------------------------------------
-// FP4-only memory (8-bit word, ping-pong)
-// Backward-compatible with fp4_fft_memory_reg interface
-// -----------------------------------------------------------------------------
-module fp4_fft_memory_reg #(
-    parameter n          = 1024,
-    parameter ADDR_WIDTH = $clog2(n)
+    parameter ADDR_WIDTH = 11
 )(
     input  wire                  clk,
     input  wire                  rst,
 
-    input  wire                  bank_sel,
+    input  wire                  bank_pingpong,
+    input  wire [ADDR_WIDTH-1:0] stage_mask,
 
-    input  wire [ADDR_WIDTH-1:0] rd_addr_0,
-    output wire [7:0]            rd_data_0,
+    input  wire [ADDR_WIDTH-1:0] rd_addr_a,
+    input  wire [ADDR_WIDTH-1:0] rd_addr_b,
+    input  wire                  rd_precision,
+    output wire [15:0]           rd_data_a,
+    output wire [15:0]           rd_data_b,
 
-    input  wire                  wr_en_1,
-    input  wire [ADDR_WIDTH-1:0] wr_addr_1,
-    input  wire [7:0]            wr_data_1
+    input  wire                  wr_en,
+    input  wire [ADDR_WIDTH-1:0] wr_addr_a,
+    input  wire [ADDR_WIDTH-1:0] wr_addr_b,
+    input  wire [23:0]           wr_data_a,
+    input  wire [23:0]           wr_data_b,
+
+    input  wire                  bank_pingpong_wr,
+    input  wire [ADDR_WIDTH-1:0] stage_mask_wr
 );
 
-    (* ram_style = "block" *) reg [7:0] bank0_mem [0:n-1];
-    (* ram_style = "block" *) reg [7:0] bank1_mem [0:n-1];
+    // Safe sizing logic
+    localparam MEM_AW = (n <= 2) ? 1 : $clog2(n/2);
 
-    // Write
+    // Fallback Resolution Logic Matrix
+    wire is_wr_bank_floating = (bank_pingpong_wr === 1'bz || bank_pingpong_wr === 1'bx);
+    wire actual_wr_bank      = is_wr_bank_floating ? bank_pingpong : bank_pingpong_wr;
+
+    wire is_wr_mask_floating = (^stage_mask_wr === 1'bx);
+    wire [ADDR_WIDTH-1:0] actual_wr_mask = is_wr_mask_floating ? stage_mask : stage_mask_wr;
+
+    // Sub-bank routing selection
+    wire read_sub_sel_a  = |(rd_addr_a & stage_mask);
+    wire read_sub_sel_b  = |(rd_addr_b & stage_mask);
+    wire write_sub_sel_a = |(wr_addr_a & actual_wr_mask);
+    wire write_sub_sel_b = |(wr_addr_b & actual_wr_mask);
+
+    // Address compression formulas
+    wire [ADDR_WIDTH-1:0] rd_lower_mask = stage_mask - 1'b1;
+    wire [ADDR_WIDTH-1:0] rd_upper_mask = ~rd_lower_mask;
+    wire [ADDR_WIDTH-2:0] c_rd_addr_a = (rd_addr_a & rd_lower_mask) | ((rd_addr_a & (rd_upper_mask << 1)) >> 1);
+    wire [ADDR_WIDTH-2:0] c_rd_addr_b = (rd_addr_b & rd_lower_mask) | ((rd_addr_b & (rd_upper_mask << 1)) >> 1);
+
+    wire [ADDR_WIDTH-1:0] wr_lower_mask = actual_wr_mask - 1'b1;
+    wire [ADDR_WIDTH-1:0] wr_upper_mask = ~wr_lower_mask;
+    wire [ADDR_WIDTH-2:0] c_wr_addr_a = (wr_addr_a & wr_lower_mask) | ((wr_addr_a & (wr_upper_mask << 1)) >> 1);
+    wire [ADDR_WIDTH-2:0] c_wr_addr_b = (wr_addr_b & wr_lower_mask) | ((wr_addr_b & (wr_upper_mask << 1)) >> 1);
+
+    // =========================================================================
+    // ADDRESS & WRITE-ENABLE MUXING
+    // =========================================================================
+    
+    // CRITICAL FIX: Prevent Port B from writing the exact same address as Port A simultaneously.
+    // Protects OpenRAM from memory corruption during the external data load phase.
+    wire avoid_double_write = (wr_addr_a == wr_addr_b);
+
+    // Bank 0, Sub-Bank 0
+    wire [ADDR_WIDTH-2:0] b0_sub0_addr_a = (actual_wr_bank == 1'b1) ? c_wr_addr_a : c_rd_addr_a;
+    wire                  b0_sub0_we_a   = wr_en & (actual_wr_bank == 1'b1) & (!write_sub_sel_a);
+    wire [ADDR_WIDTH-2:0] b0_sub0_addr_b = (actual_wr_bank == 1'b1) ? c_wr_addr_b : c_rd_addr_b;
+    wire                  b0_sub0_we_b   = wr_en & (actual_wr_bank == 1'b1) & (!write_sub_sel_b) & (!avoid_double_write);
+
+    wire [MEM_AW-1:0] safe_b0_sub0_addr_a = (n <= 2) ? 1'b0 : b0_sub0_addr_a[MEM_AW-1:0];
+    wire [MEM_AW-1:0] safe_b0_sub0_addr_b = (n <= 2) ? 1'b0 : b0_sub0_addr_b[MEM_AW-1:0];
+
+    // Bank 0, Sub-Bank 1
+    wire [ADDR_WIDTH-2:0] b0_sub1_addr_a = (actual_wr_bank == 1'b1) ? c_wr_addr_a : c_rd_addr_a;
+    wire                  b0_sub1_we_a   = wr_en & (actual_wr_bank == 1'b1) & (write_sub_sel_a);
+    wire [ADDR_WIDTH-2:0] b0_sub1_addr_b = (actual_wr_bank == 1'b1) ? c_wr_addr_b : c_rd_addr_b;
+    wire                  b0_sub1_we_b   = wr_en & (actual_wr_bank == 1'b1) & (write_sub_sel_b) & (!avoid_double_write);
+
+    wire [MEM_AW-1:0] safe_b0_sub1_addr_a = (n <= 2) ? 1'b0 : b0_sub1_addr_a[MEM_AW-1:0];
+    wire [MEM_AW-1:0] safe_b0_sub1_addr_b = (n <= 2) ? 1'b0 : b0_sub1_addr_b[MEM_AW-1:0];
+
+    // Bank 1, Sub-Bank 0 
+    wire [ADDR_WIDTH-2:0] b1_sub0_addr_a = (actual_wr_bank == 1'b0) ? c_wr_addr_a : c_rd_addr_a;
+    wire                  b1_sub0_we_a   = wr_en & (actual_wr_bank == 1'b0) & (!write_sub_sel_a);
+    wire [ADDR_WIDTH-2:0] b1_sub0_addr_b = (actual_wr_bank == 1'b0) ? c_wr_addr_b : c_rd_addr_b;
+    wire                  b1_sub0_we_b   = wr_en & (actual_wr_bank == 1'b0) & (!write_sub_sel_b) & (!avoid_double_write);
+
+    wire [MEM_AW-1:0] safe_b1_sub0_addr_a = (n <= 2) ? 1'b0 : b1_sub0_addr_a[MEM_AW-1:0];
+    wire [MEM_AW-1:0] safe_b1_sub0_addr_b = (n <= 2) ? 1'b0 : b1_sub0_addr_b[MEM_AW-1:0];
+
+    // Bank 1, Sub-Bank 1
+    wire [ADDR_WIDTH-2:0] b1_sub1_addr_a = (actual_wr_bank == 1'b0) ? c_wr_addr_a : c_rd_addr_a;
+    wire                  b1_sub1_we_a   = wr_en & (actual_wr_bank == 1'b0) & (write_sub_sel_a);
+    wire [ADDR_WIDTH-2:0] b1_sub1_addr_b = (actual_wr_bank == 1'b0) ? c_wr_addr_b : c_rd_addr_b;
+    wire                  b1_sub1_we_b   = wr_en & (actual_wr_bank == 1'b0) & (write_sub_sel_b) & (!avoid_double_write);
+
+    wire [MEM_AW-1:0] safe_b1_sub1_addr_a = (n <= 2) ? 1'b0 : b1_sub1_addr_a[MEM_AW-1:0];
+    wire [MEM_AW-1:0] safe_b1_sub1_addr_b = (n <= 2) ? 1'b0 : b1_sub1_addr_b[MEM_AW-1:0];
+
+    // Output reading wires
+    wire [23:0] r_b0_sub0_a, r_b0_sub1_a, r_b1_sub0_a, r_b1_sub1_a;
+    wire [23:0] r_b0_sub0_b, r_b0_sub1_b, r_b1_sub0_b, r_b1_sub1_b;
+
+    // =========================================================================
+    // OPENRAM MACRO INSTANTIATIONS
+    // =========================================================================
+
+    // Explicit 9-bit wires for safe zero-padding. 
+    wire [8:0] final_b0_sub0_addr_a = safe_b0_sub0_addr_a;
+    wire [8:0] final_b0_sub0_addr_b = safe_b0_sub0_addr_b;
+    wire [8:0] final_b0_sub1_addr_a = safe_b0_sub1_addr_a;
+    wire [8:0] final_b0_sub1_addr_b = safe_b0_sub1_addr_b;
+    wire [8:0] final_b1_sub0_addr_a = safe_b1_sub0_addr_a;
+    wire [8:0] final_b1_sub0_addr_b = safe_b1_sub0_addr_b;
+    wire [8:0] final_b1_sub1_addr_a = safe_b1_sub1_addr_a;
+    wire [8:0] final_b1_sub1_addr_b = safe_b1_sub1_addr_b;
+
+    sram_512x24_2rw b0_sub0_ram (
+    `ifdef USE_POWER_PINS
+        .vdd(1'b1), .gnd(1'b0),
+    `endif
+        .clk0(clk), .csb0(1'b0), .web0(~b0_sub0_we_a), .addr0(final_b0_sub0_addr_a), .din0(wr_data_a), .dout0(r_b0_sub0_a),
+        .clk1(clk), .csb1(1'b0), .web1(~b0_sub0_we_b), .addr1(final_b0_sub0_addr_b), .din1(wr_data_b), .dout1(r_b0_sub0_b)
+    );
+
+    sram_512x24_2rw b0_sub1_ram (
+    `ifdef USE_POWER_PINS
+        .vdd(1'b1), .gnd(1'b0),
+    `endif
+        .clk0(clk), .csb0(1'b0), .web0(~b0_sub1_we_a), .addr0(final_b0_sub1_addr_a), .din0(wr_data_a), .dout0(r_b0_sub1_a),
+        .clk1(clk), .csb1(1'b0), .web1(~b0_sub1_we_b), .addr1(final_b0_sub1_addr_b), .din1(wr_data_b), .dout1(r_b0_sub1_b)
+    );
+
+    sram_512x24_2rw b1_sub0_ram (
+    `ifdef USE_POWER_PINS
+        .vdd(1'b1), .gnd(1'b0),
+    `endif
+        .clk0(clk), .csb0(1'b0), .web0(~b1_sub0_we_a), .addr0(final_b1_sub0_addr_a), .din0(wr_data_a), .dout0(r_b1_sub0_a),
+        .clk1(clk), .csb1(1'b0), .web1(~b1_sub0_we_b), .addr1(final_b1_sub0_addr_b), .din1(wr_data_b), .dout1(r_b1_sub0_b)
+    );
+
+    sram_512x24_2rw b1_sub1_ram (
+    `ifdef USE_POWER_PINS
+        .vdd(1'b1), .gnd(1'b0),
+    `endif
+        .clk0(clk), .csb0(1'b0), .web0(~b1_sub1_we_a), .addr0(final_b1_sub1_addr_a), .din0(wr_data_a), .dout0(r_b1_sub1_a),
+        .clk1(clk), .csb1(1'b0), .web1(~b1_sub1_we_b), .addr1(final_b1_sub1_addr_b), .din1(wr_data_b), .dout1(r_b1_sub1_b)
+    );
+
+    // =========================================================================
+    // PERFECT 1-CYCLE PIPELINE ALIGNMENT
+    // =========================================================================
+
+    reg pipe_bank_pingpong;
+    reg pipe_read_sub_sel_a;
+    reg pipe_read_sub_sel_b;
+    reg rd_prec_d1;
+
     always @(posedge clk) begin
-        if (wr_en_1) begin
-            if (bank_sel == 1'b0)
-                bank1_mem[wr_addr_1] <= wr_data_1;
-            else
-                bank0_mem[wr_addr_1] <= wr_data_1;
-        end
+        pipe_bank_pingpong  <= bank_pingpong;
+        pipe_read_sub_sel_a <= read_sub_sel_a;
+        pipe_read_sub_sel_b <= read_sub_sel_b;
+        rd_prec_d1          <= rd_precision;
     end
 
-    // Read
-    reg [7:0] rd_data_reg;
+    // By leaving this purely combinational, it utilizes the OpenRAM's negedge 
+    // update to provide valid data perfectly in sync for the downstream posedge setup.
+    wire [23:0] rd_full_a = (pipe_bank_pingpong == 1'b0) ?
+                            (pipe_read_sub_sel_a ? r_b0_sub1_a : r_b0_sub0_a) :
+                            (pipe_read_sub_sel_a ? r_b1_sub1_a : r_b1_sub0_a);
+                            
+    wire [23:0] rd_full_b = (pipe_bank_pingpong == 1'b0) ? 
+                            (pipe_read_sub_sel_b ? r_b0_sub1_b : r_b0_sub0_b) :
+                            (pipe_read_sub_sel_b ? r_b1_sub1_b : r_b1_sub0_b);
 
-    always @(posedge clk) begin
-        if (!rst)
-            rd_data_reg <= 8'b0;
-        else begin
-            if (bank_sel == 1'b0)
-                rd_data_reg <= bank0_mem[rd_addr_0];
-            else
-                rd_data_reg <= bank1_mem[rd_addr_0];
-        end
-    end
-
-    assign rd_data_0 = rd_data_reg;
-
-endmodule
-
-
-// -----------------------------------------------------------------------------
-// FP8-only memory (16-bit word, ping-pong)
-// Backward-compatible with fp8_fft_memory_reg interface
-// -----------------------------------------------------------------------------
-module fp8_fft_memory_reg #(
-    parameter n          = 1024,
-    parameter ADDR_WIDTH = $clog2(n)
-)(
-    input  wire                  clk,
-    input  wire                  rst,
-
-    input  wire                  bank_sel,
-
-    input  wire [ADDR_WIDTH-1:0] rd_addr_0,
-    output wire [15:0]           rd_data_0,
-
-    input  wire                  wr_en_1,
-    input  wire [ADDR_WIDTH-1:0] wr_addr_1,
-    input  wire [15:0]           wr_data_1
-);
-
-    (* ram_style = "block" *) reg [15:0] bank0_mem [0:n-1];
-    (* ram_style = "block" *) reg [15:0] bank1_mem [0:n-1];
-
-    // Write
-    always @(posedge clk) begin
-        if (wr_en_1) begin
-            if (bank_sel == 1'b0)
-                bank1_mem[wr_addr_1] <= wr_data_1;
-            else
-                bank0_mem[wr_addr_1] <= wr_data_1;
-        end
-    end
-
-    // Read
-    reg [15:0] rd_data_reg;
-
-    always @(posedge clk) begin
-        if (!rst)
-            rd_data_reg <= 16'b0;
-        else begin
-            if (bank_sel == 1'b0)
-                rd_data_reg <= bank0_mem[rd_addr_0];
-            else
-                rd_data_reg <= bank1_mem[rd_addr_0];
-        end
-    end
-
-    assign rd_data_0 = rd_data_reg;
+    assign rd_data_a = rd_prec_d1 ? rd_full_a[23:8] : {8'h00, rd_full_a[7:0]};
+    assign rd_data_b = rd_prec_d1 ? rd_full_b[23:8] : {8'h00, rd_full_b[7:0]};
 
 endmodule
