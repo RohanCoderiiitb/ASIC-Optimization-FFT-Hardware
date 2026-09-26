@@ -2,16 +2,17 @@ FP32 baseline - PPA extraction using the mixed-precision evaluator methodology
 (Yosys synthesis + area; OpenSTA timing + power; no OpenROAD P&R)
 Clock period: 10.0 ns
 Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, ExecCycles from ../sim/perf/fp32_sqnr_results.txt
+Power is measured from a real RTL-simulation VCD (the same 11 signals used for SQNR) annotated onto a hierarchy-preserved netlist via OpenSTA's `read_vcd`, when at least 20 pins match (PowerSrc=vcd_measured, AnnotPins shown); otherwise it falls back to a flat 0.2 input-activity guess (PowerSrc=flat_0.2_fallback) -- see run_yosys()/generate_activity_vcd() for why flattening breaks name matching.
 
-     N |  Power (mW) |  Area (um^2) | CritDelay (ns) | Slack (ns) |  NormLat |  ExecCyc |  Energy/FFT (nJ) | Status
--------------------------------------------------------------------------------------------------------------------
-     2 |     14.0000 |     453842.1 |          7.980 |      2.020 |    0.798 |       18 |            2.520 |     OK
-     4 |     14.1000 |     466720.4 |          7.980 |      2.020 |    0.798 |       35 |            4.935 |     OK
-     8 |     14.1000 |     477351.5 |          7.980 |      2.020 |    0.798 |       57 |            8.037 |     OK
-    16 |     14.1000 |     486082.1 |          7.980 |      2.020 |    0.798 |       91 |           12.831 |     OK
-    32 |     14.2000 |     490583.8 |          7.980 |      2.020 |    0.798 |      153 |           21.726 |     OK
-    64 |     14.2000 |     491616.3 |          7.980 |      2.020 |    0.798 |      279 |           39.618 |     OK
-   128 |     14.2000 |     492305.1 |          7.980 |      2.020 |    0.931 |      549 |           77.958 |     OK
-   256 |     14.2000 |     492306.1 |          7.980 |      2.020 |    1.064 |     1139 |          161.738 |     OK
-   512 |     14.2000 |     493026.7 |          7.980 |      2.020 |    1.197 |     2433 |          345.486 |     OK
-  1024 |     14.2000 |     494512.4 |          7.980 |      2.020 |    1.330 |     5263 |          747.346 |     OK
+     N |  Power (mW) |      PowerSrc | AnnotPins |  Area (um^2) | CritDelay (ns) | Slack (ns) |  NormLat |  ExecCyc |  Energy/FFT (nJ) | Status
+-----------------------------------------------------------------------------------------------------------------------------------------------
+     2 |     20.9000 |  vcd_measured |      1254 |     453842.1 |          7.980 |      2.020 |    0.798 |       18 |            3.762 |     OK
+     4 |     23.7000 |  vcd_measured |      1258 |     466720.4 |          7.980 |      2.020 |    0.798 |       35 |            8.295 |     OK
+     8 |     24.3000 |  vcd_measured |      1260 |     477351.5 |          7.980 |      2.020 |    0.798 |       57 |           13.851 |     OK
+    16 |     24.2000 |  vcd_measured |      1262 |     486082.1 |          7.980 |      2.020 |    0.798 |       91 |           22.022 |     OK
+    32 |     23.5000 |  vcd_measured |      1264 |     490583.8 |          7.980 |      2.020 |    0.798 |      153 |           35.955 |     OK
+    64 |     21.5000 |  vcd_measured |      1266 |     491616.3 |          7.980 |      2.020 |    0.798 |      279 |           59.985 |     OK
+   128 |     18.4000 |  vcd_measured |      1268 |     492305.1 |          7.980 |      2.020 |    0.931 |      549 |          101.016 |     OK
+   256 |     16.7000 |  vcd_measured |      1270 |     492306.1 |          7.980 |      2.020 |    1.064 |     1139 |          190.213 |     OK
+   512 |     16.1000 |  vcd_measured |      1272 |     493026.7 |          7.980 |      2.020 |    1.197 |     2433 |          391.713 |     OK
+  1024 |     15.8000 |  vcd_measured |      1274 |     494512.4 |          7.980 |      2.020 |    1.330 |     5263 |          831.554 |     OK

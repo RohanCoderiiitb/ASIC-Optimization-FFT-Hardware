@@ -30,14 +30,27 @@ backend/P&R flow.
 Per design size N:
   1. Yosys: blackbox sram_512x64_2rw, elaborate + flatten fp32_fft_<N>_top,
      map to the standard-cell liberty with abc, report chip area (`stat`).
-  2. OpenSTA: read the std-cell + SRAM-macro liberty, read the synthesized
-     netlist, create a `CLOCK_PERIOD`-ns clock, set I/O delay to period/4
-     (matching the mixed evaluator), report the worst-case timing path and
-     power (0.2 input activity, matching the mixed evaluator).
+     This flattened netlist is what area and timing are measured from.
+  2. OpenSTA (timing + flat-activity power): read the std-cell + SRAM-macro
+     liberty, read the flattened netlist, create a `CLOCK_PERIOD`-ns clock,
+     set I/O delay to period/4, report the worst-case timing path, and a
+     flat-0.2-activity power number kept only as a fallback/reference (see
+     step 4).
   3. Normalized latency = (crit_delay_ns / CLOCK_PERIOD) * max(1, stages/6),
      capped at 10.0 -- identical formula to
      MixedPrecisionFFTProblem._compute_actual_normalized_latency.
-  4. Energy/FFT, as above.
+  4. Real-activity power (the number actually reported as Power (mW)):
+     Yosys is re-run WITHOUT `flatten` (see run_yosys's `flatten=False` path)
+     to keep RTL module/instance names intact, then the RTL testbench used
+     for SQNR (fp32_performance_evaluator.py, same 11 signals) is re-run with
+     `$dumpvars` on to capture a VCD, and OpenSTA's `read_vcd` annotates that
+     onto the hierarchy-preserved netlist before `report_power`. A flat
+     netlist matches only ~2% of nets by name after `abc`/`opt -purge`
+     collapse everything into one module; keeping hierarchy gets ~10x more
+     matches (see generate_activity_vcd/run_opensta_vcd_power). Falls back to
+     the flat-0.2 number (PowerSrc=flat_0.2_fallback in the report) if fewer
+     than MIN_ANNOTATED_PINS pins get annotated.
+  5. Energy/FFT, as above, using the real-activity power from step 4.
 
 Usage (from anywhere):
     python3 fp32_baseline/synth/run_fp32_synthesis.py                # all 10 sizes
@@ -56,12 +69,16 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import textwrap
 import zipfile
 
 SYNTH_DIR = os.path.dirname(os.path.abspath(__file__))          # fp32_baseline/synth
 BASE_DIR = os.path.dirname(SYNTH_DIR)                            # fp32_baseline
 REPO_ROOT = os.path.dirname(BASE_DIR)                             # repo root
+
+sys.path.insert(0, os.path.join(BASE_DIR, "sim"))
+from fp32_performance_evaluator import FP32PerformanceEvaluator  # noqa: E402
 
 ALL_SIZES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
@@ -82,6 +99,12 @@ CLOCK_NET_NAME = "clk"
 
 MAX_POWER_MW = 500.0
 MAX_AREA_UM2 = 600000.0
+
+# Floor below which a `read_vcd` activity annotation is treated as too sparse
+# to trust (falls back to the flat-activity power number instead, loudly).
+# Chosen well below what a real run gets (hundreds of pins, see below) so it
+# only trips if read_vcd finds essentially nothing -- e.g. a scope mismatch.
+MIN_ANNOTATED_PINS = 20
 
 
 def log(msg):
@@ -136,12 +159,25 @@ class Fp32Synthesizer:
         return sources
 
     # ------------------------------------------------------------------
-    def run_yosys(self, n, sources, work_dir):
+    def run_yosys(self, n, sources, work_dir, flatten=True, tag="netlist"):
+        """`flatten=True` (the default) is what area/timing are measured from
+        -- unchanged from before. `flatten=False` produces a second netlist
+        that keeps RTL module/instance names intact, used ONLY for VCD-based
+        power annotation: a fully flattened netlist matches only a handful of
+        `read_vcd` pin names against the RTL testbench's VCD (~2% of nets in
+        testing), because `abc`/`opt -purge` erase most internal names when
+        everything is squashed into one module. Keeping hierarchy preserves
+        submodule instance paths and ports, which pushes real match coverage
+        up roughly 10x, without reintroducing the dangling
+        `wire signed [31:0] i`-style declarations that `opt -purge` /
+        `opt_clean -purge` / `setundef -zero -undriven` exist to remove (that
+        fix does not depend on flatten -- verified empirically)."""
         top_module = f"fp32_fft_{n}_top"
-        netlist_v = os.path.join(work_dir, f"fp32_fft_{n}_netlist.v")
-        yosys_log = os.path.join(work_dir, "yosys.log")
-        script_path = os.path.join(work_dir, f"fp32_fft_{n}_synth.ys")
+        netlist_v = os.path.join(work_dir, f"fp32_fft_{n}_{tag}.v")
+        yosys_log = os.path.join(work_dir, f"yosys_{tag}.log")
+        script_path = os.path.join(work_dir, f"fp32_fft_{n}_synth_{tag}.ys")
 
+        flatten_cmd = "flatten -noscopeinfo\n            " if flatten else ""
         read_cmds = "\n".join(f"read_verilog -sv {f}" for f in sources)
         yosys_script = textwrap.dedent(f"""\
             {read_cmds}
@@ -149,9 +185,7 @@ class Fp32Synthesizer:
             blackbox {SRAM_MACRO_MODULE}
 
             hierarchy -check -top {top_module}
-            flatten -noscopeinfo
-
-            proc
+            {flatten_cmd}proc
             opt -purge
             memory
             opt -purge
@@ -175,11 +209,11 @@ class Fp32Synthesizer:
             result = subprocess.run(cmd, capture_output=True, text=True,
                                      timeout=self.timeout, cwd=work_dir)
             if result.returncode != 0:
-                log(f"Yosys FAILED for fp32_fft_{n}. stderr tail: {result.stderr[-500:]}")
+                log(f"Yosys FAILED for fp32_fft_{n} ({tag}). stderr tail: {result.stderr[-500:]}")
                 return None, yosys_log
             return netlist_v, yosys_log
         except Exception as e:
-            log(f"Yosys invocation error for fp32_fft_{n}: {e}")
+            log(f"Yosys invocation error for fp32_fft_{n} ({tag}): {e}")
             return None, yosys_log
 
     def parse_yosys_area(self, yosys_log, fallback=None):
@@ -248,6 +282,64 @@ class Fp32Synthesizer:
             log(f"OpenSTA invocation error for fp32_fft_{n}: {e}")
             return False, timing_rpt, power_rpt
 
+    # ------------------------------------------------------------------
+    # Real-activity power: simulate the RTL testbench (same 11 signals used
+    # for SQNR) with $dumpvars on, then hand that VCD to OpenSTA's `read_vcd`
+    # against the HIERARCHY-PRESERVED netlist from run_yosys(..., flatten=False).
+    # This replaces the flat `set_power_activity -input -activity 0.2` guess
+    # with switching activity measured from real signal content, at whatever
+    # match coverage `read_vcd` reports (see MIN_ANNOTATED_PINS).
+    # ------------------------------------------------------------------
+    def generate_activity_vcd(self, n, work_dir):
+        design_name = f"fp32_fft_{n}"
+        core, _top = self.core_and_top_files(n)
+        ev = FP32PerformanceEvaluator(n, shared_sources_dir=self.shared_dir,
+                                      sim_dir=work_dir, dump_vcd=True)
+        result = ev.run_verilog_simulation(core, design_name)
+        if result is None:
+            log(f"Activity VCD simulation FAILED for {design_name}")
+            return None
+        vcd_file = ev.vcd_path(design_name)
+        return vcd_file if os.path.isfile(vcd_file) else None
+
+    _ANNOTATED_RE = re.compile(r"Annotated\s+(\d+)\s+pin activit")
+
+    def run_opensta_vcd_power(self, n, hier_netlist_v, vcd_file, work_dir):
+        top_module = f"fp32_fft_{n}_top"
+        power_rpt = os.path.join(work_dir, f"fp32_fft_{n}_power_vcd.rpt")
+        sta_log = os.path.join(work_dir, "sta_vcd.log")
+        script_path = os.path.join(work_dir, f"fp32_fft_{n}_sta_vcd.tcl")
+
+        sta_script = textwrap.dedent(f"""\
+            read_liberty {self.std_lib}
+            read_liberty {self.ram_lib}
+            read_verilog {hier_netlist_v}
+            link_design {top_module}
+            create_clock -name {CLOCK_NET_NAME} -period {self.clock_period} [get_ports {CLOCK_NET_NAME}]
+            read_vcd -scope tb_{top_module[:-4]}/dut {vcd_file}
+            report_power > {power_rpt}
+            exit
+        """)
+        with open(script_path, "w") as f:
+            f.write(sta_script)
+
+        cmd = [self.sta_path, "-no_init", "-no_splash", "-exit", script_path]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True,
+                                     timeout=600, cwd=work_dir)
+            with open(sta_log, "w") as f:
+                f.write(result.stdout)
+                f.write(result.stderr)
+            if result.returncode != 0:
+                log(f"OpenSTA (VCD power) FAILED for fp32_fft_{n}. stderr tail: {result.stderr[-500:]}")
+                return None, 0
+            m = self._ANNOTATED_RE.search(result.stdout)
+            annotated = int(m.group(1)) if m else 0
+            return power_rpt, annotated
+        except Exception as e:
+            log(f"OpenSTA (VCD power) invocation error for fp32_fft_{n}: {e}")
+            return None, 0
+
     def parse_opensta_power(self, power_rpt, fallback=None):
         if fallback is None:
             fallback = MAX_POWER_MW * 2
@@ -311,23 +403,52 @@ class Fp32Synthesizer:
 
         if netlist_v is None:
             return {
-                "n": n, "power_mw": MAX_POWER_MW * 2, "area_um2": area_um2,
+                "n": n, "power_mw": MAX_POWER_MW * 2, "power_mw_flat": MAX_POWER_MW * 2,
+                "power_source": "synth_failed", "annotated_pins": 0,
+                "area_um2": area_um2,
                 "crit_delay_ns": 200.0, "slack_ns": -1.0,
                 "norm_latency": 10.0, "ok": False,
             }
 
         sta_ok, timing_rpt, power_rpt = self.run_opensta(n, netlist_v, work_dir)
-        power_mw = self.parse_opensta_power(power_rpt) if sta_ok else MAX_POWER_MW * 2
+        power_mw_flat = self.parse_opensta_power(power_rpt) if sta_ok else MAX_POWER_MW * 2
         crit_delay, slack_ns = self.parse_opensta_timing(timing_rpt) if sta_ok else (200.0, -1.0)
+
+        # Real-activity power: hierarchy-preserved netlist + VCD from the RTL
+        # testbench's own 11 representative signals. Falls back to the flat
+        # 0.2 guess (loudly) if any step here doesn't produce a usable result,
+        # since a failed/absent VCD must never silently look as good as a
+        # measured one.
+        power_mw = power_mw_flat
+        power_source = "flat_0.2_fallback"
+        annotated_pins = 0
+        if sta_ok:
+            hier_netlist_v, hier_yosys_log = self.run_yosys(
+                n, sources, work_dir, flatten=False, tag="netlist_hier")
+            vcd_file = self.generate_activity_vcd(n, work_dir) if hier_netlist_v else None
+            if hier_netlist_v and vcd_file:
+                vcd_power_rpt, annotated_pins = self.run_opensta_vcd_power(
+                    n, hier_netlist_v, vcd_file, work_dir)
+                if vcd_power_rpt and annotated_pins >= MIN_ANNOTATED_PINS:
+                    power_mw = self.parse_opensta_power(vcd_power_rpt, fallback=power_mw_flat)
+                    power_source = "vcd_measured"
+                else:
+                    log(f"fp32_fft_{n}: only {annotated_pins} pins annotated "
+                        f"(< {MIN_ANNOTATED_PINS}) - keeping flat-activity power")
+            else:
+                log(f"fp32_fft_{n}: activity VCD unavailable - keeping flat-activity power")
 
         num_stages = int(math.log2(n)) if n > 1 else 1
         norm_latency = self.normalized_latency(crit_delay, num_stages)
 
-        log(f"fp32_fft_{n}: P={power_mw:.4f}mW A={area_um2:.1f}um^2 "
+        log(f"fp32_fft_{n}: P={power_mw:.4f}mW (source={power_source}, "
+            f"annotated={annotated_pins}) A={area_um2:.1f}um^2 "
             f"CritDelay={crit_delay:.3f}ns Slack={slack_ns:.3f}ns NormLat={norm_latency:.3f}x")
 
         return {
-            "n": n, "power_mw": power_mw, "area_um2": area_um2,
+            "n": n, "power_mw": power_mw, "power_mw_flat": power_mw_flat,
+            "power_source": power_source, "annotated_pins": annotated_pins,
+            "area_um2": area_um2,
             "crit_delay_ns": crit_delay, "slack_ns": slack_ns,
             "norm_latency": norm_latency, "ok": sta_ok,
         }
@@ -410,7 +531,8 @@ def main():
         else:
             r["energy_per_fft_nj"] = None
 
-    hdr = (f"{'N':>6} | {'Power (mW)':>11} | {'Area (um^2)':>12} | "
+    hdr = (f"{'N':>6} | {'Power (mW)':>11} | {'PowerSrc':>13} | {'AnnotPins':>9} | "
+           f"{'Area (um^2)':>12} | "
            f"{'CritDelay (ns)':>14} | {'Slack (ns)':>10} | {'NormLat':>8} | "
            f"{'ExecCyc':>8} | {'Energy/FFT (nJ)':>16} | {'Status':>6}")
     sep = "-" * len(hdr)
@@ -419,13 +541,19 @@ def main():
              f"Clock period: {args.clock_period} ns",
              "Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, "
              f"ExecCycles from {os.path.relpath(os.path.abspath(args.cycles_file), SYNTH_DIR)}",
+             "Power is measured from a real RTL-simulation VCD (the same 11 signals used for "
+             "SQNR) annotated onto a hierarchy-preserved netlist via OpenSTA's `read_vcd`, when "
+             f"at least {MIN_ANNOTATED_PINS} pins match (PowerSrc=vcd_measured, AnnotPins shown); "
+             "otherwise it falls back to a flat 0.2 input-activity guess (PowerSrc=flat_0.2_fallback) "
+             "-- see run_yosys()/generate_activity_vcd() for why flattening breaks name matching.",
              "", hdr, sep]
     for r in rows:
         status = "OK" if r["ok"] else "FAILED"
         cyc_s = str(r["exec_cycles"]) if r["exec_cycles"] is not None else "N/A"
         e_s = f"{r['energy_per_fft_nj']:.3f}" if r["energy_per_fft_nj"] is not None else "N/A"
         lines.append(
-            f"{r['n']:>6} | {r['power_mw']:>11.4f} | {r['area_um2']:>12.1f} | "
+            f"{r['n']:>6} | {r['power_mw']:>11.4f} | {r['power_source']:>13} | "
+            f"{r['annotated_pins']:>9} | {r['area_um2']:>12.1f} | "
             f"{r['crit_delay_ns']:>14.3f} | {r['slack_ns']:>10.3f} | "
             f"{r['norm_latency']:>8.3f} | {cyc_s:>8} | {e_s:>16} | {status:>6}")
     text = "\n".join(lines) + "\n"
