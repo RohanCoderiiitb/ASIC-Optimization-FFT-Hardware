@@ -1,0 +1,83 @@
+// =============================================================================
+// FP16 Baseline FFT TOP - 128-point PIPELINED CONFIGURATION
+//
+// Same interface shape as mixed_fft_128_top / fp32_fft_128_top, with 32-bit
+// complex FP16 load / unload words in place of the 16-bit mixed-precision
+// unified word or the 64-bit FP32 word.  No format conversion on load: the
+// baseline stores exactly what it is given.
+// =============================================================================
+`timescale 1ns/1ps
+
+module fp16_fft_128_top (
+    input  wire        clk,
+    input  wire        rst,
+
+    input  wire        start,
+    output reg         done,
+
+    input  wire              load_en,
+    input  wire [6:0]  load_addr,
+    input  wire [31:0]       load_data,
+
+    input  wire              unload_en,
+    input  wire [6:0]  unload_addr,
+    output wire [31:0]       unload_data
+);
+
+    wire [10:0] load_addr_rev;
+
+    bit_reverse #(
+        .MAX_N(1024),
+        .WIDTH(11)
+    ) br (
+        .in  ({4'b0000, load_addr}),
+        .N   (11'd128),
+        .out (load_addr_rev)
+    );
+
+    reg bank_sel;
+    wire core_done;
+    wire [31:0] core_rd_data;
+
+    fp16_fft_128_core #(
+        .MAX_N     (1024),
+        .ADDR_WIDTH(11)
+    ) core (
+        .clk          (clk),
+        .rst          (rst),
+        .start        (start),
+        .done         (core_done),
+
+        .ext_wr_en    (load_en),
+        .ext_wr_addr  (load_addr_rev),
+        .ext_wr_data  (load_data),
+
+        .ext_reading  (unload_en),
+        .ext_rd_addr  ({4'b0000, unload_addr}),
+        .ext_rd_data  (core_rd_data),
+
+        .ext_bank_sel (bank_sel)
+    );
+
+    assign unload_data = core_rd_data;
+
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            done     <= 1'b0;
+            bank_sel <= 1'b1;
+        end else begin
+            if (load_en && !start)
+                bank_sel <= 1'b1;
+
+            if (start) begin
+                done     <= 1'b0;
+                bank_sel <= 1'b1;
+            end else if (core_done) begin
+                done     <= 1'b1;
+                bank_sel <= 1'b0;   // bank holding the result (log2 N = 7)
+            end else if (!start && done) begin
+                done <= 1'b0;
+            end
+        end
+    end
+endmodule

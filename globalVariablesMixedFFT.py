@@ -14,7 +14,14 @@ GENERATIONS = 100
 SEED = 42
 MUTATION_RATE = 0.05
 CROSSOVER_RATE = 0.9
-OBJECTIVES = 4               # Power, Area, Performance, Latency
+OBJECTIVES = 3                # Energy/transform, SQNR error^2, Latency
+#   Area left the objective vector: the shared butterfly is a fixed union of
+#   both datapaths, so area takes only a handful of values over the whole
+#   chromosome space and carried no search signal. It is now a hard
+#   constraint instead. Power became dynamic-energy-per-transform, computed
+#   in energyObjective.py from OpenSTA's Internal/Switching/Leakage power
+#   split. Area and total power are still measured and reported every
+#   generation - see objectiveEvaluationFFT.py.
 
 CURRENT_GEN = 0
 SOLUTION_THREADS = 12
@@ -41,12 +48,15 @@ for size in [8, 16, 32, 64, 128, 256, 512, 1024]:
     print(f"  FFT-{size:<4}: {ns:>2} stages x 2 = {chrom_size:>3} genes")
 
 # ======================= Open-Source EDA Tool Configuration =======================
-YOSYS_PATH = 'yosys'          
-OPENSTA_PATH = 'sta'          
-OPENROAD_PATH = 'openroad'    
+# Same tool invocation convention as fp16_baseline/synth/run_fp16_synthesis.py
+# and fp32_baseline/synth/run_fp32_synthesis.py: plain names resolved off
+# $PATH, and the standard-cell liberty resolved relative to the repo root
+# (45_nm_PDK/), not a hardcoded, machine-specific home directory.
+YOSYS_PATH = 'yosys'
+OPENSTA_PATH = 'sta'
+OPENROAD_PATH = 'openroad'
 
-# Update this path to point to your PDK library
-LIBERTY_LIB_PATH = '/home/rohan-kamath/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib'
+LIBERTY_LIB_PATH = './45_nm_PDK/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib'
 RAM_LIBERTY_PATH = './openram_outputs/sram_512x24_2rw_TT_1p0V_25C.lib'
 
 CLOCK_PERIOD = 10.0      # nanoseconds
@@ -79,6 +89,9 @@ SQNR_OFFSET      = 50.0
 REF_LATENCY      = MAX_LATENCY_NORM     
 
 # ======================= Optimization Weights =======================
+# WEIGHT_POWER / WEIGHT_AREA / REF_POWER_MW / REF_AREA_UM2 are retired from
+# the objective vector (see OBJECTIVES above and energyObjective.py) but kept
+# defined here since they are still meaningful as reporting units elsewhere.
 WEIGHT_POWER = 1.0
 WEIGHT_AREA = 1.0
 WEIGHT_PERFORMANCE = 30.0

@@ -2,6 +2,11 @@
 Objective Evaluation for Mixed-Precision FFT Optimization
 Uses open-source EDA tools (Yosys + OpenSTA) for Area/Power/Timing extraction.
 Simulation tracking (execution cycles) is strictly maintained.
+
+Objectives are [energy_nJ_perFFT, sqnr_error^2, norm_latency] (see
+energyObjective.py). Area and total/dynamic/static power are still measured
+via Yosys+OpenSTA every generation and reported in the results dict, CSVs and
+per-solution logs - they are just no longer part of the objective vector.
 """
 
 import numpy as np
@@ -17,9 +22,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from globalVariablesMixedFFT import *
 from fft_template_generator import FFTTemplateGenerator
 from performance_evaluator import PerformanceEvaluator
+from energyObjective import (energy_objectives, penalty_objectives,
+                             ENERGY_OBJECTIVES)
 
 class MixedPrecisionFFTProblem(Problem):
     def __init__(self, fft_size=8, **kwargs):
+        if OBJECTIVES != ENERGY_OBJECTIVES:
+            raise ValueError(
+                f"OBJECTIVES={OBJECTIVES} in globalVariablesMixedFFT.py but "
+                f"energyObjective supplies {ENERGY_OBJECTIVES}. These must "
+                f"agree or pymoo will silently mis-shape the objective array.")
         self.fft_size     = fft_size
         self.template_gen = FFTTemplateGenerator(fft_size)
         self.perf_eval    = PerformanceEvaluator(fft_size)
@@ -28,7 +40,7 @@ class MixedPrecisionFFTProblem(Problem):
 
         super().__init__(
             n_var=chrom_length,
-            n_obj=OBJECTIVES,
+            n_obj=OBJECTIVES,           # energy, sqnr_error^2, latency
             n_ieq_constr=3,
             xl=[0] * chrom_length,
             xu=[1] * chrom_length,
@@ -37,7 +49,9 @@ class MixedPrecisionFFTProblem(Problem):
             **kwargs
         )
 
-        log_message(f"Initialized FFT-{fft_size} problem with Yosys+OpenSTA timing")
+        log_message(f"Initialized FFT-{fft_size} problem with Yosys+OpenSTA "
+                    f"timing: 3 objectives (energy/FFT, SQNR error^2, "
+                    f"latency); area and power are constraints/reported only")
 
     def _evaluate(self, X, out, *args, **kwargs):
         global CURRENT_GEN
@@ -59,8 +73,9 @@ class MixedPrecisionFFTProblem(Problem):
                     G[idx] = g_vals
                 except Exception as e:
                     log_message(f"Solution {idx} failed: {e}", level='ERROR')
-                    F[idx] = [MAX_POWER_MW*2, MAX_AREA_UM2*2, 1e6, 50.0]
-                    G[idx] = [MAX_POWER_MW, MAX_AREA_UM2, MIN_SQNR_DB]
+                    pf, pg = penalty_objectives()
+                    F[idx] = pf
+                    G[idx] = pg
 
         out["F"] = np.array(F)
         out["G"] = np.array(G)
@@ -78,8 +93,9 @@ class MixedPrecisionFFTProblem(Problem):
         core_file = os.path.join(GENERATED_DESIGNS_DIR, f"{design_name}.v")
         core_file, top_file = self.template_gen.generate_verilog(chromosome, core_file)
 
-        power_mw, area_um2, crit_delay, slack_ns = self._run_yosys_opensta(design_name, core_file, top_file)
-        
+        (power_mw, dyn_power_mw, static_power_mw, area_um2, crit_delay,
+         slack_ns) = self._run_yosys_opensta(design_name, core_file, top_file)
+
         perf = self._run_performance_evaluation(core_file, design_name, chromosome)
         sqnr           = perf['sqnr']
         avg_exec_cycles = perf['avg_exec_cycles']
@@ -89,6 +105,8 @@ class MixedPrecisionFFTProblem(Problem):
 
         results = {
             'power':            power_mw,
+            'dyn_power_mw':     dyn_power_mw,
+            'static_power_mw':  static_power_mw,
             'area':             area_um2,
             'sqnr':             sqnr,
             'norm_latency':     norm_latency,
@@ -99,16 +117,19 @@ class MixedPrecisionFFTProblem(Problem):
         }
 
         RESULT_CACHE[chrom_hash] = results
+        objs, cons = self._compute_objectives_and_constraints(results)
         self._save_solution_result(sol_id, chromosome, results)
 
         stats = self.template_gen.analyze_chromosome_statistics(chromosome)
         log_message(
-            f"Solution {sol_id}: P={power_mw:.4f}mW, A={area_um2} µm², SQNR={sqnr:.2f}dB, "
+            f"Solution {sol_id}: E={results.get('energy_nj_per_fft', -1.0):.4f} nJ/FFT "
+            f"(dyn={dyn_power_mw:.4f}mW static={static_power_mw:.4f}mW "
+            f"total={power_mw:.4f}mW), A={area_um2} µm², SQNR={sqnr:.2f}dB, "
             f"CritDelay={crit_delay:.3f}ns -> NormLat={norm_latency:.3f}x, "
             f"ExecCycles={avg_exec_cycles}, TotSimCycles={tot_sim_cycles}"
         )
 
-        return self._compute_objectives_and_constraints(results)
+        return objs, cons
 
     def _hash_chromosome(self, chromosome):
         return hashlib.md5(''.join(map(str, chromosome)).encode()).hexdigest()
@@ -139,19 +160,19 @@ class MixedPrecisionFFTProblem(Problem):
         # 2. Pass ram_lib_abs into Yosys
         yosys_ok = self._run_yosys(design_name, top_module, verilog_sources, lib_abs, ram_lib_abs, netlist_v, yosys_log, work_dir)
         if not yosys_ok:
-            return MAX_POWER_MW * 2, MAX_AREA_UM2 * 2, 200.0, -1.0
+            return MAX_POWER_MW * 2, MAX_POWER_MW * 2, 0.0, MAX_AREA_UM2 * 2, 200.0, -1.0
 
         area_um2 = self._parse_yosys_area(yosys_log)
 
         # 3. Pass ram_lib_abs into OpenSTA
         sta_ok = self._run_opensta(design_name, top_module, lib_abs, ram_lib_abs, netlist_v, rpt_dir, sta_log, work_dir)
         if not sta_ok:
-            return MAX_POWER_MW * 2, area_um2, 200.0, -1.0
+            return MAX_POWER_MW * 2, MAX_POWER_MW * 2, 0.0, area_um2, 200.0, -1.0
 
-        power_mw             = self._parse_opensta_power(rpt_dir, design_name)
+        power_mw, dyn_power_mw, static_power_mw = self._parse_opensta_power(rpt_dir, design_name)
         crit_delay, slack_ns = self._parse_opensta_timing(rpt_dir, design_name)
 
-        return power_mw, area_um2, crit_delay, slack_ns
+        return power_mw, dyn_power_mw, static_power_mw, area_um2, crit_delay, slack_ns
 
     def _collect_verilog_sources(self, verilog_dir, core_abs, top_abs):
         import glob as _glob
@@ -164,27 +185,42 @@ class MixedPrecisionFFTProblem(Problem):
         return sources
 
     def _run_yosys(self, design_name, top_module, verilog_sources, lib_file, ram_lib_file, netlist_v, yosys_log, work_dir):
+        # Matches fp16_baseline/synth/run_fp16_synthesis.py and
+        # fp32_baseline/synth/run_fp32_synthesis.py exactly (down to the
+        # -purge/setundef passes): without them, Yosys leaves dangling
+        # `wire signed [31:0] i;`-style loop-counter declarations (from
+        # `integer i, j, t_idx;` used only to unroll `for` loops) in the
+        # written netlist. Those are harmless to Yosys but OpenSTA's Verilog
+        # reader cannot parse a signed wire declaration at all, so
+        # read_verilog fails, every design silently falls back to the
+        # MAX_POWER_MW*2 / 200 ns penalty values in _run_yosys_opensta, and
+        # the energy objective goes inert exactly the way its docstring warns
+        # about - just one synthesis pass earlier than SAIF coverage. Matching
+        # the baseline script here is also what makes mixed-precision designs
+        # directly comparable to the FP16/FP32 baselines in the first place.
         read_cmds = '\n'.join(f'read_verilog -sv {f}' for f in verilog_sources)
         yosys_script = textwrap.dedent(f"""\
             {read_cmds}
             # PRE-SYNTHESIS BLACKBOX
             # Force blackbox before proc/opt, even if loaded as source
             blackbox sram_512x24_2rw
-            
+
             hierarchy -check -top {top_module}
-            
+            flatten -noscopeinfo
+
             proc
-            opt
+            opt -purge
             memory
-            opt
-            
+            opt -purge
+
             async2sync
             techmap
-            opt
+            opt -purge
             dfflibmap -liberty {lib_file}
             abc -liberty {lib_file} -g cmos
-            opt_clean
-            
+            opt_clean -purge
+            setundef -zero -undriven
+
             stat -liberty {lib_file} -liberty {ram_lib_file}
             write_verilog -noattr {netlist_v}
         """)
@@ -261,20 +297,30 @@ class MixedPrecisionFFTProblem(Problem):
         return fallback
 
     def _parse_opensta_power(self, rpt_dir, design_name, fallback=None):
+        """Returns (total_mw, dynamic_mw, static_mw) from the "Total" row of
+        OpenSTA's report_power: Internal, Switching, Leakage, Total (Watts).
+        dynamic = Internal + Switching, static = Leakage. This split is real
+        (no extra tool run needed) but is still driven by the flat
+        `set_power_activity -input -activity 0.2` guess in _run_opensta, not
+        by a per-design switching trace - see energyObjective.py."""
         if fallback is None:
             fallback = MAX_POWER_MW * 2
         rpt_file = os.path.join(rpt_dir, f"{design_name}_power.rpt")
         if not os.path.exists(rpt_file):
-            return fallback
+            return fallback, fallback, 0.0
         try:
             with open(rpt_file, 'r') as fh:
                 content = fh.read()
             pat = re.compile(r'^\s*Total\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)', re.MULTILINE)
             for m in pat.finditer(content):
-                return float(m.group(4)) * 1000.0   
+                internal_mw  = float(m.group(1)) * 1000.0
+                switching_mw = float(m.group(2)) * 1000.0
+                static_mw    = float(m.group(3)) * 1000.0
+                total_mw     = float(m.group(4)) * 1000.0
+                return total_mw, internal_mw + switching_mw, static_mw
         except Exception as e:
             log_message(f"Error parsing OpenSTA power report: {e}", level='ERROR')
-        return fallback
+        return fallback, fallback, 0.0
 
     def _parse_opensta_timing(self, rpt_dir, design_name, fallback_delay=200.0, fallback_slack=-1.0):
         rpt_file = os.path.join(rpt_dir, f"{design_name}_timing.rpt")
@@ -317,26 +363,13 @@ class MixedPrecisionFFTProblem(Problem):
             return {'sqnr': -100.0, 'avg_exec_cycles': -1, 'tot_sim_cycles': -1}
 
     def _compute_objectives_and_constraints(self, results):
-        power_mw = results['power']
-        area_um2 = results['area']
-        sqnr = results['sqnr']
-        norm_latency = results.get('norm_latency', 10.0)
-
-        perf_obj = ((SQNR_OFFSET - sqnr) / REF_SQNR_RANGE) ** 2 
-
-        objectives = [
-            (power_mw / REF_POWER_MW)    * WEIGHT_POWER,
-            (area_um2 / REF_AREA_UM2)    * WEIGHT_AREA,
-            perf_obj                     * WEIGHT_PERFORMANCE, # Now non-linear
-            (norm_latency / REF_LATENCY) * WEIGHT_LATENCY
-        ]
-
-        constraints = [
-            power_mw - MAX_POWER_MW,
-            area_um2 - MAX_AREA_UM2,
-            MIN_SQNR_DB - sqnr
-        ]
-        return objectives, constraints
+        """Delegated to energyObjective.energy_objectives:
+            [ energy_nJ_perFFT, sqnr_error^2, norm_latency ]
+        Area and total power are constraints/reported values now, not
+        objectives - the shared butterfly is a fixed union of both datapaths,
+        so area takes only a handful of values over the whole chromosome
+        space and carried no search signal."""
+        return energy_objectives(results)
 
     def _save_solution_result(self, sol_id, chromosome, results):
         result_file = os.path.join(RESULTS_DIR, f"gen{CURRENT_GEN}_sol{sol_id}.txt")
@@ -352,6 +385,9 @@ class MixedPrecisionFFTProblem(Problem):
             f.write(f"Solution ID       : {sol_id}\n")
             f.write(f"Chromosome        : {[int(x) for x in chromosome]}\n\n")
             f.write(f"Results:\n")
+            f.write(f"  Energy/FFT        : {results.get('energy_nj_per_fft', -1.0):.4f} nJ\n")
+            f.write(f"  Dynamic Power     : {results.get('dyn_power_mw_used', results.get('dyn_power_mw', 0.0)):.6f} mW\n")
+            f.write(f"  Static Power      : {results.get('static_power_mw', 0.0):.6f} mW\n")
             f.write(f"  Power             : {results['power']:.6f} mW\n")
             f.write(f"  Area              : {results['area']} um2\n")
             f.write(f"  SQNR              : {results['sqnr']:.2f} dB\n")

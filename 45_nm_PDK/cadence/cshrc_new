@@ -1,0 +1,92 @@
+#!/bin/csh
+setenv LM_LICENSE_FILE 5280@172.16.201.225
+setenv CDS_Netlisting_Mode "Analog"
+setenv CDS_LIC_FILE $LM_LICENSE_FILE
+setenv LANG en_US
+
+setenv QRC_EXTRACTION_ENABLE
+setenv ALTOS_64 1
+setenv CDS_AUTO_64BIT NONE
+setenv ASSURA_USE_PVS_LICENSE
+setenv CDSHOME /mnt/cadence_tools/IC23.1/IC
+
+set path=($path ${CDSHOME}/bin ${CDSHOME}/share/bin ${CDSHOME}/tools.lnx86/bin/64bit/ ${CDSHOME}/tools/bin ${CDSHOME}/share/dfII/bin ${CDSHOME}/tools.lnx86/dfII/bin ${CDSHOME}/tools/dfII/bin)
+
+setenv LD_PRELOAD /usr/lib64/libssl.so.1.1.1k:/usr/lib64/libcrypto.so.1.1.1k
+
+setenv FLEXLM_DIAGNOSTICS 3
+
+setenv CALIBRE_HOME  /mnt/cadence_tools/Mentor_tools/calibre/aoi_cal_2021.1_16.10
+set path = ( $CALIBRE_HOME/bin $path )
+
+setenv XHOME /mnt/cadence_tools/XCELIUMnew2025
+setenv MVSHOME /mnt/cadence_tools/MVS
+setenv MODUS_HOME /mnt/cadence_tools/MODUS
+setenv GENUSHOME //mnt/cadence_tools/GENUS211
+setenv QRC_HOME /mnt/cadence_tools/hotfixquantus/QUANTUS212
+setenv PVSHOME /mnt/cadence_tools/pvs24.1/PVS24.10.000_lnx86.Base/CDROM1
+setenv PEAHOME /mnt/cadence_tools/PEGASUS
+setenv SIGRITYHOME /mnt/cadence_tools/SIGRITY/
+setenv SPBHOME /mnt/cadence_tools/SPB
+setenv SPECTRE /mnt/cadence_tools/SPECTRE
+setenv SSVHOME /mnt/cadence_tools/ssv
+setenv VHOME /mnt/cadence_tools/VMANAGER
+setenv PAS /mnt/cadence_tools/PAS31
+setenv LIBERATE_LORDER TOKENS
+setenv ALTOSHOME /mnt/cadence_tools/Liberate
+
+setenv JSPRHOME /mnt/cadence_tools/JASPER2012/jasper_2020.12
+setenv INNOVUSHOME /mnt/cadence_tools/DDI23.1/INNOVUS231
+setenv LECHOME /mnt/cadence_tools/CONFRML211
+
+set path = ($ALTOSHOME/bin $ALTOSHOME/share/bin $ALTOSHOME/tools.lnx86/bin $path)
+
+set path = ($SPBHOME/bin $SPBHOME/share/bin $SPBHOME/tools.lnx86/pcb/bin $SPBHOME/tools.lnx86/bin $path)
+
+set path = ($CDSHOME/bin $CDSHOME/tools/bin $CDSHOME/tools/dfII/bin $CDSHOME/share/bin $path)
+
+set path = ($QRC_HOME/bin $QRC_HOME/tools/bin $QRC_HOME/tools/dfII/bin $QRC_HOME/tools.lnx86/dfII/bin $QRC_HOME/tools.lnx86/dfII/bin $QRC_HOME/share/bin $path)
+
+
+
+
+set path = ($XHOME/bin $XHOME/tools/bin/64bit $XHOME/share/bin $XHOME/tools.lnx86/bin/64bit $XHOME/tools/bin $XHOME/tools/dfII/bin $XHOME/share/bin $XHOME/tools.lnx86/bin $path $XHOME/tools.lnx86/dfII/bin)
+
+set path = ($SPECTRE/bin $SPECTRE/tools/bin $SPECTRE/tools/dfII/bin $SPECTRE/share/bin $path) 
+
+set path = ($GENUSHOME/bin $GENUSHOME/share/bin $GENUSHOME/tools/dfII/bin $GENUSHOME/tools.lnx86/dfII/bin $GENUSHOME/tools/bin $path)
+ 
+set path = ($PVSHOME/bin $PVSHOME/share/bin $PVSHOME/tools.lnx86/dfII/bin $path)
+
+set path = ($INNOVUSHOME/bin $INNOVUSHOME/tools/bin $INNOVUSHOME/tools/dfII/bin $INNOVUSHOME/share/bin $path)
+
+set path = ($LECHOME/bin $LECHOME/tools/bin $LECHOME/tools/dfII/bin $LECHOME/tools.lnx86/dfII/bin $LECHOME/tools.lnx86/dfII/bin $LECHOME/share/bin $path)
+
+set path = ($SSVHOME/bin $SSVHOME/tools/bin $SSVHOME/tools/dfII/bin $SSVHOME/share/bin $path)
+
+set path = ($SIGRITYHOME/bin $SIGRITYHOME/tools/bin $SIGRITYHOME/tools/dfII/bin $SIGRITYHOME/share/bin $path)
+
+
+set path = ($JSPRHOME/bin $JSPRHOME/share/bin $JSPRHOME/tools.lnx86/dfII/bin $JSPRHOME/tools.lnx86/bin $path)
+
+
+
+set path = ($SSVHOME/bin $SSVHOME/share/bin $SSVHOME/tools.lnx86/dfII/bin $SSVHOME/tools.lnx86/bin $path)
+
+set path=($path ${VHOME}/bin ${VHOME}/share/bin ${VHOME}/tools.lnx86/bin ${VHOME}/tools/bin ${VHOME}/share/dfII/bin ${VHOME}/tools.lnx86/dfII/bin ${VHOME}/tools/dfII/bin)
+
+set path=($path ${MODUS_HOME}/bin ${MODUS_HOME}/share/bin ${MODUS_HOME}/tools.lnx86/bin ${MODUS_HOME}/tools/bin ${MODUS_HOME}/share/dfII/bin ${MODUS_HOME}/tools.lnx86/dfII/bin ${MODUS_HOME}/tools/dfII/bin)
+
+set path=($path ${ALTOSHOME}/bin ${ALTOSHOME}/share/bin ${ALTOSHOME}/tools.lnx86/bin ${ALTOSHOME}/tools/bin ${ALTOSHOME}/share/dfII/bin ${ALTOSHOME}/tools.lnx86/dfII/bin ${ALTOSHOME}/tools/dfII/bin)
+
+set path =($QRC_HOME/tools.lnx86/dfII/bin $QRC_HOME/bin $QRC_HOME/tools/bin $QRC_HOME/tools/dfII/bin $QRC_HOME/tools.lnx86/dfII/bin $QRC_HOME/tools.lnx86/dfII/bin $QRC_HOME/share/bin $path)
+
+
+echo "                                     "
+echo "*************************************"
+echo "*****  Welcome to Cadence tools  ****"
+echo "********cshrc*****************************"
+echo "                                     "
+alias c clear
+alias pdf evince
+alias l ls

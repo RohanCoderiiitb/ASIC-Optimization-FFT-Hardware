@@ -10,11 +10,12 @@ import zipfile
 import csv
 import glob
 import math
+import hashlib
 
 import matplotlib
 matplotlib.use('Agg')           # non-interactive — safe on headless servers
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec 
+import matplotlib.gridspec as gridspec
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.operators.sampling.rnd import IntegerRandomSampling
 from pymoo.termination import get_termination
@@ -22,6 +23,17 @@ from pymoo.optimize import minimize
 
 from globalVariablesMixedFFT import *
 from objectiveEvaluationFFT import MixedPrecisionFFTProblem
+# Objective shaping constants live in energyObjective, which is the single
+# source of truth for them. globalVariablesMixedFFT also defines WEIGHT_* names
+# for the retired 4-objective vector; importing explicitly here prevents the
+# star-import above from silently supplying the stale values.
+from energyObjective import (WEIGHT_ENERGY       as _W_ENERGY,
+                             WEIGHT_PERFORMANCE  as _W_PERF,
+                             WEIGHT_LATENCY      as _W_LATENCY,
+                             REF_ENERGY_NJ       as _REF_ENERGY_NJ,
+                             REF_LATENCY         as _REF_LATENCY,
+                             REF_SQNR_RANGE      as _REF_SQNR_RANGE,
+                             SQNR_OFFSET         as _SQNR_OFFSET)
 from optimizationUtils import (
     MyCallback,
     SmartInitialSampling,
@@ -31,9 +43,9 @@ from optimizationUtils import (
 
 
 def _sqnr_from_perf_obj(perf_obj_scaled):
-    perf_obj = perf_obj_scaled / WEIGHT_PERFORMANCE
-    # Apply square root to reverse the quadratic encoding
-    sqnr = SQNR_OFFSET - (math.sqrt(perf_obj) * REF_SQNR_RANGE)
+    perf_obj = perf_obj_scaled / _W_PERF
+    # math.sqrt(max(0.0,...)) protects the interpreter from floating-point noise (-1e-16)
+    sqnr = _SQNR_OFFSET - (math.sqrt(max(0.0, perf_obj)) * _REF_SQNR_RANGE)
     return sqnr
 
 def _crit_delay_ns_from_norm_latency(norm_latency, fft_size):
@@ -43,22 +55,56 @@ def _crit_delay_ns_from_norm_latency(norm_latency, fft_size):
     return crit_delay
 
 
-def _decode_objectives(obj_row, fft_size):
-    power_mw     = (obj_row[0] / WEIGHT_POWER) * REF_POWER_MW
-    area_um2     = (obj_row[1] / WEIGHT_AREA)  * REF_AREA_UM2
-    sqnr_db      = _sqnr_from_perf_obj(obj_row[2])
-    norm_latency = (obj_row[3] / WEIGHT_LATENCY) * REF_LATENCY
-    
+def _decode_objectives(obj_row, fft_size, chromosome=None):
+    """Recover physical quantities from one 3-objective row:
+
+        [ energy_nJ_perFFT * WEIGHT_ENERGY,
+          sqnr_err^2 * WEIGHT_PERFORMANCE,
+          (norm_latency / REF_LATENCY) * WEIGHT_LATENCY ]
+
+    Energy, SQNR and latency invert exactly from the objective vector.
+
+    Area and the power split do NOT appear in it any more. Area left the
+    objective vector because the shared butterfly is a fixed union of both
+    datapaths, so area takes only a handful of values across the whole
+    chromosome space; inverting obj_row[1] into an area would now fabricate a
+    number. Both are looked up in RESULT_CACHE by chromosome instead, and
+    reported as -1 / 0.0 when no chromosome is supplied or the design is not
+    cached.
+    """
+    energy_nj_per_fft = obj_row[0] / _W_ENERGY
+    if _REF_ENERGY_NJ:
+        energy_nj_per_fft *= _REF_ENERGY_NJ
+
+    sqnr_db      = _sqnr_from_perf_obj(obj_row[1])
+    norm_latency = (obj_row[2] / _W_LATENCY) * _REF_LATENCY
+
     crit_delay   = _crit_delay_ns_from_norm_latency(norm_latency, fft_size)
     meets_timing = crit_delay <= REFERENCE_CLOCK_PERIOD_NS
 
+    cached = {}
+    if chromosome is not None:
+        key = ''.join(str(int(v)) for v in chromosome)
+        cached = RESULT_CACHE.get(hashlib.md5(key.encode()).hexdigest(), {})
+
+    def _f(k, default=0.0):
+        v = cached.get(k)
+        return default if v is None else float(v)
+
     return {
-        'power_mW':      power_mw,
-        'area_um2':      area_um2,
-        'sqnr_db':       sqnr_db,
-        'norm_latency':  norm_latency,
-        'crit_delay_ns': crit_delay,
-        'meets_timing':  meets_timing,
+        'energy_nJ_perFFT': energy_nj_per_fft,
+        'power_mW':        _f('dyn_power_mw_used', _f('dyn_power_mw')),  # dynamic
+        'total_power_mW':  _f('power'),
+        'static_power_mW': _f('static_power_mw'),
+        'area_um2':        _f('area', -1.0),
+        # Prefer the measured value. Under the hinge every design at or above
+        # target maps to perf_obj = 0, so the inversion cannot tell them apart;
+        # the cache carries the true figure.
+        'sqnr_db':        (float(cached['sqnr']) if cached.get('sqnr') is not None
+                           else sqnr_db),
+        'norm_latency':   norm_latency,
+        'crit_delay_ns':  crit_delay,
+        'meets_timing':   meets_timing,
     }
 
 def setup_verilog_sources():
@@ -110,19 +156,20 @@ def export_solutions_csv(result, fft_size, results_subdir):
         writer = csv.writer(csvfile)
         writer.writerow(
             ['solution_id', 'fft_size'] + gene_headers +
-            ['power_mW', 'area_um2', 'sqnr_dB',
+            ['energy_nJ_perFFT', 'dyn_power_mW', 'static_power_mW', 'total_power_mW',
+             'area_um2', 'sqnr_dB',
              'norm_latency', 'crit_delay_ns', 'meets_timing',
              'avg_exec_cycles', 'tot_sim_cycles',
              'on_pareto_front']
         )
         for idx, (x_row, f_row) in enumerate(zip(combined_X, combined_F)):
-            dec      = _decode_objectives(f_row, fft_size)
+            dec      = _decode_objectives(f_row, fft_size, chromosome=x_row)
             sqnr_val = dec['sqnr_db']
             on_pf    = int(tuple(int(v) for v in x_row) in pareto_set)
 
             chrom_key = ''.join(str(int(v)) for v in x_row)
             cached    = RESULT_CACHE.get(
-                __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+                hashlib.md5(chrom_key.encode()).hexdigest(), {}
             )
             avg_exec = cached.get('avg_exec_cycles', -1)
             tot_sim  = cached.get('tot_sim_cycles',  -1)
@@ -130,7 +177,10 @@ def export_solutions_csv(result, fft_size, results_subdir):
             writer.writerow(
                 [idx, fft_size] +
                 [int(v) for v in x_row] +
-                [f"{dec['power_mW']:.6f}",
+                [f"{dec['energy_nJ_perFFT']:.4f}",
+                 f"{dec['power_mW']:.6f}",
+                 f"{dec['static_power_mW']:.6f}",
+                 f"{dec['total_power_mW']:.6f}",
                  int(dec['area_um2']),
                  f"{sqnr_val:.4f}" if not math.isinf(sqnr_val) else "inf",
                  f"{dec['norm_latency']:.4f}",
@@ -175,18 +225,27 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             chrom_raw   = _field('Chromosome')
             chromosome  = _ast.literal_eval(chrom_raw) if chrom_raw else []
 
-            power_m  = re.search(r'Power\s*:\s*([\d.]+)\s*mW',    content)
-            area_m   = re.search(r'Area\s*:\s*([\d.]+)\s*um2',   content)
-            sqnr_m   = re.search(r'SQNR\s*:\s*([\d.\-]+)\s*dB',  content)
-            cpd_m    = re.search(r'Crit Path Delay\s*:\s*([\d.]+)\s*ns', content)
-            nlat_m   = re.search(r'Norm Latency\s*:\s*([\d.]+)',  content)
-            aec_m    = re.search(r'Avg Exec Cycles\s*:\s*([-\d]+)', content)
-            tsc_m    = re.search(r'Tot Sim Cycles\s*:\s*([-\d]+)',  content)
+            # Anchored to the start of the line (after leading whitespace) so
+            # "Power" does not also match the "Dynamic Power" / "Static Power"
+            # lines that now precede it in the per-solution .txt file.
+            energy_m = re.search(r'^\s*Energy/FFT\s*:\s*([\d.\-]+)\s*nJ',      content, re.MULTILINE)
+            dynp_m   = re.search(r'^\s*Dynamic Power\s*:\s*([\d.]+)\s*mW',     content, re.MULTILINE)
+            statp_m  = re.search(r'^\s*Static Power\s*:\s*([\d.]+)\s*mW',     content, re.MULTILINE)
+            power_m  = re.search(r'^\s*Power\s*:\s*([\d.]+)\s*mW',            content, re.MULTILINE)
+            area_m   = re.search(r'^\s*Area\s*:\s*([\d.]+)\s*um2',           content, re.MULTILINE)
+            sqnr_m   = re.search(r'^\s*SQNR\s*:\s*([\d.\-]+)\s*dB',          content, re.MULTILINE)
+            cpd_m    = re.search(r'^\s*Crit Path Delay\s*:\s*([\d.]+)\s*ns', content, re.MULTILINE)
+            nlat_m   = re.search(r'^\s*Norm Latency\s*:\s*([\d.]+)',        content, re.MULTILINE)
+            aec_m    = re.search(r'^\s*Avg Exec Cycles\s*:\s*([-\d]+)',     content, re.MULTILINE)
+            tsc_m    = re.search(r'^\s*Tot Sim Cycles\s*:\s*([-\d]+)',      content, re.MULTILINE)
             fp4mt_m  = re.search(r'FP4 Multipliers:\s*\d+\s*\(([\d.]+)%\)', content)
             fp8mt_m  = re.search(r'FP8 Multipliers:\s*\d+\s*\(([\d.]+)%\)', content)
             fp4ad_m  = re.search(r'FP4 Adders\s*:\s*\d+\s*\(([\d.]+)%\)',   content)
             fp8ad_m  = re.search(r'FP8 Adders\s*:\s*\d+\s*\(([\d.]+)%\)',   content)
 
+            energy       = float(energy_m.group(1)) if energy_m else float('nan')
+            dyn_power    = float(dynp_m.group(1))   if dynp_m   else float('nan')
+            static_power = float(statp_m.group(1))  if statp_m  else float('nan')
             power        = float(power_m.group(1))  if power_m  else float('nan')
             area         = float(area_m.group(1))     if area_m   else -1
             sqnr         = float(sqnr_m.group(1))   if sqnr_m   else float('nan')
@@ -202,6 +261,9 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
                 'solution_id':   solution_id,
                 'fft_size':      fft_size,
                 'chromosome':    chromosome,
+                'energy_nJ_perFFT': energy,
+                'dyn_power_mW':  dyn_power,
+                'static_power_mW': static_power,
                 'power_mW':      power,
                 'area_um2':      area,
                 'sqnr_dB':       sqnr,
@@ -225,7 +287,8 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
         writer.writerow(
             ['generation', 'solution_id', 'fft_size'] +
             gene_headers +
-            ['power_mW', 'area_um2', 'sqnr_dB',
+            ['energy_nJ_perFFT', 'dyn_power_mW', 'static_power_mW', 'power_mW',
+             'area_um2', 'sqnr_dB',
              'norm_latency', 'crit_delay_ns', 'meets_timing',
              'avg_exec_cycles', 'tot_sim_cycles',
              'fp4_mult_pct', 'fp8_mult_pct', 'fp4_add_pct', 'fp8_add_pct']
@@ -237,7 +300,10 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             writer.writerow(
                 [r['generation'], r['solution_id'], r['fft_size']] +
                 chrom +
-                [f"{r['power_mW']:.6f}",
+                [f"{r['energy_nJ_perFFT']:.4f}",
+                 f"{r['dyn_power_mW']:.6f}",
+                 f"{r['static_power_mW']:.6f}",
+                 f"{r['power_mW']:.6f}",
                  r['area_um2'],
                  sqnr_str,
                  f"{r['norm_latency']:.4f}",
@@ -420,7 +486,15 @@ def _scatter_with_timing(ax, xdata, ydata, meets_timing_arr,
         ax.legend(fontsize=8, loc='best')
 
 
-def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True):
+def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True,
+                      pareto_solutions=None):
+    """Plot the front. All quantities come from _decode_objectives so there is
+    exactly one place that knows the objective-vector layout.
+
+    `pareto_solutions` (the matching X rows) is what lets area and dynamic
+    power be looked up in RESULT_CACHE; without it those axes are unavailable
+    and the panels using them are skipped rather than drawn from fabricated
+    values."""
     if pareto_objectives is None or len(pareto_objectives) == 0:
         log_message("No objectives to plot — Pareto plots skipped.", level='WARN')
         return
@@ -428,47 +502,60 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     obj = np.array(pareto_objectives)
     n   = len(obj)
 
-    power        = (obj[:, 0] / WEIGHT_POWER) * REF_POWER_MW
-    area         = (obj[:, 1] / WEIGHT_AREA)  * REF_AREA_UM2
-    norm_latency = (obj[:, 3] / WEIGHT_LATENCY) * REF_LATENCY
+    sol = pareto_solutions if pareto_solutions is not None else []
+    dec = [_decode_objectives(obj[i], fft_size,
+                              chromosome=sol[i] if i < len(sol) else None)
+           for i in range(n)]
 
-    perf_objs    = obj[:, 2] / WEIGHT_PERFORMANCE
-    # Apply math.sqrt(po) to reverse the quadratic encoding for the plots
-    sqnr         = np.array([SQNR_OFFSET - (math.sqrt(po) * REF_SQNR_RANGE) for po in perf_objs])
+    energy       = np.array([d['energy_nJ_perFFT'] for d in dec])
+    power        = np.array([d['power_mW']         for d in dec])   # dynamic
+    area         = np.array([d['area_um2']         for d in dec], dtype=float)
+    norm_latency = np.array([d['norm_latency']      for d in dec])
+    crit_delay   = np.array([d['crit_delay_ns']     for d in dec])
+    sqnr         = np.array([d['sqnr_db']           for d in dec])
     sqnr         = np.where(np.isinf(sqnr), np.nan, sqnr)
+    meets_timing = np.array([int(d['meets_timing']) for d in dec])
 
-    crit_delay    = np.array([
-        _crit_delay_ns_from_norm_latency(nl, fft_size) for nl in norm_latency
-    ])
-    meets_timing  = (crit_delay <= REFERENCE_CLOCK_PERIOD_NS).astype(int)
+    # -1 is the decoder's "not cached" marker. Treat it as missing, never as
+    # an area of -1 um2, and say so once rather than drawing a nonsense axis.
+    area = np.where(area < 0, np.nan, area)
+    area_ok  = bool(np.isfinite(area).any())
+    power_ok = bool((power > 0).any())
+    if not area_ok:
+        log_message("plot_pareto_front: no cached area for these solutions "
+                    "(pareto_solutions not supplied, or a fresh process) - "
+                    "area panels skipped", level='WARN')
 
     status_label  = "Pareto Front" if feasible else "Least-Infeasible Solutions"
     pct_ok        = 100.0 * meets_timing.sum() / n
 
+    _E = "Dynamic energy (nJ/FFT)"
+    _A = "Area (µm²)"
+    _S = "SQNR (dB)"
+    _C = "Crit path delay (ns)"
+
     pairs = [
-        (power,        area,         "Power (mW)",         "Area (µm²)",          "Power vs Area"),
-        (power,        sqnr,         "Power (mW)",         "SQNR (dB)",           "Power vs SQNR"),
-        (power,        crit_delay,   "Power (mW)",         "Crit Path Delay (ns)","Power vs Crit-Delay"),
-        (area,         sqnr,         "Area (µm²)",         "SQNR (dB)",           "Area vs SQNR"),
-        (area,         crit_delay,   "Area (µm²)",         "Crit Path Delay (ns)","Area vs Crit-Delay"),
-        (sqnr,         crit_delay,   "SQNR (dB)",          "Crit Path Delay (ns)","SQNR vs Crit-Delay"),
+        (energy, sqnr,       _E, _S, "Energy vs SQNR"),
+        (energy, crit_delay, _E, _C, "Energy vs Crit-Delay"),
+        (sqnr,   crit_delay, _S, _C, "SQNR vs Crit-Delay"),
     ]
+    if area_ok:
+        pairs += [
+            (energy, area, _E, _A, "Energy vs Area"),
+            (area,   sqnr, _A, _S, "Area vs SQNR"),
+        ]
+    if power_ok:
+        pairs += [(power, energy, "Dynamic power (mW)", _E, "Power vs Energy")]
 
     fig, axes = plt.subplots(2, 3, figsize=(18, 11))
-    fig.suptitle(
-        f"FFT-{fft_size}  |  {status_label}  ({n} solutions)  "
-        f"|  Timing pass: {pct_ok:.0f}%  "
-        f"|  Clock target: {REFERENCE_CLOCK_PERIOD_NS:.1f} ns",
-        fontsize=13, fontweight='bold'
-    )
+    fig.suptitle(f"FFT-{fft_size}  |  {status_label}  ({n} solutions)  |  Timing pass: {pct_ok:.0f}%  |  Clock target: {REFERENCE_CLOCK_PERIOD_NS:.1f} ns", fontsize=13, fontweight='bold')
 
     for ax, (xd, yd, xl, yl, title) in zip(axes.flat, pairs):
         _scatter_with_timing(ax, xd, yd, meets_timing, xl, yl, title)
 
     for ax in [axes[0, 2], axes[1, 2]]:
         ylo, yhi = ax.get_ylim()
-        ax.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linestyle='--',
-                   linewidth=1.2, label=f'Clock = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
+        ax.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linestyle='--', linewidth=1.2, label=f'Clock = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
         ax.legend(fontsize=8, loc='best')
         ax.set_ylim(ylo, yhi)
 
@@ -476,38 +563,20 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     path_2d = os.path.join(results_subdir, f"pareto_2d_fft{fft_size}.png")
     fig.savefig(path_2d, dpi=DPI, bbox_inches='tight')
     plt.close(fig)
-    log_message(f"2-D Pareto plot (6 panels) saved → {path_2d}")
+    log_message(f"2-D Pareto plot saved → {path_2d}")
 
     fig3d = plt.figure(figsize=(10, 8))
     ax3d  = fig3d.add_subplot(111, projection='3d')
-
     clim_max = 2.0 * REFERENCE_CLOCK_PERIOD_NS
     c_vals   = np.clip(crit_delay, 0, clim_max)
-
-    sc = ax3d.scatter(
-        power, area, sqnr,
-        c=c_vals, cmap='RdYlGn_r',          
-        vmin=0, vmax=clim_max,
-        alpha=0.85, edgecolors='k', linewidths=0.4, s=70
-    )
-
-    ax3d.set_xlabel("Power (mW)",  fontsize=9, labelpad=8)
-    ax3d.set_ylabel("Area (µm²)",  fontsize=9, labelpad=8)
+    sc = ax3d.scatter(power, area, sqnr, c=c_vals, cmap='RdYlGn_r', vmin=0, vmax=clim_max, alpha=0.85, edgecolors='k', linewidths=0.4, s=70)
+    ax3d.set_xlabel("Dynamic power (mW)", fontsize=9, labelpad=8)
+    ax3d.set_ylabel("Area (µm²)", fontsize=9, labelpad=8)
     ax3d.set_zlabel("SQNR (dB)",   fontsize=9, labelpad=8)
-    ax3d.set_title(
-        f"FFT-{fft_size}  |  {status_label}\n"
-        f"Colour = Critical Path Delay (ns)  |  "
-        f"Clock target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns",
-        fontsize=11
-    )
-    cbar = fig3d.colorbar(sc, ax=ax3d, pad=0.12, shrink=0.6,
-                          label='Crit Path Delay (ns)')
-    cbar.ax.axhline(REFERENCE_CLOCK_PERIOD_NS,
-                    color='navy', linewidth=2, linestyle='--')
-    cbar.ax.text(1.35, REFERENCE_CLOCK_PERIOD_NS / clim_max,
-                 f' ← {REFERENCE_CLOCK_PERIOD_NS:.0f} ns target',
-                 transform=cbar.ax.transAxes, va='center', fontsize=8,
-                 color='navy')
+    ax3d.set_title(f"FFT-{fft_size}  |  {status_label}\nColour = Critical Path Delay (ns)  |  Clock target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns", fontsize=11)
+    cbar = fig3d.colorbar(sc, ax=ax3d, pad=0.12, shrink=0.6, label='Crit Path Delay (ns)')
+    cbar.ax.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linewidth=2, linestyle='--')
+    cbar.ax.text(1.35, REFERENCE_CLOCK_PERIOD_NS / clim_max, f' ← {REFERENCE_CLOCK_PERIOD_NS:.0f} ns target', transform=cbar.ax.transAxes, va='center', fontsize=8, color='navy')
 
     path_3d = os.path.join(results_subdir, f"pareto_3d_fft{fft_size}.png")
     fig3d.savefig(path_3d, dpi=DPI, bbox_inches='tight')
@@ -515,27 +584,17 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     log_message(f"3-D Pareto plot saved → {path_3d}")
 
     fig_lat, axes_lat = plt.subplots(1, 3, figsize=(18, 5))
-    fig_lat.suptitle(
-        f"FFT-{fft_size}  |  Critical Path Delay Analysis  |  "
-        f"{status_label}  ({n} solutions)\n"
-        f"Clock target: {REFERENCE_CLOCK_PERIOD_NS:.1f} ns  "
-        f"|  Timing pass rate: {pct_ok:.0f}%",
-        fontsize=12, fontweight='bold'
-    )
+    fig_lat.suptitle(f"FFT-{fft_size}  |  Critical Path Delay Analysis  |  {status_label}  ({n} solutions)\nClock target: {REFERENCE_CLOCK_PERIOD_NS:.1f} ns  |  Timing pass rate: {pct_ok:.0f}%", fontsize=12, fontweight='bold')
 
     ax_hist = axes_lat[0]
     bins    = min(20, max(5, n // 3))
     ok_vals  = crit_delay[meets_timing.astype(bool)]
     bad_vals = crit_delay[~meets_timing.astype(bool)]
     if len(ok_vals):
-        ax_hist.hist(ok_vals,  bins=bins, color=_TIMING_OK_COLOR,
-                     alpha=0.75, label='Meets timing', edgecolor='k', linewidth=0.4)
+        ax_hist.hist(ok_vals,  bins=bins, color=_TIMING_OK_COLOR, alpha=0.75, label='Meets timing', edgecolor='k', linewidth=0.4)
     if len(bad_vals):
-        ax_hist.hist(bad_vals, bins=bins, color=_TIMING_BAD_COLOR,
-                     alpha=0.75, label='Violates timing', edgecolor='k', linewidth=0.4)
-    ax_hist.axvline(REFERENCE_CLOCK_PERIOD_NS, color='navy',
-                    linestyle='--', linewidth=1.5,
-                    label=f'Target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
+        ax_hist.hist(bad_vals, bins=bins, color=_TIMING_BAD_COLOR, alpha=0.75, label='Violates timing', edgecolor='k', linewidth=0.4)
+    ax_hist.axvline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linestyle='--', linewidth=1.5, label=f'Target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
     ax_hist.set_xlabel("Critical Path Delay (ns)", fontsize=10)
     ax_hist.set_ylabel("Count",                    fontsize=10)
     ax_hist.set_title("Delay Distribution",         fontsize=11)
@@ -543,43 +602,26 @@ def plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible=True
     ax_hist.grid(True, linestyle='--', alpha=0.4)
 
     ax_nlat = axes_lat[1]
-    _scatter_with_timing(
-        ax_nlat, sqnr, norm_latency, meets_timing,
-        xlabel="SQNR (dB)",
-        ylabel=f"Norm Latency  (×{REFERENCE_CLOCK_PERIOD_NS:.0f} ns clock)",
-        title="Norm Latency vs SQNR"
-    )
-    ax_nlat.axhline(1.0, color='navy', linestyle='--', linewidth=1.2,
-                    label='Timing budget = 1.0')
+    _scatter_with_timing(ax_nlat, sqnr, norm_latency, meets_timing, xlabel="SQNR (dB)", ylabel=f"Norm Latency  (×{REFERENCE_CLOCK_PERIOD_NS:.0f} ns clock)", title="Norm Latency vs SQNR")
+    ax_nlat.axhline(1.0, color='navy', linestyle='--', linewidth=1.2, label='Timing budget = 1.0')
     ax_nlat.legend(fontsize=8)
 
     ax_cpd = axes_lat[2]
-    area_norm = (area - area.min()) / (area.max() - area.min() + 1e-9)
-    sizes_cpd = 30 + 200 * area_norm        
-
-    sc_cpd = ax_cpd.scatter(
-        power, crit_delay,
-        c=np.where(meets_timing, _TIMING_OK_COLOR, _TIMING_BAD_COLOR),
-        s=sizes_cpd, alpha=0.80, edgecolors='k', linewidths=0.5
-    )
-    ax_cpd.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy',
-                   linestyle='--', linewidth=1.5,
-                   label=f'Target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
-    ax_cpd.set_xlabel("Power (mW)",             fontsize=10)
+    area_for_size = np.where(np.isfinite(area), area, np.nanmin(area) if np.isfinite(area).any() else 0.0)
+    area_norm = (area_for_size - area_for_size.min()) / (area_for_size.max() - area_for_size.min() + 1e-9)
+    sizes_cpd = 30 + 200 * area_norm
+    sc_cpd = ax_cpd.scatter(power, crit_delay, c=np.where(meets_timing, _TIMING_OK_COLOR, _TIMING_BAD_COLOR), s=sizes_cpd, alpha=0.80, edgecolors='k', linewidths=0.5)
+    ax_cpd.axhline(REFERENCE_CLOCK_PERIOD_NS, color='navy', linestyle='--', linewidth=1.5, label=f'Target = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns')
+    ax_cpd.set_xlabel("Dynamic power (mW)",       fontsize=10)
     ax_cpd.set_ylabel("Critical Path Delay (ns)", fontsize=10)
-    ax_cpd.set_title("Crit Delay vs Power\n(bubble size proportional to Area)",
-                     fontsize=11)
+    ax_cpd.set_title("Crit Delay vs Power\n(bubble size proportional to Area)", fontsize=11)
     ax_cpd.legend(fontsize=8)
     ax_cpd.grid(True, linestyle='--', alpha=0.4)
 
     from matplotlib.lines import Line2D
     legend_handles = [
-        Line2D([0], [0], marker='o', color='w',
-               markerfacecolor=_TIMING_OK_COLOR, markersize=9,
-               label='Meets timing'),
-        Line2D([0], [0], marker='X', color='w',
-               markerfacecolor=_TIMING_BAD_COLOR, markersize=9,
-               label='Violates timing'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor=_TIMING_OK_COLOR, markersize=9, label='Meets timing'),
+        Line2D([0], [0], marker='X', color='w', markerfacecolor=_TIMING_BAD_COLOR, markersize=9, label='Violates timing'),
     ]
     ax_cpd.legend(handles=legend_handles, fontsize=8, loc='upper right')
 
@@ -632,7 +674,9 @@ def save_optimization_results(result, callback, fft_size):
         f.write(f"Population            : {POPULATION}\n")
         f.write(f"Generations           : {GENERATIONS}\n")
         f.write(f"Objectives            : {OBJECTIVES}  "
-                f"(Power, Area, SQNR, Critical-Path Delay)\n")
+                f"(Energy/FFT, SQNR, Critical-Path Delay)\n")
+        f.write(f"Area                  : hard constraint "
+                f"(<= {MAX_AREA_UM2:.0f} µm²), not an objective\n")
         f.write(f"Clock target          : {REFERENCE_CLOCK_PERIOD_NS:.1f} ns\n")
         f.write(f"ASIC Process          : {ASIC_PROCESS}\n\n")
 
@@ -646,17 +690,18 @@ def save_optimization_results(result, callback, fft_size):
         if n_sol == 0:
             f.write("No solutions to report.\n")
         else:
-            decoded = [_decode_objectives(pareto_objectives[i], fft_size)
+            decoded = [_decode_objectives(pareto_objectives[i], fft_size,
+                                          chromosome=pareto_solutions[i])
                        for i in range(n_sol)]
 
             n_timing_ok = sum(1 for d in decoded if d['meets_timing'])
             f.write(f"Timing pass rate      : {n_timing_ok}/{n_sol} "
                     f"({100*n_timing_ok/n_sol:.0f}%)\n\n")
 
-            hdr = (f"{'ID':<5} {'Power(mW)':<12} {'Area(µm²)':<12} "
-                   f"{'SQNR(dB)':<12} {'NormLat':<10} "
-                   f"{'CritDelay(ns)':<15} {'MeetsTiming':<13} "
-                   f"{'ExecCycles':<12} {'TotSimCycles':<12}")
+            hdr = (f"{'ID':<5} {'Energy(nJ)':<11} {'Power(mW)':<10} "
+                   f"{'Area(µm²)':<11} {'SQNR(dB)':<10} {'NormLat':<9} "
+                   f"{'CritDelay(ns)':<14} {'MeetsTiming':<12} "
+                   f"{'ExecCycles':<11} {'TotSimCycles':<12}")
             f.write(hdr + "\n")
             f.write('-' * len(hdr) + '\n')
 
@@ -665,32 +710,37 @@ def save_optimization_results(result, callback, fft_size):
                             if not math.isinf(d['sqnr_db']) else "  inf")
                 crit_str = f"{d['crit_delay_ns']:.3f}"
                 if d['norm_latency'] >= 10.0:
-                    crit_str = f">={crit_str}"   
+                    crit_str = f">={crit_str}"
                 timing_str = "YES" if d['meets_timing'] else "NO "
 
                 chrom_key = ''.join(str(int(v)) for v in pareto_solutions[i])
                 cached    = RESULT_CACHE.get(
-                    __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+                    hashlib.md5(chrom_key.encode()).hexdigest(), {}
                 )
                 avg_exec = cached.get('avg_exec_cycles', -1)
                 tot_sim  = cached.get('tot_sim_cycles',  -1)
 
                 f.write(
-                    f"{i:<5} {d['power_mW']:<12.6f} {int(d['area_um2']):<12} "
-                    f"{sqnr_str:<12} {d['norm_latency']:<10.4f} "
-                    f"{crit_str:<15} {timing_str:<13} "
-                    f"{str(avg_exec):<12} {str(tot_sim):<12}\n"
+                    f"{i:<5} {d['energy_nJ_perFFT']:<11.4f} {d['power_mW']:<10.6f} "
+                    f"{int(d['area_um2']):<11} {sqnr_str:<10} {d['norm_latency']:<9.4f} "
+                    f"{crit_str:<14} {timing_str:<12} "
+                    f"{str(avg_exec):<11} {str(tot_sim):<12}\n"
                 )
 
             obj_arr = np.array(pareto_objectives)
             f.write("\n\nBest Solutions by Objective:\n")
             f.write('-' * 60 + '\n')
 
+            # Objective columns are [energy_nJ, sqnr_error^2, norm_latency];
+            # all three are minimised, so argmin on each is the best design for
+            # it. Area left the objective vector (it takes only a handful of
+            # values across the whole chromosome space), so there is no column
+            # to take an argmin over - area is reported per solution in the
+            # table above and enforced as a constraint instead.
             best_specs = [
-                ("Best Power (min)",       0, "power_mW",     "mW"),
-                ("Best Area (min)",        1, "area_um2",     "µm²"),
-                ("Best SQNR (max perf)",   2, "sqnr_db",      "dB"),
-                ("Best Crit-Path (min)",   3, "norm_latency", "norm"),
+                ("Best Energy/FFT (min)",       0, "energy_nJ_perFFT", "nJ"),
+                ("Best SQNR (max perf)",        1, "sqnr_db",          "dB"),
+                ("Best Crit-Path (min)",        2, "norm_latency",     "norm"),
             ]
 
             for label, col, key, unit in best_specs:
@@ -699,14 +749,17 @@ def save_optimization_results(result, callback, fft_size):
 
                 chrom_key = ''.join(str(int(v)) for v in pareto_solutions[idx])
                 cached    = RESULT_CACHE.get(
-                    __import__('hashlib').md5(chrom_key.encode()).hexdigest(), {}
+                    hashlib.md5(chrom_key.encode()).hexdigest(), {}
                 )
                 avg_exec = cached.get('avg_exec_cycles', -1)
                 tot_sim  = cached.get('tot_sim_cycles',  -1)
 
                 f.write(f"\n{label}:\n")
                 f.write(f"  Solution ID       : {idx}\n")
-                f.write(f"  Power             : {d['power_mW']:.6f} mW\n")
+                f.write(f"  Energy/FFT        : {d['energy_nJ_perFFT']:.4f} nJ\n")
+                f.write(f"  Dynamic Power     : {d['power_mW']:.6f} mW\n")
+                f.write(f"  Static Power      : {d['static_power_mW']:.6f} mW\n")
+                f.write(f"  Total Power       : {d['total_power_mW']:.6f} mW\n")
                 f.write(f"  Area              : {int(d['area_um2'])} µm²\n")
                 sqnr_str = (f"{d['sqnr_db']:.2f} dB"
                             if not math.isinf(d['sqnr_db']) else "inf dB")
@@ -722,7 +775,8 @@ def save_optimization_results(result, callback, fft_size):
     log_message(f"Summary saved → {summary_file}")
 
     export_solutions_csv(result, fft_size, results_subdir)
-    plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible)
+    plot_pareto_front(pareto_objectives, fft_size, results_subdir, feasible,
+                      pareto_solutions=pareto_solutions)
     txt_files = parse_solution_txts_to_csv(fft_size, results_subdir)
     compress_solution_txt_files(fft_size, results_subdir, txt_files)
     compress_rtl_files(results_subdir, fft_size)
@@ -759,7 +813,7 @@ def run_optimization_for_fft_size(fft_size):
     log_message(f"  Generations     : {GENERATIONS}")
     log_message(f"  Crossover rate  : {CROSSOVER_RATE}")
     log_message(f"  Mutation rate   : {MUTATION_RATE}")
-    log_message(f"  Objectives      : {OBJECTIVES}  (Power, Area, SQNR, CritDelay)")
+    log_message(f"  Objectives      : {OBJECTIVES}  (Energy/FFT, SQNR, CritDelay); area is a constraint")
     log_message(f"  Parallel threads: {SOLUTION_THREADS}")
     log_message(f"  Clock target    : {REFERENCE_CLOCK_PERIOD_NS:.1f} ns")
 
@@ -794,14 +848,18 @@ def generate_comprehensive_summary(all_results):
                 continue
 
             pf = result.F if result.F is not None else np.empty((0, OBJECTIVES))
+            px = result.X if result.X is not None else np.empty((0, result.pop.get("X").shape[1] if result.pop else 0))
             n  = len(pf)
             f.write(f"  Pareto front size  : {n}\n")
 
             if n == 0:
                 continue
 
-            decoded = [_decode_objectives(pf[i], fft_size) for i in range(n)]
+            decoded = [_decode_objectives(pf[i], fft_size,
+                                          chromosome=px[i] if i < len(px) else None)
+                       for i in range(n)]
 
+            energies = np.array([d['energy_nJ_perFFT'] for d in decoded])
             powers  = np.array([d['power_mW']      for d in decoded])
             areas   = np.array([d['area_um2']     for d in decoded])
             sqnrs   = np.array([d['sqnr_db']       for d in decoded
@@ -809,6 +867,7 @@ def generate_comprehensive_summary(all_results):
             delays  = np.array([d['crit_delay_ns'] for d in decoded])
             n_ok    = sum(1 for d in decoded if d['meets_timing'])
 
+            f.write(f"  Energy/FFT range   : {energies.min():.4f} – {energies.max():.4f} nJ\n")
             f.write(f"  Power range        : {powers.min():.6f} – {powers.max():.6f} mW\n")
             f.write(f"  Area range         : {areas.min():.0f} – {areas.max():.0f} µm²\n")
             if len(sqnrs):
@@ -822,17 +881,18 @@ def generate_comprehensive_summary(all_results):
     with open(combined_csv, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['fft_size', 'solution_id',
-                         'power_mW', 'area_um2', 'sqnr_dB',
+                         'energy_nJ_perFFT', 'power_mW', 'area_um2', 'sqnr_dB',
                          'norm_latency', 'crit_delay_ns', 'meets_timing'])
         for fft_size, result in sorted(all_results.items()):
             if result is None or result.F is None:
                 continue
-            for i, obj in enumerate(result.F):
-                d = _decode_objectives(obj, fft_size)
+            for i, (obj, chrom) in enumerate(zip(result.F, result.X)):
+                d = _decode_objectives(obj, fft_size, chromosome=chrom)
                 sqnr_str = (f"{d['sqnr_db']:.4f}"
                             if not math.isinf(d['sqnr_db']) else "inf")
                 writer.writerow([
                     fft_size, i,
+                    f"{d['energy_nJ_perFFT']:.4f}",
                     f"{d['power_mW']:.6f}",
                     int(d['area_um2']),
                     sqnr_str,
@@ -843,14 +903,18 @@ def generate_comprehensive_summary(all_results):
     log_message(f"Combined Pareto CSV → {combined_csv}")
 
     sizes      = []
-    best_power, best_area, best_sqnr, best_delay = [], [], [], []
+    best_energy, best_power, best_area, best_sqnr, best_delay = [], [], [], [], []
 
     for fft_size, result in sorted(all_results.items()):
         if result is None or result.F is None or len(result.F) == 0:
             continue
         pf      = result.F
-        decoded = [_decode_objectives(pf[i], fft_size) for i in range(len(pf))]
+        px      = result.X if result.X is not None else []
+        decoded = [_decode_objectives(pf[i], fft_size,
+                                      chromosome=px[i] if i < len(px) else None)
+                   for i in range(len(pf))]
 
+        energies = [d['energy_nJ_perFFT'] for d in decoded]
         powers  = [d['power_mW']      for d in decoded]
         areas   = [d['area_um2']      for d in decoded]
         delays  = [d['crit_delay_ns'] for d in decoded]
@@ -858,6 +922,7 @@ def generate_comprehensive_summary(all_results):
                    if not math.isinf(d['sqnr_db']) and not math.isnan(d['sqnr_db'])]
 
         sizes.append(fft_size)
+        best_energy.append(min(energies))
         best_power.append(min(powers))
         best_area.append(min(areas))
         best_delay.append(min(delays))
@@ -873,7 +938,7 @@ def generate_comprehensive_summary(all_results):
         )
 
         metrics = [
-            (best_power, "Min Power (mW)",           _OBJ_COLORS['power'],   axes[0, 0], False),
+            (best_energy, "Min Energy/FFT (nJ)",     '#9C27B0',              axes[0, 0], False),
             (best_area,  "Min Area (µm²)",            _OBJ_COLORS['area'],    axes[0, 1], False),
             (best_sqnr,  "Max SQNR (dB)",             _OBJ_COLORS['sqnr'],    axes[1, 0], False),
             (best_delay, "Min Crit Path Delay (ns)",  _OBJ_COLORS['latency'], axes[1, 1], True),
@@ -939,7 +1004,7 @@ def run_full_optimization_sweep():
 
 
 def quick_test():
-    log_message("Running quick test with 16-point FFT")
+    log_message("Running quick test with 256-point FFT")
     setup_verilog_sources()
 
     global CURRENT_GEN, POPULATION, GENERATIONS
@@ -947,15 +1012,15 @@ def quick_test():
     orig_pop, orig_gen = POPULATION, GENERATIONS
     POPULATION, GENERATIONS = 6, 3
 
-    run_optimization_for_fft_size(fft_size=16)
+    run_optimization_for_fft_size(fft_size=256)
 
     POPULATION, GENERATIONS = orig_pop, orig_gen
     log_message("Quick test complete")
 
 
 def main():
-    #quick_test()
-    run_full_optimization_sweep()
+    quick_test()
+    #run_full_optimization_sweep()
 
 
 if __name__ == "__main__":
