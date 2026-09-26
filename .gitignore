@@ -10,3 +10,5 @@ venv/
 
 # Log files
 *.log
+fp16_baseline/synth/fp16_synth_artifacts.zip
+fp32_baseline/synth/fp32_synth_artifacts.zip
