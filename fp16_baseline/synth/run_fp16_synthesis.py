@@ -29,28 +29,35 @@ extraction, not a backend/P&R flow.
 Per design size N:
   1. Yosys: blackbox sram_512x32_2rw, elaborate + flatten fp16_fft_<N>_top,
      map to the standard-cell liberty with abc, report chip area (`stat`).
-     This flattened netlist is what area and timing are measured from.
-  2. OpenSTA (timing + flat-activity power): read the std-cell + SRAM-macro
-     liberty, read the flattened netlist, create a `CLOCK_PERIOD`-ns clock,
-     set I/O delay to period/4, report the worst-case timing path, and a
-     flat-0.2-activity power number kept only as a fallback/reference (see
-     step 4). `rst` is excluded from timing via set_false_path -- see the
-     inline comment in run_opensta for why.
+     This flattened netlist is what area and timing are measured from, and
+     none of this changed when the power methodology moved to SAIF (below).
+  2. OpenSTA (timing only): read the std-cell + SRAM-macro liberty, read the
+     flattened netlist, create a `CLOCK_PERIOD`-ns clock, set I/O delay to
+     period/4, report the worst-case timing path. `rst` is excluded from
+     timing via set_false_path -- see the inline comment in run_opensta for
+     why. (This pass used to also emit a flat-0.2-activity `report_power` as
+     a fallback; that fallback is gone -- see step 4.)
   3. Normalized latency = (crit_delay_ns / CLOCK_PERIOD) * max(1, stages/6),
      capped at 10.0 -- identical formula to
      MixedPrecisionFFTProblem._compute_actual_normalized_latency.
-  4. Real-activity power (the number actually reported as Power (mW)):
-     Yosys is re-run WITHOUT `flatten` (see run_yosys's `flatten=False` path)
-     to keep RTL module/instance names intact, then the RTL testbench used
-     for SQNR (fp16_performance_evaluator.py, same 11 signals) is re-run with
-     `$dumpvars` on to capture a VCD, and OpenSTA's `read_vcd` annotates that
-     onto the hierarchy-preserved netlist before `report_power`. A flat
-     netlist matches only ~2% of nets by name after `abc`/`opt -purge`
-     collapse everything into one module; keeping hierarchy gets ~10x more
-     matches (see generate_activity_vcd/run_opensta_vcd_power). Falls back to
-     the flat-0.2 number (PowerSrc=flat_0.2_fallback in the report) if fewer
-     than MIN_ANNOTATED_PINS pins get annotated.
-  5. Energy/FFT, as above, using the real-activity power from step 4.
+  4. SAIF-based power (the number actually reported as Power (mW)): Yosys is
+     re-run WITHOUT `flatten` (see run_yosys's `flatten=False` path) to keep
+     RTL module/instance names intact, then the RTL testbench used for SQNR
+     (fp16_performance_evaluator.py, same 11 signals, same timing) is re-run
+     with `$dumpvars` on to capture a VCD -- Icarus Verilog has no native
+     SAIF dumper. `vcd_to_saif.py` (repo root) losslessly re-encodes that
+     VCD's own toggle data (T0/T1/TX/TZ/TC per bit) as a SAIF file: same
+     simulation, same numbers, different container format. OpenSTA's
+     `read_saif` then annotates that onto the hierarchy-preserved netlist
+     before `report_power`, and `report_activity_annotation` gives the exact
+     annotated/unannotated net counts. A flat netlist matches only ~2% of
+     nets by name after `abc`/`opt -purge` collapse everything into one
+     module; keeping hierarchy gets ~10x more matches (see
+     generate_activity_saif/run_opensta_saif_power). If SAIF generation
+     fails, or fewer than MIN_ANNOTATED_PINS nets get annotated, the WHOLE
+     row is marked FAILED (Power/Energy-FFT reported as N/A) -- there is no
+     silent fallback to a guessed activity factor.
+  5. Energy/FFT, as above, using the SAIF-measured power from step 4.
 
 Usage (from anywhere):
     python3 fp16_baseline/synth/run_fp16_synthesis.py                # all 10 sizes
@@ -78,7 +85,9 @@ BASE_DIR = os.path.dirname(SYNTH_DIR)                            # fp16_baseline
 REPO_ROOT = os.path.dirname(BASE_DIR)                             # repo root
 
 sys.path.insert(0, os.path.join(BASE_DIR, "sim"))
+sys.path.insert(0, REPO_ROOT)
 from fp16_performance_evaluator import FP16PerformanceEvaluator  # noqa: E402
+from vcd_to_saif import vcd_to_saif  # noqa: E402
 
 ALL_SIZES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
@@ -100,10 +109,12 @@ CLOCK_NET_NAME = "clk"
 MAX_POWER_MW = 500.0
 MAX_AREA_UM2 = 600000.0
 
-# Floor below which a `read_vcd` activity annotation is treated as too sparse
-# to trust (falls back to the flat-activity power number instead, loudly).
-# Chosen well below what a real run gets (hundreds of pins, see below) so it
-# only trips if read_vcd finds essentially nothing -- e.g. a scope mismatch.
+# Floor below which a `read_saif` activity annotation is treated as too
+# sparse to trust. Below this, the whole run is marked FAILED (see
+# synthesize()) rather than reporting a power number from a near-empty
+# annotation -- there is no flat-activity fallback. Chosen well below what a
+# real run gets (hundreds of pins, see below) so it only trips if read_saif
+# finds essentially nothing -- e.g. a scope mismatch or a broken conversion.
 MIN_ANNOTATED_PINS = 20
 
 
@@ -236,9 +247,12 @@ class Fp16Synthesizer:
 
     # ------------------------------------------------------------------
     def run_opensta(self, n, netlist_v, work_dir):
+        """Timing only. This used to also emit a flat-0.2-activity
+        `report_power` as a fallback; that number is gone (see
+        run_opensta_saif_power) -- nothing about the timing methodology
+        itself (clock, I/O delay, false_path, report_checks) changed."""
         top_module = f"fp16_fft_{n}_top"
         timing_rpt = os.path.join(work_dir, f"fp16_fft_{n}_timing.rpt")
-        power_rpt = os.path.join(work_dir, f"fp16_fft_{n}_power.rpt")
         sta_log = os.path.join(work_dir, "sta.log")
         script_path = os.path.join(work_dir, f"fp16_fft_{n}_sta.tcl")
 
@@ -260,8 +274,6 @@ class Fp16Synthesizer:
             # timing this report exists to measure.
             set_false_path -from [get_ports rst]
             report_checks -path_delay max -format full_clock_expanded > {timing_rpt}
-            set_power_activity -input -activity 0.2
-            report_power > {power_rpt}
             exit
         """)
         with open(script_path, "w") as f:
@@ -276,21 +288,24 @@ class Fp16Synthesizer:
                 f.write(result.stderr)
             if result.returncode != 0:
                 log(f"OpenSTA FAILED for fp16_fft_{n}. stderr tail: {result.stderr[-500:]}")
-                return False, timing_rpt, power_rpt
-            return True, timing_rpt, power_rpt
+                return False, timing_rpt
+            return True, timing_rpt
         except Exception as e:
             log(f"OpenSTA invocation error for fp16_fft_{n}: {e}")
-            return False, timing_rpt, power_rpt
+            return False, timing_rpt
 
     # ------------------------------------------------------------------
-    # Real-activity power: simulate the RTL testbench (same 11 signals used
-    # for SQNR) with $dumpvars on, then hand that VCD to OpenSTA's `read_vcd`
-    # against the HIERARCHY-PRESERVED netlist from run_yosys(..., flatten=False).
-    # This replaces the flat `set_power_activity -input -activity 0.2` guess
-    # with switching activity measured from real signal content, at whatever
-    # match coverage `read_vcd` reports (see MIN_ANNOTATED_PINS).
+    # SAIF-based power: simulate the RTL testbench (same 11 signals used for
+    # SQNR, same timing) with $dumpvars on to get a VCD -- Icarus has no
+    # native SAIF dumper -- then losslessly re-encode that VCD's own T0/T1/
+    # TX/TZ/TC data as a SAIF file (vcd_to_saif.py, repo root). OpenSTA's
+    # `read_saif` annotates that SAIF onto the HIERARCHY-PRESERVED netlist
+    # from run_yosys(..., flatten=False), and `report_activity_annotation`
+    # gives the exact annotated/unannotated net counts (no flat activity
+    # guess is used anywhere in this path; see synthesize() for the
+    # hard-fail behaviour when coverage is too low).
     # ------------------------------------------------------------------
-    def generate_activity_vcd(self, n, work_dir):
+    def generate_activity_saif(self, n, work_dir):
         design_name = f"fp16_fft_{n}"
         core, _top = self.core_and_top_files(n)
         ev = FP16PerformanceEvaluator(n, shared_sources_dir=self.shared_dir,
@@ -300,15 +315,31 @@ class Fp16Synthesizer:
             log(f"Activity VCD simulation FAILED for {design_name}")
             return None
         vcd_file = ev.vcd_path(design_name)
-        return vcd_file if os.path.isfile(vcd_file) else None
+        if not os.path.isfile(vcd_file):
+            log(f"Activity VCD missing after simulation for {design_name}")
+            return None
+        saif_file = os.path.join(work_dir, f"{design_name}.saif")
+        try:
+            net_count, duration = vcd_to_saif(vcd_file, saif_file, design_name=f"tb_{design_name}")
+        except Exception as e:
+            log(f"VCD->SAIF conversion FAILED for {design_name}: {e}")
+            return None
+        if net_count == 0 or duration <= 0:
+            log(f"VCD->SAIF conversion produced an empty/degenerate SAIF for "
+                f"{design_name} (nets={net_count}, duration={duration})")
+            return None
+        return saif_file
 
-    _ANNOTATED_RE = re.compile(r"Annotated\s+(\d+)\s+pin activit")
+    _ANNOT_RE = re.compile(r"^\s*saif\s+(\d+)", re.MULTILINE)
+    _UNANNOT_RE = re.compile(r"^\s*unannotated\s+(\d+)", re.MULTILINE)
 
-    def run_opensta_vcd_power(self, n, hier_netlist_v, vcd_file, work_dir):
+    def run_opensta_saif_power(self, n, hier_netlist_v, saif_file, work_dir):
+        """Returns (power_rpt_or_None, annotated, total_pins, warnings)."""
         top_module = f"fp16_fft_{n}_top"
-        power_rpt = os.path.join(work_dir, f"fp16_fft_{n}_power_vcd.rpt")
-        sta_log = os.path.join(work_dir, "sta_vcd.log")
-        script_path = os.path.join(work_dir, f"fp16_fft_{n}_sta_vcd.tcl")
+        power_rpt = os.path.join(work_dir, f"fp16_fft_{n}_power_saif.rpt")
+        annot_rpt = os.path.join(work_dir, f"fp16_fft_{n}_activity_annotation.rpt")
+        sta_log = os.path.join(work_dir, "sta_saif.log")
+        script_path = os.path.join(work_dir, f"fp16_fft_{n}_sta_saif.tcl")
 
         sta_script = textwrap.dedent(f"""\
             read_liberty {self.std_lib}
@@ -316,7 +347,8 @@ class Fp16Synthesizer:
             read_verilog {hier_netlist_v}
             link_design {top_module}
             create_clock -name {CLOCK_NET_NAME} -period {self.clock_period} [get_ports {CLOCK_NET_NAME}]
-            read_vcd -scope tb_{top_module[:-4]}/dut {vcd_file}
+            read_saif -scope tb_{top_module[:-4]}/dut {saif_file}
+            report_activity_annotation > {annot_rpt}
             report_power > {power_rpt}
             exit
         """)
@@ -331,14 +363,33 @@ class Fp16Synthesizer:
                 f.write(result.stdout)
                 f.write(result.stderr)
             if result.returncode != 0:
-                log(f"OpenSTA (VCD power) FAILED for fp16_fft_{n}. stderr tail: {result.stderr[-500:]}")
-                return None, 0
-            m = self._ANNOTATED_RE.search(result.stdout)
-            annotated = int(m.group(1)) if m else 0
-            return power_rpt, annotated
+                log(f"OpenSTA (SAIF power) FAILED for fp16_fft_{n}. stderr tail: {result.stderr[-500:]}")
+                return None, 0, 0, result.stderr[-500:]
+            annotated, total = self._parse_activity_annotation(annot_rpt)
+            warnings = "\n".join(
+                line for line in (result.stdout.splitlines() + result.stderr.splitlines())
+                if "warn" in line.lower() or "error" in line.lower())
+            return power_rpt, annotated, total, warnings
         except Exception as e:
-            log(f"OpenSTA (VCD power) invocation error for fp16_fft_{n}: {e}")
-            return None, 0
+            log(f"OpenSTA (SAIF power) invocation error for fp16_fft_{n}: {e}")
+            return None, 0, 0, str(e)
+
+    def _parse_activity_annotation(self, annot_rpt):
+        """Parses `report_activity_annotation`'s summary ("saif  N" /
+        "unannotated  M" lines) into (annotated, total_pins)."""
+        if not os.path.exists(annot_rpt):
+            return 0, 0
+        try:
+            with open(annot_rpt, "r", errors="replace") as fh:
+                content = fh.read()
+            am = self._ANNOT_RE.search(content)
+            um = self._UNANNOT_RE.search(content)
+            annotated = int(am.group(1)) if am else 0
+            unannotated = int(um.group(1)) if um else 0
+            return annotated, annotated + unannotated
+        except Exception as e:
+            log(f"Error parsing activity annotation report {annot_rpt}: {e}")
+            return 0, 0
 
     def parse_opensta_power(self, power_rpt, fallback=None):
         if fallback is None:
@@ -403,54 +454,63 @@ class Fp16Synthesizer:
 
         if netlist_v is None:
             return {
-                "n": n, "power_mw": MAX_POWER_MW * 2, "power_mw_flat": MAX_POWER_MW * 2,
-                "power_source": "synth_failed", "annotated_pins": 0,
+                "n": n, "power_mw": MAX_POWER_MW * 2,
+                "power_source": "SYNTH_FAILED", "annotated_pins": 0, "total_pins": 0,
                 "area_um2": area_um2,
                 "crit_delay_ns": 200.0, "slack_ns": -1.0,
                 "norm_latency": 10.0, "ok": False,
             }
 
-        sta_ok, timing_rpt, power_rpt = self.run_opensta(n, netlist_v, work_dir)
-        power_mw_flat = self.parse_opensta_power(power_rpt) if sta_ok else MAX_POWER_MW * 2
+        sta_ok, timing_rpt = self.run_opensta(n, netlist_v, work_dir)
         crit_delay, slack_ns = self.parse_opensta_timing(timing_rpt) if sta_ok else (200.0, -1.0)
 
-        # Real-activity power: hierarchy-preserved netlist + VCD from the RTL
-        # testbench's own 11 representative signals. Falls back to the flat
-        # 0.2 guess (loudly) if any step here doesn't produce a usable result,
-        # since a failed/absent VCD must never silently look as good as a
-        # measured one.
-        power_mw = power_mw_flat
-        power_source = "flat_0.2_fallback"
+        # SAIF-based power: hierarchy-preserved netlist + a SAIF converted
+        # from the RTL testbench's own VCD (11 representative signals). Per
+        # spec: NO fallback to a guessed activity factor. If SAIF generation
+        # fails, or annotation matches too few nets, the row is marked FAILED
+        # outright -- Power/Energy-FFT are not reported for it.
+        power_mw = MAX_POWER_MW * 2
+        power_source = "SAIF_ANNOTATION_FAILED"
         annotated_pins = 0
+        total_pins = 0
+        power_ok = False
         if sta_ok:
-            hier_netlist_v, hier_yosys_log = self.run_yosys(
+            hier_netlist_v, _hier_yosys_log = self.run_yosys(
                 n, sources, work_dir, flatten=False, tag="netlist_hier")
-            vcd_file = self.generate_activity_vcd(n, work_dir) if hier_netlist_v else None
-            if hier_netlist_v and vcd_file:
-                vcd_power_rpt, annotated_pins = self.run_opensta_vcd_power(
-                    n, hier_netlist_v, vcd_file, work_dir)
-                if vcd_power_rpt and annotated_pins >= MIN_ANNOTATED_PINS:
-                    power_mw = self.parse_opensta_power(vcd_power_rpt, fallback=power_mw_flat)
-                    power_source = "vcd_measured"
+            saif_file = self.generate_activity_saif(n, work_dir) if hier_netlist_v else None
+            if hier_netlist_v and saif_file:
+                power_rpt, annotated_pins, total_pins, warnings = self.run_opensta_saif_power(
+                    n, hier_netlist_v, saif_file, work_dir)
+                if warnings:
+                    log(f"fp16_fft_{n}: SAIF annotation warnings/errors:\n{warnings}")
+                if power_rpt and annotated_pins >= MIN_ANNOTATED_PINS:
+                    power_mw = self.parse_opensta_power(power_rpt, fallback=MAX_POWER_MW * 2)
+                    power_source = "saif_measured"
+                    power_ok = True
                 else:
-                    log(f"fp16_fft_{n}: only {annotated_pins} pins annotated "
-                        f"(< {MIN_ANNOTATED_PINS}) - keeping flat-activity power")
+                    log(f"fp16_fft_{n}: SAIF annotation only matched {annotated_pins} "
+                        f"nets (< {MIN_ANNOTATED_PINS}) - marking FAILED, no fallback")
             else:
-                log(f"fp16_fft_{n}: activity VCD unavailable - keeping flat-activity power")
+                log(f"fp16_fft_{n}: SAIF generation FAILED - marking FAILED, no fallback")
+
+        ok = sta_ok and power_ok
 
         num_stages = int(math.log2(n)) if n > 1 else 1
         norm_latency = self.normalized_latency(crit_delay, num_stages)
 
+        pct = (100.0 * annotated_pins / total_pins) if total_pins else 0.0
         log(f"fp16_fft_{n}: P={power_mw:.4f}mW (source={power_source}, "
-            f"annotated={annotated_pins}) A={area_um2:.1f}um^2 "
-            f"CritDelay={crit_delay:.3f}ns Slack={slack_ns:.3f}ns NormLat={norm_latency:.3f}x")
+            f"annotated={annotated_pins}/{total_pins}={pct:.2f}%) A={area_um2:.1f}um^2 "
+            f"CritDelay={crit_delay:.3f}ns Slack={slack_ns:.3f}ns NormLat={norm_latency:.3f}x "
+            f"Status={'OK' if ok else 'FAILED'}")
 
         return {
-            "n": n, "power_mw": power_mw, "power_mw_flat": power_mw_flat,
+            "n": n, "power_mw": power_mw,
             "power_source": power_source, "annotated_pins": annotated_pins,
+            "total_pins": total_pins,
             "area_um2": area_um2,
             "crit_delay_ns": crit_delay, "slack_ns": slack_ns,
-            "norm_latency": norm_latency, "ok": sta_ok,
+            "norm_latency": norm_latency, "ok": ok,
         }
 
 
@@ -531,31 +591,38 @@ def main():
         else:
             r["energy_per_fft_nj"] = None
 
-    hdr = (f"{'N':>6} | {'Power (mW)':>11} | {'PowerSrc':>13} | {'AnnotPins':>9} | "
-           f"{'Area (um^2)':>12} | "
-           f"{'CritDelay (ns)':>14} | {'Slack (ns)':>10} | {'NormLat':>8} | "
-           f"{'ExecCyc':>8} | {'Energy/FFT (nJ)':>16} | {'Status':>6}")
+    hdr = (f"{'N':>6} | {'Area (um^2)':>12} | {'CritDelay (ns)':>14} | "
+           f"{'Slack (ns)':>10} | {'Power (mW)':>11} | {'ExecCyc':>8} | "
+           f"{'Energy/FFT (nJ)':>16} | {'ActivitySrc':>21} | "
+           f"{'AnnotatedSignals':>24} | {'NormLat':>8} | {'Status':>7}")
     sep = "-" * len(hdr)
     lines = ["FP16 baseline - PPA extraction using the mixed-precision evaluator methodology",
-             "(Yosys synthesis + area; OpenSTA timing + power; no OpenROAD P&R)",
+             "(Yosys synthesis + area; OpenSTA timing; no OpenROAD P&R)",
              f"Clock period: {args.clock_period} ns",
              "Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, "
              f"ExecCycles from {os.path.relpath(os.path.abspath(args.cycles_file), SYNTH_DIR)}",
-             "Power is measured from a real RTL-simulation VCD (the same 11 signals used for "
-             "SQNR) annotated onto a hierarchy-preserved netlist via OpenSTA's `read_vcd`, when "
-             f"at least {MIN_ANNOTATED_PINS} pins match (PowerSrc=vcd_measured, AnnotPins shown); "
-             "otherwise it falls back to a flat 0.2 input-activity guess (PowerSrc=flat_0.2_fallback) "
-             "-- see run_yosys()/generate_activity_vcd() for why flattening breaks name matching.",
+             "Power is measured from a SAIF file converted (vcd_to_saif.py) from a real "
+             "RTL-simulation VCD -- the same 11 SQNR signals, same testbench timing -- and "
+             "annotated by OpenSTA's `read_saif` onto a hierarchy-preserved netlist "
+             f"(ActivitySrc=saif_measured) when at least {MIN_ANNOTATED_PINS} nets match "
+             "(AnnotatedSignals=annotated/total). There is NO flat-activity fallback: if SAIF "
+             "generation fails or coverage is below that floor, the row is ActivitySrc="
+             "SAIF_ANNOTATION_FAILED / SYNTH_FAILED and Status=FAILED, with Power/Energy-FFT "
+             "reported as N/A rather than a misleading number -- see run_yosys()/"
+             "generate_activity_saif() for why flattening breaks name matching.",
              "", hdr, sep]
     for r in rows:
         status = "OK" if r["ok"] else "FAILED"
         cyc_s = str(r["exec_cycles"]) if r["exec_cycles"] is not None else "N/A"
         e_s = f"{r['energy_per_fft_nj']:.3f}" if r["energy_per_fft_nj"] is not None else "N/A"
+        power_s = f"{r['power_mw']:.4f}" if r["ok"] else "N/A"
+        pct = (100.0 * r["annotated_pins"] / r["total_pins"]) if r["total_pins"] else 0.0
+        annot_s = f"{r['annotated_pins']}/{r['total_pins']} ({pct:.2f}%)"
         lines.append(
-            f"{r['n']:>6} | {r['power_mw']:>11.4f} | {r['power_source']:>13} | "
-            f"{r['annotated_pins']:>9} | {r['area_um2']:>12.1f} | "
-            f"{r['crit_delay_ns']:>14.3f} | {r['slack_ns']:>10.3f} | "
-            f"{r['norm_latency']:>8.3f} | {cyc_s:>8} | {e_s:>16} | {status:>6}")
+            f"{r['n']:>6} | {r['area_um2']:>12.1f} | {r['crit_delay_ns']:>14.3f} | "
+            f"{r['slack_ns']:>10.3f} | {power_s:>11} | {cyc_s:>8} | {e_s:>16} | "
+            f"{r['power_source']:>21} | {annot_s:>24} | "
+            f"{r['norm_latency']:>8.3f} | {status:>7}")
     text = "\n".join(lines) + "\n"
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)

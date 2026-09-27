@@ -1,18 +1,18 @@
 FP16 baseline - PPA extraction using the mixed-precision evaluator methodology
-(Yosys synthesis + area; OpenSTA timing + power; no OpenROAD P&R)
+(Yosys synthesis + area; OpenSTA timing; no OpenROAD P&R)
 Clock period: 10.0 ns
 Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, ExecCycles from ../sim/perf/fp16_sqnr_results.txt
-Power is measured from a real RTL-simulation VCD (the same 11 signals used for SQNR) annotated onto a hierarchy-preserved netlist via OpenSTA's `read_vcd`, when at least 20 pins match (PowerSrc=vcd_measured, AnnotPins shown); otherwise it falls back to a flat 0.2 input-activity guess (PowerSrc=flat_0.2_fallback) -- see run_yosys()/generate_activity_vcd() for why flattening breaks name matching.
+Power is measured from a SAIF file converted (vcd_to_saif.py) from a real RTL-simulation VCD -- the same 11 SQNR signals, same testbench timing -- and annotated by OpenSTA's `read_saif` onto a hierarchy-preserved netlist (ActivitySrc=saif_measured) when at least 20 nets match (AnnotatedSignals=annotated/total). There is NO flat-activity fallback: if SAIF generation fails or coverage is below that floor, the row is ActivitySrc=SAIF_ANNOTATION_FAILED / SYNTH_FAILED and Status=FAILED, with Power/Energy-FFT reported as N/A rather than a misleading number -- see run_yosys()/generate_activity_saif() for why flattening breaks name matching.
 
-     N |  Power (mW) |      PowerSrc | AnnotPins |  Area (um^2) | CritDelay (ns) | Slack (ns) |  NormLat |  ExecCyc |  Energy/FFT (nJ) | Status
------------------------------------------------------------------------------------------------------------------------------------------------
-     2 |      9.7900 |  vcd_measured |       678 |     253086.3 |          7.890 |      2.110 |    0.789 |       18 |            1.762 |     OK
-     4 |     11.3000 |  vcd_measured |       682 |     256043.2 |          7.890 |      2.110 |    0.789 |       35 |            3.955 |     OK
-     8 |     10.1000 |  vcd_measured |       684 |     259676.3 |          7.890 |      2.110 |    0.789 |       57 |            5.757 |     OK
-    16 |     10.2000 |  vcd_measured |       686 |     263189.7 |          7.890 |      2.110 |    0.789 |       91 |            9.282 |     OK
-    32 |     10.1000 |  vcd_measured |       688 |     264922.9 |          7.890 |      2.110 |    0.789 |      153 |           15.453 |     OK
-    64 |     10.9000 |  vcd_measured |       690 |     265215.7 |          7.890 |      2.110 |    0.789 |      279 |           30.411 |     OK
-   128 |     10.6000 |  vcd_measured |       692 |     265408.2 |          7.890 |      2.110 |    0.921 |      549 |           58.194 |     OK
-   256 |      9.1300 |  vcd_measured |       694 |     265610.3 |          7.890 |      2.110 |    1.052 |     1139 |          103.991 |     OK
-   512 |      9.3600 |  vcd_measured |       696 |     265898.0 |          7.890 |      2.110 |    1.183 |     2433 |          227.729 |     OK
-  1024 |      7.9700 |  vcd_measured |       698 |     266175.3 |          7.890 |      2.110 |    1.315 |     5263 |          419.461 |     OK
+     N |  Area (um^2) | CritDelay (ns) | Slack (ns) |  Power (mW) |  ExecCyc |  Energy/FFT (nJ) |           ActivitySrc |         AnnotatedSignals |  NormLat |  Status
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     2 |     253086.3 |          7.890 |      2.110 |      9.8200 |       18 |            1.768 |         saif_measured |        678/44781 (1.51%) |    0.789 |      OK
+     4 |     256043.2 |          7.890 |      2.110 |     11.3000 |       35 |            3.955 |         saif_measured |        682/44453 (1.53%) |    0.789 |      OK
+     8 |     259676.3 |          7.890 |      2.110 |     10.1000 |       57 |            5.757 |         saif_measured |        684/44691 (1.53%) |    0.789 |      OK
+    16 |     263189.7 |          7.890 |      2.110 |     10.2000 |       91 |            9.282 |         saif_measured |        686/44542 (1.54%) |    0.789 |      OK
+    32 |     264922.9 |          7.890 |      2.110 |     10.2000 |      153 |           15.606 |         saif_measured |        688/44776 (1.54%) |    0.789 |      OK
+    64 |     265215.7 |          7.890 |      2.110 |     10.9000 |      279 |           30.411 |         saif_measured |        690/44614 (1.55%) |    0.789 |      OK
+   128 |     265408.2 |          7.890 |      2.110 |     10.6000 |      549 |           58.194 |         saif_measured |        692/44845 (1.54%) |    0.921 |      OK
+   256 |     265610.3 |          7.890 |      2.110 |      9.1400 |     1139 |          104.105 |         saif_measured |        694/44717 (1.55%) |    1.052 |      OK
+   512 |     265898.0 |          7.890 |      2.110 |      9.3700 |     2433 |          227.972 |         saif_measured |        696/44937 (1.55%) |    1.183 |      OK
+  1024 |     266175.3 |          7.890 |      2.110 |      7.9800 |     5263 |          419.987 |         saif_measured |        698/44797 (1.56%) |    1.315 |      OK
