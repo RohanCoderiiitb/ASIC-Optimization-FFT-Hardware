@@ -1,0 +1,18 @@
+FP16 baseline - POST-ROUTE PPA (OpenROAD: floorplan + macro placement + PDN + global placement + CTS + global route; SAIF-measured power)
+NOT full DRC-clean detailed routing -- see this script's module docstring and postroute_pnr.py for exactly why and what stage 'post-route' refers to here.
+Clock period: 10.0 ns
+Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, ExecCycles from ../sim/perf/fp16_sqnr_results.txt
+Area is the fixed floorplan's core area (same for every N -- the 4-macro SRAM layout dominates area and does not change with N; see module docstring), not a cell-area sum. Power: SAIF conversion of a real RTL-simulation VCD (11 SQNR signals) annotated via OpenSTA's read_saif onto the FLATTENED P&R netlist (ActivitySrc=saif_measured, >= 20 nets); no flat-activity fallback -- below that floor, or on any P&R failure, Status=FAILED.
+
+     N |  Area (um^2) | CritDelay (ns) | Slack (ns) |  Power (mW) |  ExecCyc |  Energy/FFT (nJ) |           ActivitySrc |         AnnotatedSignals |  Status
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+     2 |     348944.0 |          7.530 |     -0.030 |      9.3900 |       21 |            1.972 |         saif_measured |         70/18246 (0.38%) |      OK
+     4 |     348944.0 |         12.100 |     -1.800 |      9.0800 |       41 |            3.723 |         saif_measured |         74/24028 (0.31%) |      OK
+     8 |     348944.0 |         13.400 |     -2.900 |      9.6800 |       66 |            6.389 |         saif_measured |         76/32623 (0.23%) |      OK
+    16 |     348944.0 |         15.580 |     -5.370 |      9.3800 |      103 |            9.661 |         saif_measured |         78/35610 (0.22%) |      OK
+    32 |     348944.0 |         15.290 |     -4.500 |      9.7200 |      168 |           16.330 |         saif_measured |         80/38266 (0.21%) |      OK
+    64 |     348944.0 |         15.550 |     -4.960 |      9.8200 |      297 |           29.165 |         saif_measured |         82/39097 (0.21%) |      OK
+   128 |     348944.0 |         12.490 |     -1.720 |     10.1000 |      570 |           57.570 |         saif_measured |         84/39350 (0.21%) |      OK
+   256 |     348944.0 |         15.000 |     -4.340 |      9.4800 |     1163 |          110.252 |         saif_measured |         86/40136 (0.21%) |      OK
+   512 |     348944.0 |         12.800 |     -2.170 |      9.8100 |     2460 |          241.326 |         saif_measured |         88/40889 (0.22%) |      OK
+  1024 |     348944.0 |         14.180 |     -3.460 |     10.0000 |     5293 |          529.300 |         saif_measured |         90/42539 (0.21%) |      OK

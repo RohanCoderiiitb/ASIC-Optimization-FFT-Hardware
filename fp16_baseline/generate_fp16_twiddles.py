@@ -125,12 +125,30 @@ ROM_MODULE_TEMPLATE = """\
 // Conjugate symmetry: only k=0..{last_entry} are stored.
 //   W_N^{{N-k}} = conj(W_N^k) -> second half handled by flipping the
 //   imaginary sign bit. k={num_entries} (W=-1+0j) is hardcoded separately.
+//
+// Internally 1-cycle pipelined at the address/lookup boundary (register
+// between "2. Symmetry Logic" and "3. ROM"): a single flat {num_entries}-way
+// case statement measured on a real post-route netlist as a ~40-gate-deep
+// combinational chain (not the balanced ~log2({num_entries})-level tree a
+// well-structured mux would give -- Yosys/ABC do not automatically balance
+// one huge flat case with fully arbitrary constants and no sharing
+// opportunity). The lookup below is therefore written as an explicit
+// {num_blocks}-way outer selection over {num_blocks} independent
+// {entries_per_block}-way inner blocks (rom_addr[{high_bit}:{low_bits}]
+// picks the block, rom_addr[{low_bits_minus1}:0] picks within it), still
+// fully combinational and still inside the same single post-register cycle
+// -- this just gives the synthesis tool a hierarchy to map onto instead of
+// one flat {num_entries}-way structure, bounding each stage's depth to a
+// {entries_per_block}-way / {num_blocks}-way mux. The caller must add 1
+// matching cycle to its alignment pipeline for the address/lookup register
+// -- see TWIDDLE_LATENCY in fp16_template_generator.py.
 // =============================================================================
 
 module twiddle_factor_fp16 #(
     parameter MAX_N      = {max_n},
     parameter ADDR_WIDTH = $clog2(MAX_N) + 1
 )(
+    input                    clk,
     input  [ADDR_WIDTH-1:0] k,            // Index k
     input  [ADDR_WIDTH-1:0] n,            // Current FFT size N
     output reg [31:0]       twiddle_out
@@ -160,42 +178,54 @@ module twiddle_factor_fp16 #(
     // --------------------------------------------------------
     // 2. Symmetry Logic
     // --------------------------------------------------------
-    reg        use_conjugate;
-    reg [9:0]  rom_addr;       // Address within the 0-{last_entry} block
-    reg        is_midpoint;
+    reg        use_conjugate_w;
+    reg [9:0]  rom_addr_w;       // Address within the 0-{last_entry} block
+    reg        is_midpoint_w;
 
     always @(*) begin
-        is_midpoint = 1'b0;
+        is_midpoint_w = 1'b0;
 
         if (scaled_k == {num_entries}) begin
             // 180 degrees is a boundary case
-            is_midpoint   = 1'b1;
-            rom_addr      = 0;
-            use_conjugate = 1'b0;
+            is_midpoint_w   = 1'b1;
+            rom_addr_w      = 0;
+            use_conjugate_w = 1'b0;
         end
         else if (scaled_k > {last_entry}) begin
             // Second half (180 < angle < 360) -> Symmetry
-            rom_addr      = {max_n} - scaled_k;
-            use_conjugate = 1'b1;
+            rom_addr_w      = {max_n} - scaled_k;
+            use_conjugate_w = 1'b1;
         end
         else begin
             // First half (0 <= angle < 180)
-            rom_addr      = scaled_k;
-            use_conjugate = 1'b0;
+            rom_addr_w      = scaled_k;
+            use_conjugate_w = 1'b0;
         end
     end
 
+    // ---- pipeline register: address computation | ROM lookup ----
+    reg        use_conjugate;
+    reg [9:0]  rom_addr;
+    reg        is_midpoint;
+
+    always @(posedge clk) begin
+        use_conjugate <= use_conjugate_w;
+        rom_addr      <= rom_addr_w;
+        is_midpoint   <= is_midpoint_w;
+    end
+
     // --------------------------------------------------------
-    // 3. ROM -- {num_entries} entries, combinational case statement.
-    //    Yosys/synthesis infers this as a ROM, not flip-flops.
+    // 3. ROM -- {num_entries} entries as {num_blocks} independent
+    //    {entries_per_block}-way combinational blocks, outer-selected by
+    //    rom_addr[{high_bit}:{low_bits}]. See header comment for why.
     // --------------------------------------------------------
+    reg [31:0] block_data [0:{num_blocks_minus1}];
+
+{rom_blocks}
     reg [31:0] raw_data;
 
     always @(*) begin
-        case (rom_addr)
-{rom_cases}
-            default: raw_data = 32'h{fallback:08X}; // fallback: W^0 = 1+0j
-        endcase
+        raw_data = block_data[rom_addr[{high_bit}:{low_bits}]];
     end
 
     // --------------------------------------------------------
@@ -222,16 +252,49 @@ endmodule
 
 def generate_synthesizable_rom(words: list, max_n: int, rom_out_path: str) -> None:
     num_entries = len(words)
-    case_lines = "\n".join(
-        f"            10'd{addr}: raw_data = 32'h{word:08X};"
-        for addr, word in enumerate(words)
+
+    # Split the flat num_entries-way lookup into num_blocks independent
+    # entries_per_block-way blocks (see ROM_MODULE_TEMPLATE header comment).
+    low_bits = 5
+    entries_per_block = 1 << low_bits  # 32
+    assert num_entries % entries_per_block == 0, (
+        f"num_entries={num_entries} must be a multiple of {entries_per_block} "
+        "for the block-split ROM lookup"
     )
+    num_blocks = num_entries // entries_per_block
+    high_bits = (num_blocks - 1).bit_length()
+    assert num_blocks == (1 << high_bits), (
+        f"num_blocks={num_blocks} must be a power of 2"
+    )
+    high_bit = low_bits + high_bits - 1
+
+    block_texts = []
+    for b in range(num_blocks):
+        case_lines = "\n".join(
+            f"            5'd{j}: block_data[{b}] = 32'h{words[b * entries_per_block + j]:08X};"
+            for j in range(entries_per_block)
+        )
+        block_texts.append(
+            "    always @(*) begin\n"
+            "        case (rom_addr[4:0])\n"
+            f"{case_lines}\n"
+            f"            default: block_data[{b}] = 32'h00000000;\n"
+            "        endcase\n"
+            "    end\n"
+        )
+    rom_blocks = "\n".join(block_texts)
+
     verilog = ROM_MODULE_TEMPLATE.format(
         max_n=max_n,
         num_entries=num_entries,
         last_entry=num_entries - 1,
-        rom_cases=case_lines,
-        fallback=words[0],
+        rom_blocks=rom_blocks,
+        num_blocks=num_blocks,
+        num_blocks_minus1=num_blocks - 1,
+        entries_per_block=entries_per_block,
+        low_bits=low_bits,
+        low_bits_minus1=low_bits - 1,
+        high_bit=high_bit,
     )
 
     out_dir = os.path.dirname(os.path.abspath(rom_out_path))
@@ -239,7 +302,8 @@ def generate_synthesizable_rom(words: list, max_n: int, rom_out_path: str) -> No
     with open(rom_out_path, "w") as f:
         f.write(verilog)
 
-    print(f"Wrote synthesizable {num_entries}-entry case ROM to {rom_out_path}")
+    print(f"Wrote synthesizable {num_entries}-entry block-split ROM "
+          f"({num_blocks} x {entries_per_block}) to {rom_out_path}")
 
 
 if __name__ == "__main__":

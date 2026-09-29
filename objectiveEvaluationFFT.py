@@ -23,7 +23,22 @@ from globalVariablesMixedFFT import *
 from fft_template_generator import FFTTemplateGenerator
 from performance_evaluator import PerformanceEvaluator
 from energyObjective import (energy_objectives, penalty_objectives,
-                             ENERGY_OBJECTIVES)
+                             ENERGY_OBJECTIVES, NUM_CONSTRAINTS)
+from postroute_pnr import PostRoutePnR
+from vcd_to_saif import vcd_to_saif
+from run_mixed_postroute import (
+    TECH_LEF as MIXED_TECH_LEF, CELL_LEF as MIXED_CELL_LEF,
+    SRAM_LEF as MIXED_SRAM_LEF, MACRO_MODULE as MIXED_MACRO_MODULE,
+    MACRO_INSTANCES as MIXED_MACRO_INSTANCES, MACRO_W as MIXED_MACRO_W,
+    MACRO_H as MIXED_MACRO_H,
+)
+from run_mixed_synthesis import MIN_ANNOTATED_PINS
+
+# Shared, cached fixed-LEF directory (see postroute_pnr.py's prepare_fixed_lefs)
+# -- reused across every solution/generation instead of re-fixing the same
+# tech/SRAM LEF files per evaluation. Same directory run_mixed_postroute.py
+# uses standalone, so an existing cache from that script is reused too.
+PNR_FIXED_LEF_DIR = os.path.abspath("./_mixed_pnr_fixed_lef")
 
 class MixedPrecisionFFTProblem(Problem):
     def __init__(self, fft_size=8, **kwargs):
@@ -34,14 +49,18 @@ class MixedPrecisionFFTProblem(Problem):
                 f"agree or pymoo will silently mis-shape the objective array.")
         self.fft_size     = fft_size
         self.template_gen = FFTTemplateGenerator(fft_size)
-        self.perf_eval    = PerformanceEvaluator(fft_size)
+        # dump_vcd=True: the RTL simulation this evaluator runs for SQNR is
+        # reused to produce the VCD that post-route power annotation needs
+        # (see _generate_activity_saif) -- avoids a second simulation run
+        # per solution just to get switching activity.
+        self.perf_eval    = PerformanceEvaluator(fft_size, dump_vcd=True)
 
         chrom_length = self.template_gen.get_chromosome_length()
 
         super().__init__(
             n_var=chrom_length,
             n_obj=OBJECTIVES,           # energy, sqnr_error^2, latency
-            n_ieq_constr=3,
+            n_ieq_constr=NUM_CONSTRAINTS,  # area, energy cap, SQNR floor, timing (slack >= 0)
             xl=[0] * chrom_length,
             xu=[1] * chrom_length,
             vtype=int,
@@ -49,9 +68,10 @@ class MixedPrecisionFFTProblem(Problem):
             **kwargs
         )
 
-        log_message(f"Initialized FFT-{fft_size} problem with Yosys+OpenSTA "
-                    f"timing: 3 objectives (energy/FFT, SQNR error^2, "
-                    f"latency); area and power are constraints/reported only")
+        log_message(f"Initialized FFT-{fft_size} problem with post-route "
+                    f"OpenROAD P&R + SAIF-measured power: 3 objectives "
+                    f"(energy/FFT, SQNR error^2, latency); area and power "
+                    f"are constraints/reported only")
 
     def _evaluate(self, X, out, *args, **kwargs):
         global CURRENT_GEN
@@ -93,13 +113,16 @@ class MixedPrecisionFFTProblem(Problem):
         core_file = os.path.join(GENERATED_DESIGNS_DIR, f"{design_name}.v")
         core_file, top_file = self.template_gen.generate_verilog(chromosome, core_file)
 
-        (power_mw, dyn_power_mw, static_power_mw, area_um2, crit_delay,
-         slack_ns) = self._run_yosys_opensta(design_name, core_file, top_file)
-
+        # Run RTL simulation FIRST (self.perf_eval has dump_vcd=True, so this
+        # also produces a VCD) -- the post-route P&R below reuses that same
+        # VCD for SAIF-based power annotation instead of re-simulating.
         perf = self._run_performance_evaluation(core_file, design_name, chromosome)
         sqnr           = perf['sqnr']
         avg_exec_cycles = perf['avg_exec_cycles']
         tot_sim_cycles  = perf['tot_sim_cycles']
+
+        (power_mw, dyn_power_mw, static_power_mw, area_um2, crit_delay,
+         slack_ns) = self._run_postroute_pnr(design_name, core_file, top_file)
 
         norm_latency = self._compute_actual_normalized_latency(crit_delay)
 
@@ -133,6 +156,136 @@ class MixedPrecisionFFTProblem(Problem):
 
     def _hash_chromosome(self, chromosome):
         return hashlib.md5(''.join(map(str, chromosome)).encode()).hexdigest()
+
+    # ------------------------------------------------------------------
+    # Post-route PPA (OpenROAD P&R + SAIF-measured power), replacing the
+    # pre-route Yosys+OpenSTA flat-activity estimate in _run_yosys_opensta
+    # (kept below, unused, in case a fast pre-route mode is wanted again).
+    # Mirrors run_mixed_postroute.py's methodology exactly, adapted to reuse
+    # this problem's own per-solution generated core/top and RTL-simulation
+    # VCD instead of regenerating them under a separate naming convention.
+    # ------------------------------------------------------------------
+    def _generate_activity_saif(self, design_name, work_dir):
+        """Converts the VCD self.perf_eval already produced (dump_vcd=True,
+        via _run_performance_evaluation, called before this) into a SAIF
+        file for post-route power annotation -- no second simulation run."""
+        vcd_file = self.perf_eval.vcd_path(design_name)
+        if not os.path.isfile(vcd_file):
+            log_message(f"Activity VCD missing for {design_name} (expected "
+                        f"at {vcd_file}) -- was _run_performance_evaluation "
+                        f"called first?", level='ERROR')
+            return None
+        saif_file = os.path.join(work_dir, f"{design_name}.saif")
+        try:
+            net_count, duration = vcd_to_saif(vcd_file, saif_file,
+                                               design_name=f"tb_{design_name}")
+        except Exception as e:
+            log_message(f"VCD->SAIF conversion FAILED for {design_name}: {e}", level='ERROR')
+            return None
+        if net_count == 0 or duration <= 0:
+            log_message(f"VCD->SAIF conversion produced an empty/degenerate "
+                        f"SAIF for {design_name} (nets={net_count}, "
+                        f"duration={duration})", level='ERROR')
+            return None
+        return saif_file
+
+    _POWER_SPLIT_RE = re.compile(
+        r"^\s*Total\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)",
+        re.MULTILINE)
+
+    def _parse_power_split(self, power_rpt):
+        """Re-parses PostRoutePnR's own power report for the Internal/
+        Switching/Leakage split report_power always prints (PostRoutePnR's
+        own _parse_power keeps only the Total column). Returns
+        (dyn_power_mw, static_power_mw) or (None, None)."""
+        if not os.path.exists(power_rpt):
+            return None, None
+        try:
+            with open(power_rpt, 'r') as fh:
+                content = fh.read()
+            m = self._POWER_SPLIT_RE.search(content)
+            if m:
+                internal_mw  = float(m.group(1)) * 1000.0
+                switching_mw = float(m.group(2)) * 1000.0
+                static_mw    = float(m.group(3)) * 1000.0
+                return internal_mw + switching_mw, static_mw
+        except Exception as e:
+            log_message(f"Error parsing post-route power split {power_rpt}: {e}", level='ERROR')
+        return None, None
+
+    def _run_postroute_pnr(self, design_name, core_file, top_file):
+        log_message(f"Running post-route P&R for {design_name}")
+
+        work_dir = os.path.abspath(os.path.join(SYNTH_WORK_DIR, design_name))
+        os.makedirs(work_dir, exist_ok=True)
+
+        core_abs    = os.path.abspath(core_file)
+        top_abs     = os.path.abspath(top_file)
+        verilog_dir = os.path.abspath(VERILOG_SOURCES_DIR)
+        lib_abs     = os.path.abspath(LIBERTY_LIB_PATH)
+        ram_lib_abs = os.path.abspath(RAM_LIBERTY_PATH)
+
+        top_module = f"{design_name}{TOP_MODULE_SUFFIX}"
+        netlist_v  = os.path.join(work_dir, f"{design_name}_netlist.v")
+        yosys_log  = os.path.join(work_dir, "yosys.log")
+
+        verilog_sources = self._collect_verilog_sources(verilog_dir, core_abs, top_abs)
+
+        # Flat netlist: same _run_yosys used by the old pre-route path
+        # (already does flatten -noscopeinfo unconditionally), which is
+        # exactly what OpenROAD P&R needs as its single top-level netlist.
+        yosys_ok = self._run_yosys(design_name, top_module, verilog_sources,
+                                    lib_abs, ram_lib_abs, netlist_v, yosys_log, work_dir)
+        if not yosys_ok:
+            return MAX_POWER_MW * 2, MAX_POWER_MW * 2, 0.0, MAX_AREA_UM2 * 2, 200.0, -1.0
+
+        area_um2_fallback = self._parse_yosys_area(yosys_log)
+
+        saif_file = self._generate_activity_saif(design_name, work_dir)
+        if saif_file is None:
+            log_message(f"{design_name}: activity SAIF generation FAILED - "
+                        f"P&R will run but power will be FAILED", level='ERROR')
+            saif_file = os.path.join(work_dir, "missing.saif")
+
+        # PostRoutePnR internally names every report f"{design_prefix}_{n}"
+        # and reads the SAIF at scope tb_{design_prefix}_{n}/dut -- that MUST
+        # equal this solution's actual testbench module name, tb_{design_name}
+        # (see performance_evaluator.py's _generate_testbench). Splitting
+        # design_name at its last underscore and feeding the two halves back
+        # in as (design_prefix, n) reconstructs it exactly, whatever n
+        # itself is (it is never used numerically inside postroute_pnr.py,
+        # only for this string interpolation), unlike the standalone
+        # run_mixed_postroute.py where design_prefix="mixed_fft" and n=<size>
+        # already coincide with its own mixed_fft_<n> naming convention.
+        design_prefix, _, pnr_n = design_name.rpartition('_')
+        pnr = PostRoutePnR(
+            design_prefix=design_prefix, std_lib=lib_abs, tech_lef=MIXED_TECH_LEF,
+            cell_lef=MIXED_CELL_LEF, sram_lef=MIXED_SRAM_LEF, sram_liberty=ram_lib_abs,
+            macro_module=MIXED_MACRO_MODULE, macro_instances=MIXED_MACRO_INSTANCES,
+            macro_w=MIXED_MACRO_W, macro_h=MIXED_MACRO_H, clock_period=CLOCK_PERIOD,
+            fixed_lef_dir=PNR_FIXED_LEF_DIR, openroad_path=OPENROAD_PATH,
+            sta_path=OPENSTA_PATH, min_annotated_pins=MIN_ANNOTATED_PINS,
+        )
+        result = pnr.run(pnr_n, netlist_v, top_module, saif_file, work_dir)
+
+        if not result["ok"]:
+            log_message(f"{design_name}: post-route P&R FAILED "
+                        f"(power_source={result['power_source']})", level='ERROR')
+            area_fallback = result["area_um2"] if result["area_um2"] is not None else area_um2_fallback
+            crit_fallback = result["crit_delay_ns"] if result["crit_delay_ns"] is not None else 200.0
+            slack_fallback = result["slack_ns"] if result["slack_ns"] is not None else -1.0
+            return (MAX_POWER_MW * 2, MAX_POWER_MW * 2, 0.0, area_fallback,
+                    crit_fallback, slack_fallback)
+
+        power_rpt = os.path.join(work_dir, f"{design_name}_postroute_power.rpt")
+        dyn_mw, static_mw = self._parse_power_split(power_rpt)
+        if dyn_mw is None:
+            # Degraded fallback: no split available, use total as dynamic
+            # (see energyObjective.parse_power_fields's own "degraded" path).
+            dyn_mw, static_mw = result["power_mw"], 0.0
+
+        return (result["power_mw"], dyn_mw, static_mw, result["area_um2"],
+                result["crit_delay_ns"], result["slack_ns"])
 
     def _run_yosys_opensta(self, design_name, core_file, top_file):
         log_message(f"Running Yosys+OpenSTA for {design_name}")

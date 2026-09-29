@@ -80,7 +80,6 @@ def _decode_objectives(obj_row, fft_size, chromosome=None):
     norm_latency = (obj_row[2] / _W_LATENCY) * _REF_LATENCY
 
     crit_delay   = _crit_delay_ns_from_norm_latency(norm_latency, fft_size)
-    meets_timing = crit_delay <= REFERENCE_CLOCK_PERIOD_NS
 
     cached = {}
     if chromosome is not None:
@@ -90,6 +89,26 @@ def _decode_objectives(obj_row, fft_size, chromosome=None):
     def _f(k, default=0.0):
         v = cached.get(k)
         return default if v is None else float(v)
+
+    # meets_timing must come from OpenSTA's own reported slack, not a naive
+    # crit_delay <= clock_period comparison: the real "data required time"
+    # OpenSTA checks against is NOT simply the clock period -- it is offset
+    # by input/output delay constraints, clock reconvergence pessimism, and
+    # (for paths launched from a macro's own negedge-characterized read
+    # port, as seen post-route here) which clock edge the worst path
+    # actually starts from. A design can post a crit_delay of 10.39ns
+    # against a 10.0ns clock and still have positive slack for exactly
+    # these reasons -- trust the cached slack_ns when it is available, and
+    # only fall back to the naive comparison when no cache entry exists
+    # (e.g. decoding an old run's saved objective vectors with no
+    # RESULT_CACHE backing them).
+    slack_ns = cached.get('slack_ns')
+    if slack_ns is not None and not (isinstance(slack_ns, float) and math.isnan(slack_ns)):
+        slack_ns = float(slack_ns)
+        meets_timing = slack_ns >= 0.0
+    else:
+        slack_ns = float('nan')
+        meets_timing = crit_delay <= REFERENCE_CLOCK_PERIOD_NS
 
     return {
         'energy_nJ_perFFT': energy_nj_per_fft,
@@ -104,6 +123,7 @@ def _decode_objectives(obj_row, fft_size, chromosome=None):
                            else sqnr_db),
         'norm_latency':   norm_latency,
         'crit_delay_ns':  crit_delay,
+        'slack_ns':       slack_ns,
         'meets_timing':   meets_timing,
     }
 
@@ -158,7 +178,7 @@ def export_solutions_csv(result, fft_size, results_subdir):
             ['solution_id', 'fft_size'] + gene_headers +
             ['energy_nJ_perFFT', 'dyn_power_mW', 'static_power_mW', 'total_power_mW',
              'area_um2', 'sqnr_dB',
-             'norm_latency', 'crit_delay_ns', 'meets_timing',
+             'norm_latency', 'crit_delay_ns', 'slack_ns', 'meets_timing',
              'avg_exec_cycles', 'tot_sim_cycles',
              'on_pareto_front']
         )
@@ -185,6 +205,7 @@ def export_solutions_csv(result, fft_size, results_subdir):
                  f"{sqnr_val:.4f}" if not math.isinf(sqnr_val) else "inf",
                  f"{dec['norm_latency']:.4f}",
                  f"{dec['crit_delay_ns']:.3f}",
+                 (f"{dec['slack_ns']:.4f}" if not math.isnan(dec['slack_ns']) else "nan"),
                  int(dec['meets_timing']),
                  avg_exec,
                  tot_sim,
@@ -235,6 +256,7 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             area_m   = re.search(r'^\s*Area\s*:\s*([\d.]+)\s*um2',           content, re.MULTILINE)
             sqnr_m   = re.search(r'^\s*SQNR\s*:\s*([\d.\-]+)\s*dB',          content, re.MULTILINE)
             cpd_m    = re.search(r'^\s*Crit Path Delay\s*:\s*([\d.]+)\s*ns', content, re.MULTILINE)
+            slack_m  = re.search(r'^\s*Timing Slack\s*:\s*([\d.\-]+|N/A)\s*ps', content, re.MULTILINE)
             nlat_m   = re.search(r'^\s*Norm Latency\s*:\s*([\d.]+)',        content, re.MULTILINE)
             aec_m    = re.search(r'^\s*Avg Exec Cycles\s*:\s*([-\d]+)',     content, re.MULTILINE)
             tsc_m    = re.search(r'^\s*Tot Sim Cycles\s*:\s*([-\d]+)',      content, re.MULTILINE)
@@ -250,10 +272,17 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             area         = float(area_m.group(1))     if area_m   else -1
             sqnr         = float(sqnr_m.group(1))   if sqnr_m   else float('nan')
             crit_delay   = float(cpd_m.group(1))    if cpd_m    else float('nan')
+            slack_ns     = (float(slack_m.group(1)) / 1000.0
+                             if slack_m and slack_m.group(1) != 'N/A' else float('nan'))
             norm_latency = float(nlat_m.group(1))   if nlat_m   else float('nan')
             avg_exec     = int(aec_m.group(1))      if aec_m    else -1
             tot_sim      = int(tsc_m.group(1))      if tsc_m    else -1
-            meets_timing = int(crit_delay <= REFERENCE_CLOCK_PERIOD_NS) \
+            # Prefer the real OpenSTA slack over a naive crit_delay<=period
+            # comparison -- see _decode_objectives's comment for why they can
+            # disagree (I/O delay constraints, clock reconvergence
+            # pessimism, negedge-launched macro read paths, etc).
+            meets_timing = int(slack_ns >= 0.0) if not math.isnan(slack_ns) else \
+                           int(crit_delay <= REFERENCE_CLOCK_PERIOD_NS) \
                            if not math.isnan(crit_delay) else -1
 
             rows.append({
@@ -269,6 +298,7 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
                 'sqnr_dB':       sqnr,
                 'norm_latency':  norm_latency,
                 'crit_delay_ns': crit_delay,
+                'slack_ns':      slack_ns,
                 'meets_timing':  meets_timing,
                 'avg_exec_cycles': avg_exec,
                 'tot_sim_cycles':  tot_sim,
@@ -289,7 +319,7 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
             gene_headers +
             ['energy_nJ_perFFT', 'dyn_power_mW', 'static_power_mW', 'power_mW',
              'area_um2', 'sqnr_dB',
-             'norm_latency', 'crit_delay_ns', 'meets_timing',
+             'norm_latency', 'crit_delay_ns', 'slack_ns', 'meets_timing',
              'avg_exec_cycles', 'tot_sim_cycles',
              'fp4_mult_pct', 'fp8_mult_pct', 'fp4_add_pct', 'fp8_add_pct']
         )
@@ -308,6 +338,7 @@ def parse_solution_txts_to_csv(fft_size, results_subdir):
                  sqnr_str,
                  f"{r['norm_latency']:.4f}",
                  f"{r['crit_delay_ns']:.3f}",
+                 (f"{r['slack_ns']:.4f}" if not math.isnan(r['slack_ns']) else "nan"),
                  r['meets_timing'],
                  r['avg_exec_cycles'],
                  r['tot_sim_cycles'],
@@ -700,7 +731,7 @@ def save_optimization_results(result, callback, fft_size):
 
             hdr = (f"{'ID':<5} {'Energy(nJ)':<11} {'Power(mW)':<10} "
                    f"{'Area(µm²)':<11} {'SQNR(dB)':<10} {'NormLat':<9} "
-                   f"{'CritDelay(ns)':<14} {'MeetsTiming':<12} "
+                   f"{'CritDelay(ns)':<14} {'Slack(ns)':<10} {'MeetsTiming':<12} "
                    f"{'ExecCycles':<11} {'TotSimCycles':<12}")
             f.write(hdr + "\n")
             f.write('-' * len(hdr) + '\n')
@@ -711,6 +742,7 @@ def save_optimization_results(result, callback, fft_size):
                 crit_str = f"{d['crit_delay_ns']:.3f}"
                 if d['norm_latency'] >= 10.0:
                     crit_str = f">={crit_str}"
+                slack_str = (f"{d['slack_ns']:.3f}" if not math.isnan(d['slack_ns']) else "n/a")
                 timing_str = "YES" if d['meets_timing'] else "NO "
 
                 chrom_key = ''.join(str(int(v)) for v in pareto_solutions[i])
@@ -723,7 +755,7 @@ def save_optimization_results(result, callback, fft_size):
                 f.write(
                     f"{i:<5} {d['energy_nJ_perFFT']:<11.4f} {d['power_mW']:<10.6f} "
                     f"{int(d['area_um2']):<11} {sqnr_str:<10} {d['norm_latency']:<9.4f} "
-                    f"{crit_str:<14} {timing_str:<12} "
+                    f"{crit_str:<14} {slack_str:<10} {timing_str:<12} "
                     f"{str(avg_exec):<11} {str(tot_sim):<12}\n"
                 )
 
@@ -766,8 +798,10 @@ def save_optimization_results(result, callback, fft_size):
                 f.write(f"  SQNR              : {sqnr_str}\n")
                 f.write(f"  Norm Latency      : {d['norm_latency']:.4f}x "
                         f"(clock = {REFERENCE_CLOCK_PERIOD_NS:.1f} ns)\n")
-                f.write(f"  Crit Path Delay   : {d['crit_delay_ns']:.3f} ns"
-                        f"  {'  <- MEETS TIMING' if d['meets_timing'] else '  <- VIOLATES TIMING'}\n")
+                slack_str = (f"{d['slack_ns']:.3f} ns" if not math.isnan(d['slack_ns']) else "n/a")
+                f.write(f"  Crit Path Delay   : {d['crit_delay_ns']:.3f} ns  "
+                        f"(slack {slack_str})"
+                        f"{'  <- MEETS TIMING' if d['meets_timing'] else '  <- VIOLATES TIMING'}\n")
                 f.write(f"  Avg Exec Cycles   : {avg_exec}\n")
                 f.write(f"  Tot Sim Cycles    : {tot_sim}\n")
                 f.write(f"  Chromosome        : {[int(v) for v in pareto_solutions[idx]]}\n")
@@ -882,7 +916,7 @@ def generate_comprehensive_summary(all_results):
         writer = csv.writer(csvfile)
         writer.writerow(['fft_size', 'solution_id',
                          'energy_nJ_perFFT', 'power_mW', 'area_um2', 'sqnr_dB',
-                         'norm_latency', 'crit_delay_ns', 'meets_timing'])
+                         'norm_latency', 'crit_delay_ns', 'slack_ns', 'meets_timing'])
         for fft_size, result in sorted(all_results.items()):
             if result is None or result.F is None:
                 continue
@@ -898,6 +932,7 @@ def generate_comprehensive_summary(all_results):
                     sqnr_str,
                     f"{d['norm_latency']:.4f}",
                     f"{d['crit_delay_ns']:.3f}",
+                    (f"{d['slack_ns']:.4f}" if not math.isnan(d['slack_ns']) else "nan"),
                     int(d['meets_timing']),
                 ])
     log_message(f"Combined Pareto CSV → {combined_csv}")
@@ -1018,9 +1053,35 @@ def quick_test():
     log_message("Quick test complete")
 
 
+def quick_test_postroute_1024():
+    """Validates the post-route OpenROAD P&R pipeline now wired into
+    MixedPrecisionFFTProblem.evaluate_solution (see
+    objectiveEvaluationFFT.py's _run_postroute_pnr) end-to-end through the
+    real NSGA-II machinery, for the 1024-point FFT specifically: if N=1024
+    (the largest/slowest case, most register-heavy pipeline) closes at the
+    10ns clock, every smaller N will too. POPULATION/GENERATIONS are cut
+    down hard (2/1, vs quick_test()'s 6/3) because each solution now costs a
+    full OpenROAD P&R run (floorplan+PDN+placement+CTS+global route), not
+    just a Yosys+OpenSTA estimate -- this is a pipeline/closure smoke test,
+    not a real search."""
+    log_message("Running post-route P&R quick test with 1024-point FFT")
+    setup_verilog_sources()
+
+    global CURRENT_GEN, POPULATION, GENERATIONS
+    CURRENT_GEN = 0
+    orig_pop, orig_gen = POPULATION, GENERATIONS
+    POPULATION, GENERATIONS = 2, 1
+
+    run_optimization_for_fft_size(fft_size=1024)
+
+    POPULATION, GENERATIONS = orig_pop, orig_gen
+    log_message("Post-route P&R quick test (1024) complete")
+
+
 def main():
-    quick_test()
-    #run_full_optimization_sweep()
+    run_full_optimization_sweep()
+    #quick_test_postroute_1024()
+    #quick_test()
 
 
 if __name__ == "__main__":

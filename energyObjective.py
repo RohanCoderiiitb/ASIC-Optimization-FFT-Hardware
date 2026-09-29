@@ -74,6 +74,12 @@ import math
 
 ENERGY_OBJECTIVES = 3
 
+# Number of inequality constraints energy_objectives()/penalty_objectives()
+# return: area, energy cap, SQNR floor, timing (post-route slack >= 0).
+# objectiveEvaluationFFT.py's MixedPrecisionFFTProblem.n_ieq_constr must
+# match this, the same way OBJECTIVES must match ENERGY_OBJECTIVES.
+NUM_CONSTRAINTS = 4
+
 OBJ_NAMES = ["energy_nj_per_fft", "sqnr_error_sq", "norm_latency"]
 
 # Normalisation reference for the energy objective, in nanojoules per
@@ -97,6 +103,12 @@ WEIGHT_LATENCY = 8.0
 MAX_AREA_UM2 = 600000.0
 MAX_ENERGY_NJ = 0.0          # 0 = no energy cap
 MIN_SQNR_DB = 10.0
+
+# Minimum acceptable post-route timing slack, in ns, at the ISO_FREQUENCY_NS
+# clock. 0.0 = must actually meet timing (slack >= 0), not just come close --
+# a design with negative slack failed the real OpenSTA/OpenROAD analysis and
+# is discarded (marked infeasible) by NSGA-II, not merely flagged in reports.
+MIN_SLACK_NS = 0.0
 
 # SQNR shaping, unchanged from the original formulation.
 SQNR_OFFSET = 50.0
@@ -179,13 +191,14 @@ def energy_objectives(results):
     Drop-in replacement for
     MixedPrecisionFFTProblem._compute_objectives_and_constraints.
 
-    Returns (objectives, constraints) with 3 objectives and 3 constraints.
+    Returns (objectives, constraints) with 3 objectives and 4 constraints.
     """
     area = results.get('area', MAX_AREA_UM2 * 2)
     sqnr = results.get('sqnr', -100.0)
     norm_latency = results.get('norm_latency', 10.0)
     cycles = results.get('avg_exec_cycles', -1)
     crit_delay_ns = results.get('crit_delay_ns', 0.0)
+    slack_ns = results.get('slack_ns')
 
     dyn_power_mw, _degraded = parse_power_fields(results)
 
@@ -204,10 +217,25 @@ def energy_objectives(results):
         (norm_latency / REF_LATENCY) * WEIGHT_LATENCY,
     ]
 
+    # Timing constraint uses the real OpenSTA/OpenROAD post-route slack, not
+    # a naive crit_delay <= clock_period comparison (see
+    # runMixedFFTOptimization.py's _decode_objectives for why those can
+    # disagree -- I/O delay constraints, clock reconvergence pessimism,
+    # negedge-launched macro read paths, etc). pymoo feasibility is g(x)<=0,
+    # so this is -slack_ns - MIN_SLACK_NS: satisfied (<=0) when
+    # slack_ns >= MIN_SLACK_NS, i.e. the design genuinely meets timing.
+    # Missing/NaN slack (a failed P&R/SAIF run) is treated as a hard
+    # violation rather than silently passing.
+    if slack_ns is None or (isinstance(slack_ns, float) and math.isnan(slack_ns)):
+        timing_violation = 1.0e6
+    else:
+        timing_violation = -float(slack_ns) - MIN_SLACK_NS
+
     constraints = [
         area - MAX_AREA_UM2,
         (energy_nj_per_fft - MAX_ENERGY_NJ) if MAX_ENERGY_NJ else -1.0,
         MIN_SQNR_DB - sqnr,
+        timing_violation,
     ]
 
     # stash for logging / CSV so the paper can report the raw number
@@ -222,7 +250,7 @@ def penalty_objectives():
     return (
         [PENALTY_ENERGY_NJ * WEIGHT_ENERGY, 50.0 * WEIGHT_PERFORMANCE,
          10.0 * WEIGHT_LATENCY],
-        [MAX_AREA_UM2, 1.0, MIN_SQNR_DB],
+        [MAX_AREA_UM2, 1.0, MIN_SQNR_DB, 1.0e6],
     )
 
 
@@ -238,23 +266,39 @@ if __name__ == "__main__":
     # activity trace yet).
     base_cycles = 1123
     cases = [
-        # label,            dyn_mW,  crit_ns
-        ("all-FP4  (0/8)",  1.80,    8.6),
-        ("mixed    (4/8)",  2.56,    9.4),
-        ("all-FP8  (8/8)",  3.32,    9.9),
+        # label,            dyn_mW,  crit_ns, slack_ns
+        ("all-FP4  (0/8)",  1.80,    8.6,     1.4),
+        ("mixed    (4/8)",  2.56,    9.4,     0.6),
+        ("all-FP8  (8/8)",  3.32,    9.9,     0.1),
     ]
     prev = -1.0
-    for label, dw, cd in cases:
+    for label, dw, cd, slack in cases:
         e = compute_energy_nj_per_fft(dw, base_cycles, cd)
         res = dict(area=125000, sqnr=20.0, norm_latency=0.6,
                    avg_exec_cycles=base_cycles, crit_delay_ns=cd,
-                   dyn_power_mw=dw, static_power_mw=0.05)
+                   dyn_power_mw=dw, static_power_mw=0.05, slack_ns=slack)
         objs, cons = energy_objectives(res)
-        print(f"  {label}: E = {e:11.4f} nJ/FFT   objs[0] = {objs[0]:.4g}")
+        print(f"  {label}: E = {e:11.4f} nJ/FFT   objs[0] = {objs[0]:.4g}  "
+              f"timing_ok={cons[3] <= 0}")
         assert e > prev, "energy must increase with FP8 usage"
         prev = e
         assert len(objs) == ENERGY_OBJECTIVES
-        assert len(cons) == 3
+        assert len(cons) == NUM_CONSTRAINTS
+        assert cons[3] <= 0, "positive slack must satisfy the timing constraint"
+
+    # timing constraint must reject negative slack and missing slack alike
+    bad_res = dict(area=125000, sqnr=20.0, norm_latency=0.6,
+                    avg_exec_cycles=base_cycles, crit_delay_ns=11.0,
+                    dyn_power_mw=3.0, static_power_mw=0.05, slack_ns=-1.0)
+    _, bad_cons = energy_objectives(bad_res)
+    assert bad_cons[3] > 0, "negative slack must violate the timing constraint"
+
+    missing_res = dict(area=125000, sqnr=20.0, norm_latency=0.6,
+                        avg_exec_cycles=base_cycles, crit_delay_ns=9.0,
+                        dyn_power_mw=3.0, static_power_mw=0.05)  # no slack_ns
+    _, missing_cons = energy_objectives(missing_res)
+    assert missing_cons[3] > 0, "missing slack must be treated as a violation"
+    print("  timing constraint (accept/reject/missing) OK")
 
     # degradation path: no dynamic/static split available
     r = dict(area=125000, sqnr=20.0, norm_latency=0.6, avg_exec_cycles=1123,

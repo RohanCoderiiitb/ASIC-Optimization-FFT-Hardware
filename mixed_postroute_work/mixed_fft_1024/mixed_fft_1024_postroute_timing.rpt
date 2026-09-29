@@ -1,0 +1,73 @@
+Startpoint: _8897_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: _8575_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+  Delay    Time   Description
+---------------------------------------------------------
+   0.00    0.00   clock clk (rise edge)
+   0.00    0.00   clock source latency
+   0.00    0.00 ^ clk (in)
+   0.09    0.09 ^ clkbuf_regs_0_clk/Y (BUFX4)
+   0.24    0.33 ^ clkbuf_0_clk_regs/Y (BUFX4)
+   0.15    0.48 ^ clkbuf_4_14_0_clk_regs/Y (BUFX4)
+   0.06    0.54 ^ clkbuf_7_112__f_clk_regs/Y (BUFX4)
+   0.00    0.54 ^ _8897_/CK (DFFHQX1)
+   0.07    0.61 ^ _8897_/Q (DFFHQX1)
+   0.37    0.98 ^ _7401_/Y (OR2X1)
+   0.49    1.46 ^ _7412_/Y (AND3XL)
+   1.23    2.69 v _7423_/Y (INVX1)
+   0.64    3.33 ^ _4918_/Y (NAND2X1)
+   0.53    3.86 v _5273_/Y (NAND4XL)
+   0.30    4.15 ^ _5518_/Y (NAND2X1)
+   0.09    4.24 v _5596_/Y (XOR3X1)
+   0.06    4.30 ^ _5663_/CON (ACHCONX2)
+   0.06    4.36 v _5685_/CON (ACHCONX2)
+   0.05    4.41 ^ _5707_/CON (ACHCONX2)
+   0.22    4.63 v _5785_/Y (OAI211X1)
+   0.12    4.76 ^ _5796_/Y (INVX1)
+   0.07    4.83 v _6029_/Y (OAI32X1)
+   0.24    5.06 ^ _6051_/Y (AOI211XL)
+   0.18    5.25 ^ _6151_/Y (AND4X1)
+   0.11    5.35 v _7452_/Y (NAND4XL)
+   0.09    5.44 v _7459_/Y (NOR3BX1)
+   0.50    5.94 ^ _7479_/Y (AOI211XL)
+   0.20    6.14 ^ _7482_/Y (XNOR2X1)
+   0.60    6.75 v _7492_/Y (NAND4XL)
+   0.42    7.16 ^ _7520_/Y (OAI22X1)
+   0.51    7.67 v _7530_/Y (MXI2XL)
+   0.29    7.96 ^ _7536_/Y (OAI22X1)
+   0.19    8.15 v _7539_/Y (AOI211XL)
+   0.12    8.27 ^ _7582_/Y (NAND3BXL)
+   0.61    8.88 v _7587_/Y (NAND4XL)
+   0.32    9.20 ^ _7591_/Y (OAI221X1)
+   0.11    9.31 v _7592_/Y (NAND2X1)
+   0.07    9.38 v _7603_/Y (OAI2BB1X1)
+   0.19    9.57 ^ _7608_/Y (OAI32X1)
+   0.16    9.73 v _6143_/Y (NOR4X1)
+   0.13    9.86 ^ _6145_/Y (OAI32X1)
+   0.20   10.06 v _6147_/Y (NAND4BX1)
+   0.15   10.21 ^ _6164_/Y (NOR3X1)
+   0.06   10.27 ^ _6201_/Y (NOR2BX1)
+   0.12   10.38 ^ _6211_/Y (XNOR2X1)
+   0.00   10.39 ^ _8575_/D (DFFHQX1)
+          10.39   data arrival time
+
+  10.00   10.00   clock clk (rise edge)
+   0.00   10.00   clock source latency
+   0.00   10.00 ^ clk (in)
+   0.09   10.09 ^ clkbuf_regs_0_clk/Y (BUFX4)
+   0.24   10.33 ^ clkbuf_0_clk_regs/Y (BUFX4)
+   0.14   10.47 ^ clkbuf_4_1_0_clk_regs/Y (BUFX4)
+   0.05   10.52 ^ clkbuf_7_13__f_clk_regs/Y (BUFX4)
+   0.00   10.53 ^ _8575_/CK (DFFHQX1)
+   0.00   10.53   clock reconvergence pessimism
+  -0.05   10.48   library setup time
+          10.48   data required time
+---------------------------------------------------------
+          10.48   data required time
+         -10.39   data arrival time
+---------------------------------------------------------
+           0.09   slack (MET)
+
+

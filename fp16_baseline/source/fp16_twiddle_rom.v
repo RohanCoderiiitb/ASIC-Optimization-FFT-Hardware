@@ -20,12 +20,30 @@
 // Conjugate symmetry: only k=0..511 are stored.
 //   W_N^{N-k} = conj(W_N^k) -> second half handled by flipping the
 //   imaginary sign bit. k=512 (W=-1+0j) is hardcoded separately.
+//
+// Internally 1-cycle pipelined at the address/lookup boundary (register
+// between "2. Symmetry Logic" and "3. ROM"): a single flat 512-way
+// case statement measured on a real post-route netlist as a ~40-gate-deep
+// combinational chain (not the balanced ~log2(512)-level tree a
+// well-structured mux would give -- Yosys/ABC do not automatically balance
+// one huge flat case with fully arbitrary constants and no sharing
+// opportunity). The lookup below is therefore written as an explicit
+// 16-way outer selection over 16 independent
+// 32-way inner blocks (rom_addr[8:5]
+// picks the block, rom_addr[4:0] picks within it), still
+// fully combinational and still inside the same single post-register cycle
+// -- this just gives the synthesis tool a hierarchy to map onto instead of
+// one flat 512-way structure, bounding each stage's depth to a
+// 32-way / 16-way mux. The caller must add 1
+// matching cycle to its alignment pipeline for the address/lookup register
+// -- see TWIDDLE_LATENCY in fp16_template_generator.py.
 // =============================================================================
 
 module twiddle_factor_fp16 #(
     parameter MAX_N      = 1024,
     parameter ADDR_WIDTH = $clog2(MAX_N) + 1
 )(
+    input                    clk,
     input  [ADDR_WIDTH-1:0] k,            // Index k
     input  [ADDR_WIDTH-1:0] n,            // Current FFT size N
     output reg [31:0]       twiddle_out
@@ -55,553 +73,661 @@ module twiddle_factor_fp16 #(
     // --------------------------------------------------------
     // 2. Symmetry Logic
     // --------------------------------------------------------
-    reg        use_conjugate;
-    reg [9:0]  rom_addr;       // Address within the 0-511 block
-    reg        is_midpoint;
+    reg        use_conjugate_w;
+    reg [9:0]  rom_addr_w;       // Address within the 0-511 block
+    reg        is_midpoint_w;
 
     always @(*) begin
-        is_midpoint = 1'b0;
+        is_midpoint_w = 1'b0;
 
         if (scaled_k == 512) begin
             // 180 degrees is a boundary case
-            is_midpoint   = 1'b1;
-            rom_addr      = 0;
-            use_conjugate = 1'b0;
+            is_midpoint_w   = 1'b1;
+            rom_addr_w      = 0;
+            use_conjugate_w = 1'b0;
         end
         else if (scaled_k > 511) begin
             // Second half (180 < angle < 360) -> Symmetry
-            rom_addr      = 1024 - scaled_k;
-            use_conjugate = 1'b1;
+            rom_addr_w      = 1024 - scaled_k;
+            use_conjugate_w = 1'b1;
         end
         else begin
             // First half (0 <= angle < 180)
-            rom_addr      = scaled_k;
-            use_conjugate = 1'b0;
+            rom_addr_w      = scaled_k;
+            use_conjugate_w = 1'b0;
         end
     end
 
+    // ---- pipeline register: address computation | ROM lookup ----
+    reg        use_conjugate;
+    reg [9:0]  rom_addr;
+    reg        is_midpoint;
+
+    always @(posedge clk) begin
+        use_conjugate <= use_conjugate_w;
+        rom_addr      <= rom_addr_w;
+        is_midpoint   <= is_midpoint_w;
+    end
+
     // --------------------------------------------------------
-    // 3. ROM -- 512 entries, combinational case statement.
-    //    Yosys/synthesis infers this as a ROM, not flip-flops.
+    // 3. ROM -- 512 entries as 16 independent
+    //    32-way combinational blocks, outer-selected by
+    //    rom_addr[8:5]. See header comment for why.
     // --------------------------------------------------------
+    reg [31:0] block_data [0:15];
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[0] = 32'h3C000000;
+            5'd1: block_data[0] = 32'h3C009E48;
+            5'd2: block_data[0] = 32'h3C00A248;
+            5'd3: block_data[0] = 32'h3C00A4B6;
+            5'd4: block_data[0] = 32'h3BFFA648;
+            5'd5: block_data[0] = 32'h3BFFA7DA;
+            5'd6: block_data[0] = 32'h3BFFA8B6;
+            5'd7: block_data[0] = 32'h3BFEA97F;
+            5'd8: block_data[0] = 32'h3BFEAA48;
+            5'd9: block_data[0] = 32'h3BFDAB11;
+            5'd10: block_data[0] = 32'h3BFCABD9;
+            5'd11: block_data[0] = 32'h3BFBAC51;
+            5'd12: block_data[0] = 32'h3BFAACB5;
+            5'd13: block_data[0] = 32'h3BF9AD1A;
+            5'd14: block_data[0] = 32'h3BF8AD7E;
+            5'd15: block_data[0] = 32'h3BF7ADE2;
+            5'd16: block_data[0] = 32'h3BF6AE46;
+            5'd17: block_data[0] = 32'h3BF5AEAA;
+            5'd18: block_data[0] = 32'h3BF4AF0E;
+            5'd19: block_data[0] = 32'h3BF2AF72;
+            5'd20: block_data[0] = 32'h3BF1AFD6;
+            5'd21: block_data[0] = 32'h3BEFB01D;
+            5'd22: block_data[0] = 32'h3BEDB04E;
+            5'd23: block_data[0] = 32'h3BECB080;
+            5'd24: block_data[0] = 32'h3BEAB0B2;
+            5'd25: block_data[0] = 32'h3BE8B0E4;
+            5'd26: block_data[0] = 32'h3BE6B115;
+            5'd27: block_data[0] = 32'h3BE4B147;
+            5'd28: block_data[0] = 32'h3BE2B179;
+            5'd29: block_data[0] = 32'h3BE0B1AA;
+            5'd30: block_data[0] = 32'h3BDDB1DB;
+            5'd31: block_data[0] = 32'h3BDBB20D;
+            default: block_data[0] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[1] = 32'h3BD9B23E;
+            5'd1: block_data[1] = 32'h3BD6B26F;
+            5'd2: block_data[1] = 32'h3BD4B2A1;
+            5'd3: block_data[1] = 32'h3BD1B2D2;
+            5'd4: block_data[1] = 32'h3BCEB303;
+            5'd5: block_data[1] = 32'h3BCBB334;
+            5'd6: block_data[1] = 32'h3BC9B365;
+            5'd7: block_data[1] = 32'h3BC6B396;
+            5'd8: block_data[1] = 32'h3BC3B3C6;
+            5'd9: block_data[1] = 32'h3BC0B3F7;
+            5'd10: block_data[1] = 32'h3BBCB414;
+            5'd11: block_data[1] = 32'h3BB9B42C;
+            5'd12: block_data[1] = 32'h3BB6B444;
+            5'd13: block_data[1] = 32'h3BB2B45D;
+            5'd14: block_data[1] = 32'h3BAFB475;
+            5'd15: block_data[1] = 32'h3BABB48D;
+            5'd16: block_data[1] = 32'h3BA8B4A5;
+            5'd17: block_data[1] = 32'h3BA4B4BD;
+            5'd18: block_data[1] = 32'h3BA0B4D5;
+            5'd19: block_data[1] = 32'h3B9DB4ED;
+            5'd20: block_data[1] = 32'h3B99B505;
+            5'd21: block_data[1] = 32'h3B95B51D;
+            5'd22: block_data[1] = 32'h3B91B534;
+            5'd23: block_data[1] = 32'h3B8CB54C;
+            5'd24: block_data[1] = 32'h3B88B564;
+            5'd25: block_data[1] = 32'h3B84B57C;
+            5'd26: block_data[1] = 32'h3B80B593;
+            5'd27: block_data[1] = 32'h3B7BB5AB;
+            5'd28: block_data[1] = 32'h3B77B5C2;
+            5'd29: block_data[1] = 32'h3B72B5DA;
+            5'd30: block_data[1] = 32'h3B6EB5F1;
+            5'd31: block_data[1] = 32'h3B69B608;
+            default: block_data[1] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[2] = 32'h3B64B61F;
+            5'd1: block_data[2] = 32'h3B5FB637;
+            5'd2: block_data[2] = 32'h3B5AB64E;
+            5'd3: block_data[2] = 32'h3B55B665;
+            5'd4: block_data[2] = 32'h3B50B67C;
+            5'd5: block_data[2] = 32'h3B4BB693;
+            5'd6: block_data[2] = 32'h3B46B6AA;
+            5'd7: block_data[2] = 32'h3B41B6C1;
+            5'd8: block_data[2] = 32'h3B3BB6D7;
+            5'd9: block_data[2] = 32'h3B36B6EE;
+            5'd10: block_data[2] = 32'h3B30B705;
+            5'd11: block_data[2] = 32'h3B2BB71B;
+            5'd12: block_data[2] = 32'h3B25B732;
+            5'd13: block_data[2] = 32'h3B20B748;
+            5'd14: block_data[2] = 32'h3B1AB75E;
+            5'd15: block_data[2] = 32'h3B14B775;
+            5'd16: block_data[2] = 32'h3B0EB78B;
+            5'd17: block_data[2] = 32'h3B08B7A1;
+            5'd18: block_data[2] = 32'h3B02B7B7;
+            5'd19: block_data[2] = 32'h3AFCB7CD;
+            5'd20: block_data[2] = 32'h3AF6B7E3;
+            5'd21: block_data[2] = 32'h3AF0B7F9;
+            5'd22: block_data[2] = 32'h3AE9B807;
+            5'd23: block_data[2] = 32'h3AE3B812;
+            5'd24: block_data[2] = 32'h3ADDB81D;
+            5'd25: block_data[2] = 32'h3AD6B828;
+            5'd26: block_data[2] = 32'h3AD0B832;
+            5'd27: block_data[2] = 32'h3AC9B83D;
+            5'd28: block_data[2] = 32'h3AC2B848;
+            5'd29: block_data[2] = 32'h3ABCB852;
+            5'd30: block_data[2] = 32'h3AB5B85D;
+            5'd31: block_data[2] = 32'h3AAEB867;
+            default: block_data[2] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[3] = 32'h3AA7B872;
+            5'd1: block_data[3] = 32'h3AA0B87C;
+            5'd2: block_data[3] = 32'h3A99B887;
+            5'd3: block_data[3] = 32'h3A92B891;
+            5'd4: block_data[3] = 32'h3A8AB89B;
+            5'd5: block_data[3] = 32'h3A83B8A6;
+            5'd6: block_data[3] = 32'h3A7CB8B0;
+            5'd7: block_data[3] = 32'h3A74B8BA;
+            5'd8: block_data[3] = 32'h3A6DB8C4;
+            5'd9: block_data[3] = 32'h3A65B8CE;
+            5'd10: block_data[3] = 32'h3A5EB8D8;
+            5'd11: block_data[3] = 32'h3A56B8E2;
+            5'd12: block_data[3] = 32'h3A4FB8EC;
+            5'd13: block_data[3] = 32'h3A47B8F6;
+            5'd14: block_data[3] = 32'h3A3FB900;
+            5'd15: block_data[3] = 32'h3A37B909;
+            5'd16: block_data[3] = 32'h3A2FB913;
+            5'd17: block_data[3] = 32'h3A27B91D;
+            5'd18: block_data[3] = 32'h3A1FB927;
+            5'd19: block_data[3] = 32'h3A17B930;
+            5'd20: block_data[3] = 32'h3A0FB93A;
+            5'd21: block_data[3] = 32'h3A07B943;
+            5'd22: block_data[3] = 32'h39FEB94D;
+            5'd23: block_data[3] = 32'h39F6B956;
+            5'd24: block_data[3] = 32'h39EDB95F;
+            5'd25: block_data[3] = 32'h39E5B969;
+            5'd26: block_data[3] = 32'h39DCB972;
+            5'd27: block_data[3] = 32'h39D4B97B;
+            5'd28: block_data[3] = 32'h39CBB984;
+            5'd29: block_data[3] = 32'h39C3B98D;
+            5'd30: block_data[3] = 32'h39BAB996;
+            5'd31: block_data[3] = 32'h39B1B99F;
+            default: block_data[3] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[4] = 32'h39A8B9A8;
+            5'd1: block_data[4] = 32'h399FB9B1;
+            5'd2: block_data[4] = 32'h3996B9BA;
+            5'd3: block_data[4] = 32'h398DB9C3;
+            5'd4: block_data[4] = 32'h3984B9CB;
+            5'd5: block_data[4] = 32'h397BB9D4;
+            5'd6: block_data[4] = 32'h3972B9DC;
+            5'd7: block_data[4] = 32'h3969B9E5;
+            5'd8: block_data[4] = 32'h395FB9ED;
+            5'd9: block_data[4] = 32'h3956B9F6;
+            5'd10: block_data[4] = 32'h394DB9FE;
+            5'd11: block_data[4] = 32'h3943BA07;
+            5'd12: block_data[4] = 32'h393ABA0F;
+            5'd13: block_data[4] = 32'h3930BA17;
+            5'd14: block_data[4] = 32'h3927BA1F;
+            5'd15: block_data[4] = 32'h391DBA27;
+            5'd16: block_data[4] = 32'h3913BA2F;
+            5'd17: block_data[4] = 32'h3909BA37;
+            5'd18: block_data[4] = 32'h3900BA3F;
+            5'd19: block_data[4] = 32'h38F6BA47;
+            5'd20: block_data[4] = 32'h38ECBA4F;
+            5'd21: block_data[4] = 32'h38E2BA56;
+            5'd22: block_data[4] = 32'h38D8BA5E;
+            5'd23: block_data[4] = 32'h38CEBA65;
+            5'd24: block_data[4] = 32'h38C4BA6D;
+            5'd25: block_data[4] = 32'h38BABA74;
+            5'd26: block_data[4] = 32'h38B0BA7C;
+            5'd27: block_data[4] = 32'h38A6BA83;
+            5'd28: block_data[4] = 32'h389BBA8A;
+            5'd29: block_data[4] = 32'h3891BA92;
+            5'd30: block_data[4] = 32'h3887BA99;
+            5'd31: block_data[4] = 32'h387CBAA0;
+            default: block_data[4] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[5] = 32'h3872BAA7;
+            5'd1: block_data[5] = 32'h3867BAAE;
+            5'd2: block_data[5] = 32'h385DBAB5;
+            5'd3: block_data[5] = 32'h3852BABC;
+            5'd4: block_data[5] = 32'h3848BAC2;
+            5'd5: block_data[5] = 32'h383DBAC9;
+            5'd6: block_data[5] = 32'h3832BAD0;
+            5'd7: block_data[5] = 32'h3828BAD6;
+            5'd8: block_data[5] = 32'h381DBADD;
+            5'd9: block_data[5] = 32'h3812BAE3;
+            5'd10: block_data[5] = 32'h3807BAE9;
+            5'd11: block_data[5] = 32'h37F9BAF0;
+            5'd12: block_data[5] = 32'h37E3BAF6;
+            5'd13: block_data[5] = 32'h37CDBAFC;
+            5'd14: block_data[5] = 32'h37B7BB02;
+            5'd15: block_data[5] = 32'h37A1BB08;
+            5'd16: block_data[5] = 32'h378BBB0E;
+            5'd17: block_data[5] = 32'h3775BB14;
+            5'd18: block_data[5] = 32'h375EBB1A;
+            5'd19: block_data[5] = 32'h3748BB20;
+            5'd20: block_data[5] = 32'h3732BB25;
+            5'd21: block_data[5] = 32'h371BBB2B;
+            5'd22: block_data[5] = 32'h3705BB30;
+            5'd23: block_data[5] = 32'h36EEBB36;
+            5'd24: block_data[5] = 32'h36D7BB3B;
+            5'd25: block_data[5] = 32'h36C1BB41;
+            5'd26: block_data[5] = 32'h36AABB46;
+            5'd27: block_data[5] = 32'h3693BB4B;
+            5'd28: block_data[5] = 32'h367CBB50;
+            5'd29: block_data[5] = 32'h3665BB55;
+            5'd30: block_data[5] = 32'h364EBB5A;
+            5'd31: block_data[5] = 32'h3637BB5F;
+            default: block_data[5] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[6] = 32'h361FBB64;
+            5'd1: block_data[6] = 32'h3608BB69;
+            5'd2: block_data[6] = 32'h35F1BB6E;
+            5'd3: block_data[6] = 32'h35DABB72;
+            5'd4: block_data[6] = 32'h35C2BB77;
+            5'd5: block_data[6] = 32'h35ABBB7B;
+            5'd6: block_data[6] = 32'h3593BB80;
+            5'd7: block_data[6] = 32'h357CBB84;
+            5'd8: block_data[6] = 32'h3564BB88;
+            5'd9: block_data[6] = 32'h354CBB8C;
+            5'd10: block_data[6] = 32'h3534BB91;
+            5'd11: block_data[6] = 32'h351DBB95;
+            5'd12: block_data[6] = 32'h3505BB99;
+            5'd13: block_data[6] = 32'h34EDBB9D;
+            5'd14: block_data[6] = 32'h34D5BBA0;
+            5'd15: block_data[6] = 32'h34BDBBA4;
+            5'd16: block_data[6] = 32'h34A5BBA8;
+            5'd17: block_data[6] = 32'h348DBBAB;
+            5'd18: block_data[6] = 32'h3475BBAF;
+            5'd19: block_data[6] = 32'h345DBBB2;
+            5'd20: block_data[6] = 32'h3444BBB6;
+            5'd21: block_data[6] = 32'h342CBBB9;
+            5'd22: block_data[6] = 32'h3414BBBC;
+            5'd23: block_data[6] = 32'h33F7BBC0;
+            5'd24: block_data[6] = 32'h33C6BBC3;
+            5'd25: block_data[6] = 32'h3396BBC6;
+            5'd26: block_data[6] = 32'h3365BBC9;
+            5'd27: block_data[6] = 32'h3334BBCB;
+            5'd28: block_data[6] = 32'h3303BBCE;
+            5'd29: block_data[6] = 32'h32D2BBD1;
+            5'd30: block_data[6] = 32'h32A1BBD4;
+            5'd31: block_data[6] = 32'h326FBBD6;
+            default: block_data[6] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[7] = 32'h323EBBD9;
+            5'd1: block_data[7] = 32'h320DBBDB;
+            5'd2: block_data[7] = 32'h31DBBBDD;
+            5'd3: block_data[7] = 32'h31AABBE0;
+            5'd4: block_data[7] = 32'h3179BBE2;
+            5'd5: block_data[7] = 32'h3147BBE4;
+            5'd6: block_data[7] = 32'h3115BBE6;
+            5'd7: block_data[7] = 32'h30E4BBE8;
+            5'd8: block_data[7] = 32'h30B2BBEA;
+            5'd9: block_data[7] = 32'h3080BBEC;
+            5'd10: block_data[7] = 32'h304EBBED;
+            5'd11: block_data[7] = 32'h301DBBEF;
+            5'd12: block_data[7] = 32'h2FD6BBF1;
+            5'd13: block_data[7] = 32'h2F72BBF2;
+            5'd14: block_data[7] = 32'h2F0EBBF4;
+            5'd15: block_data[7] = 32'h2EAABBF5;
+            5'd16: block_data[7] = 32'h2E46BBF6;
+            5'd17: block_data[7] = 32'h2DE2BBF7;
+            5'd18: block_data[7] = 32'h2D7EBBF8;
+            5'd19: block_data[7] = 32'h2D1ABBF9;
+            5'd20: block_data[7] = 32'h2CB5BBFA;
+            5'd21: block_data[7] = 32'h2C51BBFB;
+            5'd22: block_data[7] = 32'h2BD9BBFC;
+            5'd23: block_data[7] = 32'h2B11BBFD;
+            5'd24: block_data[7] = 32'h2A48BBFE;
+            5'd25: block_data[7] = 32'h297FBBFE;
+            5'd26: block_data[7] = 32'h28B6BBFF;
+            5'd27: block_data[7] = 32'h27DABBFF;
+            5'd28: block_data[7] = 32'h2648BBFF;
+            5'd29: block_data[7] = 32'h24B6BC00;
+            5'd30: block_data[7] = 32'h2248BC00;
+            5'd31: block_data[7] = 32'h1E48BC00;
+            default: block_data[7] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[8] = 32'h0000BC00;
+            5'd1: block_data[8] = 32'h9E48BC00;
+            5'd2: block_data[8] = 32'hA248BC00;
+            5'd3: block_data[8] = 32'hA4B6BC00;
+            5'd4: block_data[8] = 32'hA648BBFF;
+            5'd5: block_data[8] = 32'hA7DABBFF;
+            5'd6: block_data[8] = 32'hA8B6BBFF;
+            5'd7: block_data[8] = 32'hA97FBBFE;
+            5'd8: block_data[8] = 32'hAA48BBFE;
+            5'd9: block_data[8] = 32'hAB11BBFD;
+            5'd10: block_data[8] = 32'hABD9BBFC;
+            5'd11: block_data[8] = 32'hAC51BBFB;
+            5'd12: block_data[8] = 32'hACB5BBFA;
+            5'd13: block_data[8] = 32'hAD1ABBF9;
+            5'd14: block_data[8] = 32'hAD7EBBF8;
+            5'd15: block_data[8] = 32'hADE2BBF7;
+            5'd16: block_data[8] = 32'hAE46BBF6;
+            5'd17: block_data[8] = 32'hAEAABBF5;
+            5'd18: block_data[8] = 32'hAF0EBBF4;
+            5'd19: block_data[8] = 32'hAF72BBF2;
+            5'd20: block_data[8] = 32'hAFD6BBF1;
+            5'd21: block_data[8] = 32'hB01DBBEF;
+            5'd22: block_data[8] = 32'hB04EBBED;
+            5'd23: block_data[8] = 32'hB080BBEC;
+            5'd24: block_data[8] = 32'hB0B2BBEA;
+            5'd25: block_data[8] = 32'hB0E4BBE8;
+            5'd26: block_data[8] = 32'hB115BBE6;
+            5'd27: block_data[8] = 32'hB147BBE4;
+            5'd28: block_data[8] = 32'hB179BBE2;
+            5'd29: block_data[8] = 32'hB1AABBE0;
+            5'd30: block_data[8] = 32'hB1DBBBDD;
+            5'd31: block_data[8] = 32'hB20DBBDB;
+            default: block_data[8] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[9] = 32'hB23EBBD9;
+            5'd1: block_data[9] = 32'hB26FBBD6;
+            5'd2: block_data[9] = 32'hB2A1BBD4;
+            5'd3: block_data[9] = 32'hB2D2BBD1;
+            5'd4: block_data[9] = 32'hB303BBCE;
+            5'd5: block_data[9] = 32'hB334BBCB;
+            5'd6: block_data[9] = 32'hB365BBC9;
+            5'd7: block_data[9] = 32'hB396BBC6;
+            5'd8: block_data[9] = 32'hB3C6BBC3;
+            5'd9: block_data[9] = 32'hB3F7BBC0;
+            5'd10: block_data[9] = 32'hB414BBBC;
+            5'd11: block_data[9] = 32'hB42CBBB9;
+            5'd12: block_data[9] = 32'hB444BBB6;
+            5'd13: block_data[9] = 32'hB45DBBB2;
+            5'd14: block_data[9] = 32'hB475BBAF;
+            5'd15: block_data[9] = 32'hB48DBBAB;
+            5'd16: block_data[9] = 32'hB4A5BBA8;
+            5'd17: block_data[9] = 32'hB4BDBBA4;
+            5'd18: block_data[9] = 32'hB4D5BBA0;
+            5'd19: block_data[9] = 32'hB4EDBB9D;
+            5'd20: block_data[9] = 32'hB505BB99;
+            5'd21: block_data[9] = 32'hB51DBB95;
+            5'd22: block_data[9] = 32'hB534BB91;
+            5'd23: block_data[9] = 32'hB54CBB8C;
+            5'd24: block_data[9] = 32'hB564BB88;
+            5'd25: block_data[9] = 32'hB57CBB84;
+            5'd26: block_data[9] = 32'hB593BB80;
+            5'd27: block_data[9] = 32'hB5ABBB7B;
+            5'd28: block_data[9] = 32'hB5C2BB77;
+            5'd29: block_data[9] = 32'hB5DABB72;
+            5'd30: block_data[9] = 32'hB5F1BB6E;
+            5'd31: block_data[9] = 32'hB608BB69;
+            default: block_data[9] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[10] = 32'hB61FBB64;
+            5'd1: block_data[10] = 32'hB637BB5F;
+            5'd2: block_data[10] = 32'hB64EBB5A;
+            5'd3: block_data[10] = 32'hB665BB55;
+            5'd4: block_data[10] = 32'hB67CBB50;
+            5'd5: block_data[10] = 32'hB693BB4B;
+            5'd6: block_data[10] = 32'hB6AABB46;
+            5'd7: block_data[10] = 32'hB6C1BB41;
+            5'd8: block_data[10] = 32'hB6D7BB3B;
+            5'd9: block_data[10] = 32'hB6EEBB36;
+            5'd10: block_data[10] = 32'hB705BB30;
+            5'd11: block_data[10] = 32'hB71BBB2B;
+            5'd12: block_data[10] = 32'hB732BB25;
+            5'd13: block_data[10] = 32'hB748BB20;
+            5'd14: block_data[10] = 32'hB75EBB1A;
+            5'd15: block_data[10] = 32'hB775BB14;
+            5'd16: block_data[10] = 32'hB78BBB0E;
+            5'd17: block_data[10] = 32'hB7A1BB08;
+            5'd18: block_data[10] = 32'hB7B7BB02;
+            5'd19: block_data[10] = 32'hB7CDBAFC;
+            5'd20: block_data[10] = 32'hB7E3BAF6;
+            5'd21: block_data[10] = 32'hB7F9BAF0;
+            5'd22: block_data[10] = 32'hB807BAE9;
+            5'd23: block_data[10] = 32'hB812BAE3;
+            5'd24: block_data[10] = 32'hB81DBADD;
+            5'd25: block_data[10] = 32'hB828BAD6;
+            5'd26: block_data[10] = 32'hB832BAD0;
+            5'd27: block_data[10] = 32'hB83DBAC9;
+            5'd28: block_data[10] = 32'hB848BAC2;
+            5'd29: block_data[10] = 32'hB852BABC;
+            5'd30: block_data[10] = 32'hB85DBAB5;
+            5'd31: block_data[10] = 32'hB867BAAE;
+            default: block_data[10] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[11] = 32'hB872BAA7;
+            5'd1: block_data[11] = 32'hB87CBAA0;
+            5'd2: block_data[11] = 32'hB887BA99;
+            5'd3: block_data[11] = 32'hB891BA92;
+            5'd4: block_data[11] = 32'hB89BBA8A;
+            5'd5: block_data[11] = 32'hB8A6BA83;
+            5'd6: block_data[11] = 32'hB8B0BA7C;
+            5'd7: block_data[11] = 32'hB8BABA74;
+            5'd8: block_data[11] = 32'hB8C4BA6D;
+            5'd9: block_data[11] = 32'hB8CEBA65;
+            5'd10: block_data[11] = 32'hB8D8BA5E;
+            5'd11: block_data[11] = 32'hB8E2BA56;
+            5'd12: block_data[11] = 32'hB8ECBA4F;
+            5'd13: block_data[11] = 32'hB8F6BA47;
+            5'd14: block_data[11] = 32'hB900BA3F;
+            5'd15: block_data[11] = 32'hB909BA37;
+            5'd16: block_data[11] = 32'hB913BA2F;
+            5'd17: block_data[11] = 32'hB91DBA27;
+            5'd18: block_data[11] = 32'hB927BA1F;
+            5'd19: block_data[11] = 32'hB930BA17;
+            5'd20: block_data[11] = 32'hB93ABA0F;
+            5'd21: block_data[11] = 32'hB943BA07;
+            5'd22: block_data[11] = 32'hB94DB9FE;
+            5'd23: block_data[11] = 32'hB956B9F6;
+            5'd24: block_data[11] = 32'hB95FB9ED;
+            5'd25: block_data[11] = 32'hB969B9E5;
+            5'd26: block_data[11] = 32'hB972B9DC;
+            5'd27: block_data[11] = 32'hB97BB9D4;
+            5'd28: block_data[11] = 32'hB984B9CB;
+            5'd29: block_data[11] = 32'hB98DB9C3;
+            5'd30: block_data[11] = 32'hB996B9BA;
+            5'd31: block_data[11] = 32'hB99FB9B1;
+            default: block_data[11] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[12] = 32'hB9A8B9A8;
+            5'd1: block_data[12] = 32'hB9B1B99F;
+            5'd2: block_data[12] = 32'hB9BAB996;
+            5'd3: block_data[12] = 32'hB9C3B98D;
+            5'd4: block_data[12] = 32'hB9CBB984;
+            5'd5: block_data[12] = 32'hB9D4B97B;
+            5'd6: block_data[12] = 32'hB9DCB972;
+            5'd7: block_data[12] = 32'hB9E5B969;
+            5'd8: block_data[12] = 32'hB9EDB95F;
+            5'd9: block_data[12] = 32'hB9F6B956;
+            5'd10: block_data[12] = 32'hB9FEB94D;
+            5'd11: block_data[12] = 32'hBA07B943;
+            5'd12: block_data[12] = 32'hBA0FB93A;
+            5'd13: block_data[12] = 32'hBA17B930;
+            5'd14: block_data[12] = 32'hBA1FB927;
+            5'd15: block_data[12] = 32'hBA27B91D;
+            5'd16: block_data[12] = 32'hBA2FB913;
+            5'd17: block_data[12] = 32'hBA37B909;
+            5'd18: block_data[12] = 32'hBA3FB900;
+            5'd19: block_data[12] = 32'hBA47B8F6;
+            5'd20: block_data[12] = 32'hBA4FB8EC;
+            5'd21: block_data[12] = 32'hBA56B8E2;
+            5'd22: block_data[12] = 32'hBA5EB8D8;
+            5'd23: block_data[12] = 32'hBA65B8CE;
+            5'd24: block_data[12] = 32'hBA6DB8C4;
+            5'd25: block_data[12] = 32'hBA74B8BA;
+            5'd26: block_data[12] = 32'hBA7CB8B0;
+            5'd27: block_data[12] = 32'hBA83B8A6;
+            5'd28: block_data[12] = 32'hBA8AB89B;
+            5'd29: block_data[12] = 32'hBA92B891;
+            5'd30: block_data[12] = 32'hBA99B887;
+            5'd31: block_data[12] = 32'hBAA0B87C;
+            default: block_data[12] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[13] = 32'hBAA7B872;
+            5'd1: block_data[13] = 32'hBAAEB867;
+            5'd2: block_data[13] = 32'hBAB5B85D;
+            5'd3: block_data[13] = 32'hBABCB852;
+            5'd4: block_data[13] = 32'hBAC2B848;
+            5'd5: block_data[13] = 32'hBAC9B83D;
+            5'd6: block_data[13] = 32'hBAD0B832;
+            5'd7: block_data[13] = 32'hBAD6B828;
+            5'd8: block_data[13] = 32'hBADDB81D;
+            5'd9: block_data[13] = 32'hBAE3B812;
+            5'd10: block_data[13] = 32'hBAE9B807;
+            5'd11: block_data[13] = 32'hBAF0B7F9;
+            5'd12: block_data[13] = 32'hBAF6B7E3;
+            5'd13: block_data[13] = 32'hBAFCB7CD;
+            5'd14: block_data[13] = 32'hBB02B7B7;
+            5'd15: block_data[13] = 32'hBB08B7A1;
+            5'd16: block_data[13] = 32'hBB0EB78B;
+            5'd17: block_data[13] = 32'hBB14B775;
+            5'd18: block_data[13] = 32'hBB1AB75E;
+            5'd19: block_data[13] = 32'hBB20B748;
+            5'd20: block_data[13] = 32'hBB25B732;
+            5'd21: block_data[13] = 32'hBB2BB71B;
+            5'd22: block_data[13] = 32'hBB30B705;
+            5'd23: block_data[13] = 32'hBB36B6EE;
+            5'd24: block_data[13] = 32'hBB3BB6D7;
+            5'd25: block_data[13] = 32'hBB41B6C1;
+            5'd26: block_data[13] = 32'hBB46B6AA;
+            5'd27: block_data[13] = 32'hBB4BB693;
+            5'd28: block_data[13] = 32'hBB50B67C;
+            5'd29: block_data[13] = 32'hBB55B665;
+            5'd30: block_data[13] = 32'hBB5AB64E;
+            5'd31: block_data[13] = 32'hBB5FB637;
+            default: block_data[13] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[14] = 32'hBB64B61F;
+            5'd1: block_data[14] = 32'hBB69B608;
+            5'd2: block_data[14] = 32'hBB6EB5F1;
+            5'd3: block_data[14] = 32'hBB72B5DA;
+            5'd4: block_data[14] = 32'hBB77B5C2;
+            5'd5: block_data[14] = 32'hBB7BB5AB;
+            5'd6: block_data[14] = 32'hBB80B593;
+            5'd7: block_data[14] = 32'hBB84B57C;
+            5'd8: block_data[14] = 32'hBB88B564;
+            5'd9: block_data[14] = 32'hBB8CB54C;
+            5'd10: block_data[14] = 32'hBB91B534;
+            5'd11: block_data[14] = 32'hBB95B51D;
+            5'd12: block_data[14] = 32'hBB99B505;
+            5'd13: block_data[14] = 32'hBB9DB4ED;
+            5'd14: block_data[14] = 32'hBBA0B4D5;
+            5'd15: block_data[14] = 32'hBBA4B4BD;
+            5'd16: block_data[14] = 32'hBBA8B4A5;
+            5'd17: block_data[14] = 32'hBBABB48D;
+            5'd18: block_data[14] = 32'hBBAFB475;
+            5'd19: block_data[14] = 32'hBBB2B45D;
+            5'd20: block_data[14] = 32'hBBB6B444;
+            5'd21: block_data[14] = 32'hBBB9B42C;
+            5'd22: block_data[14] = 32'hBBBCB414;
+            5'd23: block_data[14] = 32'hBBC0B3F7;
+            5'd24: block_data[14] = 32'hBBC3B3C6;
+            5'd25: block_data[14] = 32'hBBC6B396;
+            5'd26: block_data[14] = 32'hBBC9B365;
+            5'd27: block_data[14] = 32'hBBCBB334;
+            5'd28: block_data[14] = 32'hBBCEB303;
+            5'd29: block_data[14] = 32'hBBD1B2D2;
+            5'd30: block_data[14] = 32'hBBD4B2A1;
+            5'd31: block_data[14] = 32'hBBD6B26F;
+            default: block_data[14] = 32'h00000000;
+        endcase
+    end
+
+    always @(*) begin
+        case (rom_addr[4:0])
+            5'd0: block_data[15] = 32'hBBD9B23E;
+            5'd1: block_data[15] = 32'hBBDBB20D;
+            5'd2: block_data[15] = 32'hBBDDB1DB;
+            5'd3: block_data[15] = 32'hBBE0B1AA;
+            5'd4: block_data[15] = 32'hBBE2B179;
+            5'd5: block_data[15] = 32'hBBE4B147;
+            5'd6: block_data[15] = 32'hBBE6B115;
+            5'd7: block_data[15] = 32'hBBE8B0E4;
+            5'd8: block_data[15] = 32'hBBEAB0B2;
+            5'd9: block_data[15] = 32'hBBECB080;
+            5'd10: block_data[15] = 32'hBBEDB04E;
+            5'd11: block_data[15] = 32'hBBEFB01D;
+            5'd12: block_data[15] = 32'hBBF1AFD6;
+            5'd13: block_data[15] = 32'hBBF2AF72;
+            5'd14: block_data[15] = 32'hBBF4AF0E;
+            5'd15: block_data[15] = 32'hBBF5AEAA;
+            5'd16: block_data[15] = 32'hBBF6AE46;
+            5'd17: block_data[15] = 32'hBBF7ADE2;
+            5'd18: block_data[15] = 32'hBBF8AD7E;
+            5'd19: block_data[15] = 32'hBBF9AD1A;
+            5'd20: block_data[15] = 32'hBBFAACB5;
+            5'd21: block_data[15] = 32'hBBFBAC51;
+            5'd22: block_data[15] = 32'hBBFCABD9;
+            5'd23: block_data[15] = 32'hBBFDAB11;
+            5'd24: block_data[15] = 32'hBBFEAA48;
+            5'd25: block_data[15] = 32'hBBFEA97F;
+            5'd26: block_data[15] = 32'hBBFFA8B6;
+            5'd27: block_data[15] = 32'hBBFFA7DA;
+            5'd28: block_data[15] = 32'hBBFFA648;
+            5'd29: block_data[15] = 32'hBC00A4B6;
+            5'd30: block_data[15] = 32'hBC00A248;
+            5'd31: block_data[15] = 32'hBC009E48;
+            default: block_data[15] = 32'h00000000;
+        endcase
+    end
+
     reg [31:0] raw_data;
 
     always @(*) begin
-        case (rom_addr)
-            10'd0: raw_data = 32'h3C000000;
-            10'd1: raw_data = 32'h3C009E48;
-            10'd2: raw_data = 32'h3C00A248;
-            10'd3: raw_data = 32'h3C00A4B6;
-            10'd4: raw_data = 32'h3BFFA648;
-            10'd5: raw_data = 32'h3BFFA7DA;
-            10'd6: raw_data = 32'h3BFFA8B6;
-            10'd7: raw_data = 32'h3BFEA97F;
-            10'd8: raw_data = 32'h3BFEAA48;
-            10'd9: raw_data = 32'h3BFDAB11;
-            10'd10: raw_data = 32'h3BFCABD9;
-            10'd11: raw_data = 32'h3BFBAC51;
-            10'd12: raw_data = 32'h3BFAACB5;
-            10'd13: raw_data = 32'h3BF9AD1A;
-            10'd14: raw_data = 32'h3BF8AD7E;
-            10'd15: raw_data = 32'h3BF7ADE2;
-            10'd16: raw_data = 32'h3BF6AE46;
-            10'd17: raw_data = 32'h3BF5AEAA;
-            10'd18: raw_data = 32'h3BF4AF0E;
-            10'd19: raw_data = 32'h3BF2AF72;
-            10'd20: raw_data = 32'h3BF1AFD6;
-            10'd21: raw_data = 32'h3BEFB01D;
-            10'd22: raw_data = 32'h3BEDB04E;
-            10'd23: raw_data = 32'h3BECB080;
-            10'd24: raw_data = 32'h3BEAB0B2;
-            10'd25: raw_data = 32'h3BE8B0E4;
-            10'd26: raw_data = 32'h3BE6B115;
-            10'd27: raw_data = 32'h3BE4B147;
-            10'd28: raw_data = 32'h3BE2B179;
-            10'd29: raw_data = 32'h3BE0B1AA;
-            10'd30: raw_data = 32'h3BDDB1DB;
-            10'd31: raw_data = 32'h3BDBB20D;
-            10'd32: raw_data = 32'h3BD9B23E;
-            10'd33: raw_data = 32'h3BD6B26F;
-            10'd34: raw_data = 32'h3BD4B2A1;
-            10'd35: raw_data = 32'h3BD1B2D2;
-            10'd36: raw_data = 32'h3BCEB303;
-            10'd37: raw_data = 32'h3BCBB334;
-            10'd38: raw_data = 32'h3BC9B365;
-            10'd39: raw_data = 32'h3BC6B396;
-            10'd40: raw_data = 32'h3BC3B3C6;
-            10'd41: raw_data = 32'h3BC0B3F7;
-            10'd42: raw_data = 32'h3BBCB414;
-            10'd43: raw_data = 32'h3BB9B42C;
-            10'd44: raw_data = 32'h3BB6B444;
-            10'd45: raw_data = 32'h3BB2B45D;
-            10'd46: raw_data = 32'h3BAFB475;
-            10'd47: raw_data = 32'h3BABB48D;
-            10'd48: raw_data = 32'h3BA8B4A5;
-            10'd49: raw_data = 32'h3BA4B4BD;
-            10'd50: raw_data = 32'h3BA0B4D5;
-            10'd51: raw_data = 32'h3B9DB4ED;
-            10'd52: raw_data = 32'h3B99B505;
-            10'd53: raw_data = 32'h3B95B51D;
-            10'd54: raw_data = 32'h3B91B534;
-            10'd55: raw_data = 32'h3B8CB54C;
-            10'd56: raw_data = 32'h3B88B564;
-            10'd57: raw_data = 32'h3B84B57C;
-            10'd58: raw_data = 32'h3B80B593;
-            10'd59: raw_data = 32'h3B7BB5AB;
-            10'd60: raw_data = 32'h3B77B5C2;
-            10'd61: raw_data = 32'h3B72B5DA;
-            10'd62: raw_data = 32'h3B6EB5F1;
-            10'd63: raw_data = 32'h3B69B608;
-            10'd64: raw_data = 32'h3B64B61F;
-            10'd65: raw_data = 32'h3B5FB637;
-            10'd66: raw_data = 32'h3B5AB64E;
-            10'd67: raw_data = 32'h3B55B665;
-            10'd68: raw_data = 32'h3B50B67C;
-            10'd69: raw_data = 32'h3B4BB693;
-            10'd70: raw_data = 32'h3B46B6AA;
-            10'd71: raw_data = 32'h3B41B6C1;
-            10'd72: raw_data = 32'h3B3BB6D7;
-            10'd73: raw_data = 32'h3B36B6EE;
-            10'd74: raw_data = 32'h3B30B705;
-            10'd75: raw_data = 32'h3B2BB71B;
-            10'd76: raw_data = 32'h3B25B732;
-            10'd77: raw_data = 32'h3B20B748;
-            10'd78: raw_data = 32'h3B1AB75E;
-            10'd79: raw_data = 32'h3B14B775;
-            10'd80: raw_data = 32'h3B0EB78B;
-            10'd81: raw_data = 32'h3B08B7A1;
-            10'd82: raw_data = 32'h3B02B7B7;
-            10'd83: raw_data = 32'h3AFCB7CD;
-            10'd84: raw_data = 32'h3AF6B7E3;
-            10'd85: raw_data = 32'h3AF0B7F9;
-            10'd86: raw_data = 32'h3AE9B807;
-            10'd87: raw_data = 32'h3AE3B812;
-            10'd88: raw_data = 32'h3ADDB81D;
-            10'd89: raw_data = 32'h3AD6B828;
-            10'd90: raw_data = 32'h3AD0B832;
-            10'd91: raw_data = 32'h3AC9B83D;
-            10'd92: raw_data = 32'h3AC2B848;
-            10'd93: raw_data = 32'h3ABCB852;
-            10'd94: raw_data = 32'h3AB5B85D;
-            10'd95: raw_data = 32'h3AAEB867;
-            10'd96: raw_data = 32'h3AA7B872;
-            10'd97: raw_data = 32'h3AA0B87C;
-            10'd98: raw_data = 32'h3A99B887;
-            10'd99: raw_data = 32'h3A92B891;
-            10'd100: raw_data = 32'h3A8AB89B;
-            10'd101: raw_data = 32'h3A83B8A6;
-            10'd102: raw_data = 32'h3A7CB8B0;
-            10'd103: raw_data = 32'h3A74B8BA;
-            10'd104: raw_data = 32'h3A6DB8C4;
-            10'd105: raw_data = 32'h3A65B8CE;
-            10'd106: raw_data = 32'h3A5EB8D8;
-            10'd107: raw_data = 32'h3A56B8E2;
-            10'd108: raw_data = 32'h3A4FB8EC;
-            10'd109: raw_data = 32'h3A47B8F6;
-            10'd110: raw_data = 32'h3A3FB900;
-            10'd111: raw_data = 32'h3A37B909;
-            10'd112: raw_data = 32'h3A2FB913;
-            10'd113: raw_data = 32'h3A27B91D;
-            10'd114: raw_data = 32'h3A1FB927;
-            10'd115: raw_data = 32'h3A17B930;
-            10'd116: raw_data = 32'h3A0FB93A;
-            10'd117: raw_data = 32'h3A07B943;
-            10'd118: raw_data = 32'h39FEB94D;
-            10'd119: raw_data = 32'h39F6B956;
-            10'd120: raw_data = 32'h39EDB95F;
-            10'd121: raw_data = 32'h39E5B969;
-            10'd122: raw_data = 32'h39DCB972;
-            10'd123: raw_data = 32'h39D4B97B;
-            10'd124: raw_data = 32'h39CBB984;
-            10'd125: raw_data = 32'h39C3B98D;
-            10'd126: raw_data = 32'h39BAB996;
-            10'd127: raw_data = 32'h39B1B99F;
-            10'd128: raw_data = 32'h39A8B9A8;
-            10'd129: raw_data = 32'h399FB9B1;
-            10'd130: raw_data = 32'h3996B9BA;
-            10'd131: raw_data = 32'h398DB9C3;
-            10'd132: raw_data = 32'h3984B9CB;
-            10'd133: raw_data = 32'h397BB9D4;
-            10'd134: raw_data = 32'h3972B9DC;
-            10'd135: raw_data = 32'h3969B9E5;
-            10'd136: raw_data = 32'h395FB9ED;
-            10'd137: raw_data = 32'h3956B9F6;
-            10'd138: raw_data = 32'h394DB9FE;
-            10'd139: raw_data = 32'h3943BA07;
-            10'd140: raw_data = 32'h393ABA0F;
-            10'd141: raw_data = 32'h3930BA17;
-            10'd142: raw_data = 32'h3927BA1F;
-            10'd143: raw_data = 32'h391DBA27;
-            10'd144: raw_data = 32'h3913BA2F;
-            10'd145: raw_data = 32'h3909BA37;
-            10'd146: raw_data = 32'h3900BA3F;
-            10'd147: raw_data = 32'h38F6BA47;
-            10'd148: raw_data = 32'h38ECBA4F;
-            10'd149: raw_data = 32'h38E2BA56;
-            10'd150: raw_data = 32'h38D8BA5E;
-            10'd151: raw_data = 32'h38CEBA65;
-            10'd152: raw_data = 32'h38C4BA6D;
-            10'd153: raw_data = 32'h38BABA74;
-            10'd154: raw_data = 32'h38B0BA7C;
-            10'd155: raw_data = 32'h38A6BA83;
-            10'd156: raw_data = 32'h389BBA8A;
-            10'd157: raw_data = 32'h3891BA92;
-            10'd158: raw_data = 32'h3887BA99;
-            10'd159: raw_data = 32'h387CBAA0;
-            10'd160: raw_data = 32'h3872BAA7;
-            10'd161: raw_data = 32'h3867BAAE;
-            10'd162: raw_data = 32'h385DBAB5;
-            10'd163: raw_data = 32'h3852BABC;
-            10'd164: raw_data = 32'h3848BAC2;
-            10'd165: raw_data = 32'h383DBAC9;
-            10'd166: raw_data = 32'h3832BAD0;
-            10'd167: raw_data = 32'h3828BAD6;
-            10'd168: raw_data = 32'h381DBADD;
-            10'd169: raw_data = 32'h3812BAE3;
-            10'd170: raw_data = 32'h3807BAE9;
-            10'd171: raw_data = 32'h37F9BAF0;
-            10'd172: raw_data = 32'h37E3BAF6;
-            10'd173: raw_data = 32'h37CDBAFC;
-            10'd174: raw_data = 32'h37B7BB02;
-            10'd175: raw_data = 32'h37A1BB08;
-            10'd176: raw_data = 32'h378BBB0E;
-            10'd177: raw_data = 32'h3775BB14;
-            10'd178: raw_data = 32'h375EBB1A;
-            10'd179: raw_data = 32'h3748BB20;
-            10'd180: raw_data = 32'h3732BB25;
-            10'd181: raw_data = 32'h371BBB2B;
-            10'd182: raw_data = 32'h3705BB30;
-            10'd183: raw_data = 32'h36EEBB36;
-            10'd184: raw_data = 32'h36D7BB3B;
-            10'd185: raw_data = 32'h36C1BB41;
-            10'd186: raw_data = 32'h36AABB46;
-            10'd187: raw_data = 32'h3693BB4B;
-            10'd188: raw_data = 32'h367CBB50;
-            10'd189: raw_data = 32'h3665BB55;
-            10'd190: raw_data = 32'h364EBB5A;
-            10'd191: raw_data = 32'h3637BB5F;
-            10'd192: raw_data = 32'h361FBB64;
-            10'd193: raw_data = 32'h3608BB69;
-            10'd194: raw_data = 32'h35F1BB6E;
-            10'd195: raw_data = 32'h35DABB72;
-            10'd196: raw_data = 32'h35C2BB77;
-            10'd197: raw_data = 32'h35ABBB7B;
-            10'd198: raw_data = 32'h3593BB80;
-            10'd199: raw_data = 32'h357CBB84;
-            10'd200: raw_data = 32'h3564BB88;
-            10'd201: raw_data = 32'h354CBB8C;
-            10'd202: raw_data = 32'h3534BB91;
-            10'd203: raw_data = 32'h351DBB95;
-            10'd204: raw_data = 32'h3505BB99;
-            10'd205: raw_data = 32'h34EDBB9D;
-            10'd206: raw_data = 32'h34D5BBA0;
-            10'd207: raw_data = 32'h34BDBBA4;
-            10'd208: raw_data = 32'h34A5BBA8;
-            10'd209: raw_data = 32'h348DBBAB;
-            10'd210: raw_data = 32'h3475BBAF;
-            10'd211: raw_data = 32'h345DBBB2;
-            10'd212: raw_data = 32'h3444BBB6;
-            10'd213: raw_data = 32'h342CBBB9;
-            10'd214: raw_data = 32'h3414BBBC;
-            10'd215: raw_data = 32'h33F7BBC0;
-            10'd216: raw_data = 32'h33C6BBC3;
-            10'd217: raw_data = 32'h3396BBC6;
-            10'd218: raw_data = 32'h3365BBC9;
-            10'd219: raw_data = 32'h3334BBCB;
-            10'd220: raw_data = 32'h3303BBCE;
-            10'd221: raw_data = 32'h32D2BBD1;
-            10'd222: raw_data = 32'h32A1BBD4;
-            10'd223: raw_data = 32'h326FBBD6;
-            10'd224: raw_data = 32'h323EBBD9;
-            10'd225: raw_data = 32'h320DBBDB;
-            10'd226: raw_data = 32'h31DBBBDD;
-            10'd227: raw_data = 32'h31AABBE0;
-            10'd228: raw_data = 32'h3179BBE2;
-            10'd229: raw_data = 32'h3147BBE4;
-            10'd230: raw_data = 32'h3115BBE6;
-            10'd231: raw_data = 32'h30E4BBE8;
-            10'd232: raw_data = 32'h30B2BBEA;
-            10'd233: raw_data = 32'h3080BBEC;
-            10'd234: raw_data = 32'h304EBBED;
-            10'd235: raw_data = 32'h301DBBEF;
-            10'd236: raw_data = 32'h2FD6BBF1;
-            10'd237: raw_data = 32'h2F72BBF2;
-            10'd238: raw_data = 32'h2F0EBBF4;
-            10'd239: raw_data = 32'h2EAABBF5;
-            10'd240: raw_data = 32'h2E46BBF6;
-            10'd241: raw_data = 32'h2DE2BBF7;
-            10'd242: raw_data = 32'h2D7EBBF8;
-            10'd243: raw_data = 32'h2D1ABBF9;
-            10'd244: raw_data = 32'h2CB5BBFA;
-            10'd245: raw_data = 32'h2C51BBFB;
-            10'd246: raw_data = 32'h2BD9BBFC;
-            10'd247: raw_data = 32'h2B11BBFD;
-            10'd248: raw_data = 32'h2A48BBFE;
-            10'd249: raw_data = 32'h297FBBFE;
-            10'd250: raw_data = 32'h28B6BBFF;
-            10'd251: raw_data = 32'h27DABBFF;
-            10'd252: raw_data = 32'h2648BBFF;
-            10'd253: raw_data = 32'h24B6BC00;
-            10'd254: raw_data = 32'h2248BC00;
-            10'd255: raw_data = 32'h1E48BC00;
-            10'd256: raw_data = 32'h0000BC00;
-            10'd257: raw_data = 32'h9E48BC00;
-            10'd258: raw_data = 32'hA248BC00;
-            10'd259: raw_data = 32'hA4B6BC00;
-            10'd260: raw_data = 32'hA648BBFF;
-            10'd261: raw_data = 32'hA7DABBFF;
-            10'd262: raw_data = 32'hA8B6BBFF;
-            10'd263: raw_data = 32'hA97FBBFE;
-            10'd264: raw_data = 32'hAA48BBFE;
-            10'd265: raw_data = 32'hAB11BBFD;
-            10'd266: raw_data = 32'hABD9BBFC;
-            10'd267: raw_data = 32'hAC51BBFB;
-            10'd268: raw_data = 32'hACB5BBFA;
-            10'd269: raw_data = 32'hAD1ABBF9;
-            10'd270: raw_data = 32'hAD7EBBF8;
-            10'd271: raw_data = 32'hADE2BBF7;
-            10'd272: raw_data = 32'hAE46BBF6;
-            10'd273: raw_data = 32'hAEAABBF5;
-            10'd274: raw_data = 32'hAF0EBBF4;
-            10'd275: raw_data = 32'hAF72BBF2;
-            10'd276: raw_data = 32'hAFD6BBF1;
-            10'd277: raw_data = 32'hB01DBBEF;
-            10'd278: raw_data = 32'hB04EBBED;
-            10'd279: raw_data = 32'hB080BBEC;
-            10'd280: raw_data = 32'hB0B2BBEA;
-            10'd281: raw_data = 32'hB0E4BBE8;
-            10'd282: raw_data = 32'hB115BBE6;
-            10'd283: raw_data = 32'hB147BBE4;
-            10'd284: raw_data = 32'hB179BBE2;
-            10'd285: raw_data = 32'hB1AABBE0;
-            10'd286: raw_data = 32'hB1DBBBDD;
-            10'd287: raw_data = 32'hB20DBBDB;
-            10'd288: raw_data = 32'hB23EBBD9;
-            10'd289: raw_data = 32'hB26FBBD6;
-            10'd290: raw_data = 32'hB2A1BBD4;
-            10'd291: raw_data = 32'hB2D2BBD1;
-            10'd292: raw_data = 32'hB303BBCE;
-            10'd293: raw_data = 32'hB334BBCB;
-            10'd294: raw_data = 32'hB365BBC9;
-            10'd295: raw_data = 32'hB396BBC6;
-            10'd296: raw_data = 32'hB3C6BBC3;
-            10'd297: raw_data = 32'hB3F7BBC0;
-            10'd298: raw_data = 32'hB414BBBC;
-            10'd299: raw_data = 32'hB42CBBB9;
-            10'd300: raw_data = 32'hB444BBB6;
-            10'd301: raw_data = 32'hB45DBBB2;
-            10'd302: raw_data = 32'hB475BBAF;
-            10'd303: raw_data = 32'hB48DBBAB;
-            10'd304: raw_data = 32'hB4A5BBA8;
-            10'd305: raw_data = 32'hB4BDBBA4;
-            10'd306: raw_data = 32'hB4D5BBA0;
-            10'd307: raw_data = 32'hB4EDBB9D;
-            10'd308: raw_data = 32'hB505BB99;
-            10'd309: raw_data = 32'hB51DBB95;
-            10'd310: raw_data = 32'hB534BB91;
-            10'd311: raw_data = 32'hB54CBB8C;
-            10'd312: raw_data = 32'hB564BB88;
-            10'd313: raw_data = 32'hB57CBB84;
-            10'd314: raw_data = 32'hB593BB80;
-            10'd315: raw_data = 32'hB5ABBB7B;
-            10'd316: raw_data = 32'hB5C2BB77;
-            10'd317: raw_data = 32'hB5DABB72;
-            10'd318: raw_data = 32'hB5F1BB6E;
-            10'd319: raw_data = 32'hB608BB69;
-            10'd320: raw_data = 32'hB61FBB64;
-            10'd321: raw_data = 32'hB637BB5F;
-            10'd322: raw_data = 32'hB64EBB5A;
-            10'd323: raw_data = 32'hB665BB55;
-            10'd324: raw_data = 32'hB67CBB50;
-            10'd325: raw_data = 32'hB693BB4B;
-            10'd326: raw_data = 32'hB6AABB46;
-            10'd327: raw_data = 32'hB6C1BB41;
-            10'd328: raw_data = 32'hB6D7BB3B;
-            10'd329: raw_data = 32'hB6EEBB36;
-            10'd330: raw_data = 32'hB705BB30;
-            10'd331: raw_data = 32'hB71BBB2B;
-            10'd332: raw_data = 32'hB732BB25;
-            10'd333: raw_data = 32'hB748BB20;
-            10'd334: raw_data = 32'hB75EBB1A;
-            10'd335: raw_data = 32'hB775BB14;
-            10'd336: raw_data = 32'hB78BBB0E;
-            10'd337: raw_data = 32'hB7A1BB08;
-            10'd338: raw_data = 32'hB7B7BB02;
-            10'd339: raw_data = 32'hB7CDBAFC;
-            10'd340: raw_data = 32'hB7E3BAF6;
-            10'd341: raw_data = 32'hB7F9BAF0;
-            10'd342: raw_data = 32'hB807BAE9;
-            10'd343: raw_data = 32'hB812BAE3;
-            10'd344: raw_data = 32'hB81DBADD;
-            10'd345: raw_data = 32'hB828BAD6;
-            10'd346: raw_data = 32'hB832BAD0;
-            10'd347: raw_data = 32'hB83DBAC9;
-            10'd348: raw_data = 32'hB848BAC2;
-            10'd349: raw_data = 32'hB852BABC;
-            10'd350: raw_data = 32'hB85DBAB5;
-            10'd351: raw_data = 32'hB867BAAE;
-            10'd352: raw_data = 32'hB872BAA7;
-            10'd353: raw_data = 32'hB87CBAA0;
-            10'd354: raw_data = 32'hB887BA99;
-            10'd355: raw_data = 32'hB891BA92;
-            10'd356: raw_data = 32'hB89BBA8A;
-            10'd357: raw_data = 32'hB8A6BA83;
-            10'd358: raw_data = 32'hB8B0BA7C;
-            10'd359: raw_data = 32'hB8BABA74;
-            10'd360: raw_data = 32'hB8C4BA6D;
-            10'd361: raw_data = 32'hB8CEBA65;
-            10'd362: raw_data = 32'hB8D8BA5E;
-            10'd363: raw_data = 32'hB8E2BA56;
-            10'd364: raw_data = 32'hB8ECBA4F;
-            10'd365: raw_data = 32'hB8F6BA47;
-            10'd366: raw_data = 32'hB900BA3F;
-            10'd367: raw_data = 32'hB909BA37;
-            10'd368: raw_data = 32'hB913BA2F;
-            10'd369: raw_data = 32'hB91DBA27;
-            10'd370: raw_data = 32'hB927BA1F;
-            10'd371: raw_data = 32'hB930BA17;
-            10'd372: raw_data = 32'hB93ABA0F;
-            10'd373: raw_data = 32'hB943BA07;
-            10'd374: raw_data = 32'hB94DB9FE;
-            10'd375: raw_data = 32'hB956B9F6;
-            10'd376: raw_data = 32'hB95FB9ED;
-            10'd377: raw_data = 32'hB969B9E5;
-            10'd378: raw_data = 32'hB972B9DC;
-            10'd379: raw_data = 32'hB97BB9D4;
-            10'd380: raw_data = 32'hB984B9CB;
-            10'd381: raw_data = 32'hB98DB9C3;
-            10'd382: raw_data = 32'hB996B9BA;
-            10'd383: raw_data = 32'hB99FB9B1;
-            10'd384: raw_data = 32'hB9A8B9A8;
-            10'd385: raw_data = 32'hB9B1B99F;
-            10'd386: raw_data = 32'hB9BAB996;
-            10'd387: raw_data = 32'hB9C3B98D;
-            10'd388: raw_data = 32'hB9CBB984;
-            10'd389: raw_data = 32'hB9D4B97B;
-            10'd390: raw_data = 32'hB9DCB972;
-            10'd391: raw_data = 32'hB9E5B969;
-            10'd392: raw_data = 32'hB9EDB95F;
-            10'd393: raw_data = 32'hB9F6B956;
-            10'd394: raw_data = 32'hB9FEB94D;
-            10'd395: raw_data = 32'hBA07B943;
-            10'd396: raw_data = 32'hBA0FB93A;
-            10'd397: raw_data = 32'hBA17B930;
-            10'd398: raw_data = 32'hBA1FB927;
-            10'd399: raw_data = 32'hBA27B91D;
-            10'd400: raw_data = 32'hBA2FB913;
-            10'd401: raw_data = 32'hBA37B909;
-            10'd402: raw_data = 32'hBA3FB900;
-            10'd403: raw_data = 32'hBA47B8F6;
-            10'd404: raw_data = 32'hBA4FB8EC;
-            10'd405: raw_data = 32'hBA56B8E2;
-            10'd406: raw_data = 32'hBA5EB8D8;
-            10'd407: raw_data = 32'hBA65B8CE;
-            10'd408: raw_data = 32'hBA6DB8C4;
-            10'd409: raw_data = 32'hBA74B8BA;
-            10'd410: raw_data = 32'hBA7CB8B0;
-            10'd411: raw_data = 32'hBA83B8A6;
-            10'd412: raw_data = 32'hBA8AB89B;
-            10'd413: raw_data = 32'hBA92B891;
-            10'd414: raw_data = 32'hBA99B887;
-            10'd415: raw_data = 32'hBAA0B87C;
-            10'd416: raw_data = 32'hBAA7B872;
-            10'd417: raw_data = 32'hBAAEB867;
-            10'd418: raw_data = 32'hBAB5B85D;
-            10'd419: raw_data = 32'hBABCB852;
-            10'd420: raw_data = 32'hBAC2B848;
-            10'd421: raw_data = 32'hBAC9B83D;
-            10'd422: raw_data = 32'hBAD0B832;
-            10'd423: raw_data = 32'hBAD6B828;
-            10'd424: raw_data = 32'hBADDB81D;
-            10'd425: raw_data = 32'hBAE3B812;
-            10'd426: raw_data = 32'hBAE9B807;
-            10'd427: raw_data = 32'hBAF0B7F9;
-            10'd428: raw_data = 32'hBAF6B7E3;
-            10'd429: raw_data = 32'hBAFCB7CD;
-            10'd430: raw_data = 32'hBB02B7B7;
-            10'd431: raw_data = 32'hBB08B7A1;
-            10'd432: raw_data = 32'hBB0EB78B;
-            10'd433: raw_data = 32'hBB14B775;
-            10'd434: raw_data = 32'hBB1AB75E;
-            10'd435: raw_data = 32'hBB20B748;
-            10'd436: raw_data = 32'hBB25B732;
-            10'd437: raw_data = 32'hBB2BB71B;
-            10'd438: raw_data = 32'hBB30B705;
-            10'd439: raw_data = 32'hBB36B6EE;
-            10'd440: raw_data = 32'hBB3BB6D7;
-            10'd441: raw_data = 32'hBB41B6C1;
-            10'd442: raw_data = 32'hBB46B6AA;
-            10'd443: raw_data = 32'hBB4BB693;
-            10'd444: raw_data = 32'hBB50B67C;
-            10'd445: raw_data = 32'hBB55B665;
-            10'd446: raw_data = 32'hBB5AB64E;
-            10'd447: raw_data = 32'hBB5FB637;
-            10'd448: raw_data = 32'hBB64B61F;
-            10'd449: raw_data = 32'hBB69B608;
-            10'd450: raw_data = 32'hBB6EB5F1;
-            10'd451: raw_data = 32'hBB72B5DA;
-            10'd452: raw_data = 32'hBB77B5C2;
-            10'd453: raw_data = 32'hBB7BB5AB;
-            10'd454: raw_data = 32'hBB80B593;
-            10'd455: raw_data = 32'hBB84B57C;
-            10'd456: raw_data = 32'hBB88B564;
-            10'd457: raw_data = 32'hBB8CB54C;
-            10'd458: raw_data = 32'hBB91B534;
-            10'd459: raw_data = 32'hBB95B51D;
-            10'd460: raw_data = 32'hBB99B505;
-            10'd461: raw_data = 32'hBB9DB4ED;
-            10'd462: raw_data = 32'hBBA0B4D5;
-            10'd463: raw_data = 32'hBBA4B4BD;
-            10'd464: raw_data = 32'hBBA8B4A5;
-            10'd465: raw_data = 32'hBBABB48D;
-            10'd466: raw_data = 32'hBBAFB475;
-            10'd467: raw_data = 32'hBBB2B45D;
-            10'd468: raw_data = 32'hBBB6B444;
-            10'd469: raw_data = 32'hBBB9B42C;
-            10'd470: raw_data = 32'hBBBCB414;
-            10'd471: raw_data = 32'hBBC0B3F7;
-            10'd472: raw_data = 32'hBBC3B3C6;
-            10'd473: raw_data = 32'hBBC6B396;
-            10'd474: raw_data = 32'hBBC9B365;
-            10'd475: raw_data = 32'hBBCBB334;
-            10'd476: raw_data = 32'hBBCEB303;
-            10'd477: raw_data = 32'hBBD1B2D2;
-            10'd478: raw_data = 32'hBBD4B2A1;
-            10'd479: raw_data = 32'hBBD6B26F;
-            10'd480: raw_data = 32'hBBD9B23E;
-            10'd481: raw_data = 32'hBBDBB20D;
-            10'd482: raw_data = 32'hBBDDB1DB;
-            10'd483: raw_data = 32'hBBE0B1AA;
-            10'd484: raw_data = 32'hBBE2B179;
-            10'd485: raw_data = 32'hBBE4B147;
-            10'd486: raw_data = 32'hBBE6B115;
-            10'd487: raw_data = 32'hBBE8B0E4;
-            10'd488: raw_data = 32'hBBEAB0B2;
-            10'd489: raw_data = 32'hBBECB080;
-            10'd490: raw_data = 32'hBBEDB04E;
-            10'd491: raw_data = 32'hBBEFB01D;
-            10'd492: raw_data = 32'hBBF1AFD6;
-            10'd493: raw_data = 32'hBBF2AF72;
-            10'd494: raw_data = 32'hBBF4AF0E;
-            10'd495: raw_data = 32'hBBF5AEAA;
-            10'd496: raw_data = 32'hBBF6AE46;
-            10'd497: raw_data = 32'hBBF7ADE2;
-            10'd498: raw_data = 32'hBBF8AD7E;
-            10'd499: raw_data = 32'hBBF9AD1A;
-            10'd500: raw_data = 32'hBBFAACB5;
-            10'd501: raw_data = 32'hBBFBAC51;
-            10'd502: raw_data = 32'hBBFCABD9;
-            10'd503: raw_data = 32'hBBFDAB11;
-            10'd504: raw_data = 32'hBBFEAA48;
-            10'd505: raw_data = 32'hBBFEA97F;
-            10'd506: raw_data = 32'hBBFFA8B6;
-            10'd507: raw_data = 32'hBBFFA7DA;
-            10'd508: raw_data = 32'hBBFFA648;
-            10'd509: raw_data = 32'hBC00A4B6;
-            10'd510: raw_data = 32'hBC00A248;
-            10'd511: raw_data = 32'hBC009E48;
-            default: raw_data = 32'h3C000000; // fallback: W^0 = 1+0j
-        endcase
+        raw_data = block_data[rom_addr[8:5]];
     end
 
     // --------------------------------------------------------

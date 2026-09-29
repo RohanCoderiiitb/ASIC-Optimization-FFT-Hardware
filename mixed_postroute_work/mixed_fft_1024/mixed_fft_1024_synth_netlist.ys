@@ -1,0 +1,35 @@
+            read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/adder.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/agu.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/bit_reversal.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/butterfly.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/butterfly_wrapper_gated.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/cordic_twiddle_generator.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/memory.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/mixed_precision_wrappers.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/multiplier.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/precision_converter.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/q214_to_fp_conv.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/sram_512x24_2rw.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/verilog_sources/twiddle_rom_synthesizable.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/generated_designs/mixed_fft_1024/mixed_fft_1024.v
+read_verilog -sv /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/generated_designs/mixed_fft_1024/mixed_fft_1024_top.v
+            # PRE-SYNTHESIS BLACKBOX
+            blackbox sram_512x24_2rw
+
+            hierarchy -check -top mixed_fft_1024_top
+            flatten -noscopeinfo
+            proc
+            opt -purge
+            memory
+            opt -purge
+
+            async2sync
+            techmap
+            opt -purge
+            dfflibmap -liberty /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/45_nm_PDK/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib
+            abc -liberty /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/45_nm_PDK/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib -g cmos
+            opt_clean -purge
+            setundef -zero -undriven
+
+            stat -liberty /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/45_nm_PDK/cadence/cadence_45nm/lib/fast_vdd1v0_basicCells.lib -liberty /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/openram_outputs/sram_512x24_2rw_TT_1p0V_25C.lib
+            write_verilog -noattr /home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/mixed_postroute_work/mixed_fft_1024/mixed_fft_1024_netlist.v

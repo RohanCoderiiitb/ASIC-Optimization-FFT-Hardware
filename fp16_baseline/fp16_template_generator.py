@@ -11,13 +11,20 @@ precisions:
   * same streaming AGU (dit_fft_agu_streaming) and bit_reverse front end
   * same dual-bank ping-pong memory organisation and 1-cycle read
   * same IDLE/RUN/FLUSH/DONE control FSM and active-low async reset
-  * TOTAL_LATENCY = 13 (11 cycles operand alignment + 2 cycles for the
+  * TOTAL_LATENCY = 15 (11 cycles operand alignment + 4 cycles for the
     internally-pipelined FP16 butterfly -- see fp16_butterfly.v) and
     STALL_CYCLES = TOTAL_LATENCY + 1 inter-stage stall. This intentionally
     keeps the SAME pipeline depth as the FP32 baseline (rather than
     re-deriving a shallower one from FP16's smaller/faster arithmetic) for
     architectural parity across the precision sweep -- cycle counts per
     transform are therefore identical to the FP32 baseline's, size for size.
+    The butterfly is 4 cycles deep (not 2) specifically to meet 10ns POST-
+    ROUTE timing: registering the final complex add/sub's output (rather
+    than driving the SRAM write port combinationally from it) closed most
+    of the gap, but the final add/sub ALONE still measured over budget
+    post-route, so it is itself now internally 2-cycle pipelined (align+add
+    | normalize+round) via fp16_complex_add_sub_pipe -- see
+    fp16_butterfly.v's header and postroute_pnr.py.
 
 Differences from the FP32 baseline are exactly the ones a binary16 datapath
 requires:
@@ -45,17 +52,44 @@ ALL_SIZES = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 MAX_N = 1024
 ADDR_WIDTH = 11
 
-# The shared butterfly (fp16_butterfly.v) is internally pipelined 2 cycles
-# deep (multiply -> combine-add -> final-add, one arithmetic primitive per
-# stage), matching the FP32 baseline's pipeline depth for architectural
-# parity -- see the header comment in fp16_butterfly.v. The operand (A/B)
-# and twiddle pipelines feed the butterfly's INPUTS and are unchanged; only
-# the write-back address/enable pipeline, which waits for the butterfly's
-# OUTPUT, needs to grow by those same 2 cycles.
-BUTTERFLY_LATENCY = 2
+# The shared butterfly (fp16_butterfly.v) is internally pipelined 4 cycles
+# deep (multiply -> combine-add -> final-add[align+add] -> final-add[normalize
+# +round], each registered), matching the FP32 baseline's pipeline depth for
+# architectural parity -- see the header comment in fp16_butterfly.v. The
+# operand (A/B) and twiddle pipelines feed the butterfly's INPUTS and are
+# unchanged; only the write-back address/enable pipeline, which waits for the
+# butterfly's OUTPUT, needs to grow by these same 2 extra cycles (2 -> 4).
+BUTTERFLY_LATENCY = 4
 TOTAL_LATENCY = 11 + BUTTERFLY_LATENCY
-TWIDDLE_LATENCY = 10
-STALL_CYCLES = TOTAL_LATENCY + 1
+# TWIDDLE_LATENCY is 9, not 10: the twiddle ROM (fp16_twiddle_rom.v) is now
+# itself internally 1-cycle pipelined (address-compute -> ROM lookup, added
+# to fix a high-fanout combinational case() timing violation post-route), so
+# its total k-to-twiddle-output depth is 1 (ROM) + TWIDDLE_LATENCY (this
+# pipe's own register count) flops. Shrinking TWIDDLE_LATENCY by the same 1
+# cycle the ROM gained keeps that total at 11 flops -- exactly matching the
+# A/B operand path's fixed 11-flop depth (1 SRAM sync-read register + 10
+# A_32_pipe/B_32_pipe stages, unchanged) so operands and twiddle still arrive
+# at the butterfly on the same cycle.
+TWIDDLE_LATENCY = 9
+# AGU_PIPE_LATENCY: idx_a/idx_b/k (from dit_fft_agu_streaming) are runtime
+# multiply/shift results (k = butterfly * (N >> shift_amt), idx_a's
+# group_offset = group * group_size) computed combinationally and previously
+# fed straight into the SRAM read address / twiddle ROM input in the same
+# cycle -- measured on a real post-route netlist as a ~40-gate-deep
+# combinational chain from the AGU's registers all the way through the
+# twiddle ROM's scaling/symmetry logic, the actual dominant post-route
+# timing violation (the twiddle ROM's own lookup was NOT the bottleneck --
+# restructuring it changed nothing). Registered one cycle after the AGU
+# (idx_a_r/idx_b_r/k_r/streaming_enable_r below) so that multiply/shift is
+# isolated into its own cycle. done_stage/done_fft/pipeline_stall_cnt/
+# agu_stall are deliberately NOT delayed -- they gate the AGU's OWN internal
+# FSM via its `stall` input, and delaying them would let that FSM advance
+# one extra (invalid) step before the stall engages. Instead, STALL_CYCLES
+# and flush_counter's target are widened by AGU_PIPE_LATENCY so the
+# (unchanged-timing) stall/flush triggers wait the 1 extra cycle the actual
+# data now needs to reach the write-back pipe.
+AGU_PIPE_LATENCY = 1
+STALL_CYCLES = TOTAL_LATENCY + AGU_PIPE_LATENCY + 1
 
 
 def log2i(n: int) -> int:
@@ -165,8 +199,32 @@ module fp16_fft_{n}_core #(
         .curr_stage   (curr_stage)
     );
 
+    // Register idx_a/idx_b/k/streaming_enable one cycle after the AGU (see
+    // AGU_PIPE_LATENCY above) so the AGU's runtime multiply/shift logic
+    // (k = butterfly * num_groups, group_offset = group * group_size) lands
+    // in its own cycle instead of combining with the twiddle ROM's
+    // scaling/symmetry logic and the SRAM read address in the same cycle.
+    // done_stage/done_fft/pipeline_stall_cnt/agu_stall above are NOT
+    // delayed -- see AGU_PIPE_LATENCY's comment for why.
+    reg [ADDR_WIDTH-1:0] idx_a_r, idx_b_r, k_r;
+    reg                  streaming_enable_r;
+
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            idx_a_r            <= 0;
+            idx_b_r            <= 0;
+            k_r                <= 0;
+            streaming_enable_r <= 1'b0;
+        end else begin
+            idx_a_r            <= idx_a;
+            idx_b_r            <= idx_b;
+            k_r                <= k;
+            streaming_enable_r <= streaming_enable;
+        end
+    end
+
     // -------------------------------------------------------------------------
-    // Twiddle ROM (combinational) + latency-matching pipeline
+    // Twiddle ROM (1-cycle internally pipelined) + latency-matching pipeline
     // -------------------------------------------------------------------------
     wire [31:0] twiddle_comb;
     localparam TWIDDLE_LATENCY = {TWIDDLE_LATENCY};
@@ -175,10 +233,22 @@ module fp16_fft_{n}_core #(
         .MAX_N     (MAX_N),
         .ADDR_WIDTH(ADDR_WIDTH)
     ) twiddle_gen (
-        .k          (k),
+        .clk        (clk),
+        .k          (k_r),
         .n          (11'd{n}),
         .twiddle_out(twiddle_comb)
     );
+
+    // streaming_enable must be delayed by the same 1 cycle the ROM now takes
+    // internally (address-compute -> lookup), otherwise v_pipe (which tracks
+    // validity) falls 1 cycle out of lockstep with twiddle_pipe (which
+    // carries the now-1-cycle-later ROM output) as they shift through the
+    // pipe below together.
+    reg streaming_enable_d;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) streaming_enable_d <= 1'b0;
+        else      streaming_enable_d <= streaming_enable_r;
+    end
 
     (* srl_style = "srl" *) reg [31:0] twiddle_pipe [0:TWIDDLE_LATENCY];
     (* srl_style = "srl" *) reg        v_pipe       [0:TWIDDLE_LATENCY];
@@ -192,7 +262,7 @@ module fp16_fft_{n}_core #(
             end
         end else begin
             twiddle_pipe[0] <= twiddle_comb;
-            v_pipe[0]       <= streaming_enable;
+            v_pipe[0]       <= streaming_enable_d;
 
             for (t_idx = 1; t_idx <= TWIDDLE_LATENCY; t_idx = t_idx + 1) begin
                 twiddle_pipe[t_idx] <= twiddle_pipe[t_idx-1];
@@ -207,6 +277,7 @@ module fp16_fft_{n}_core #(
     // Write-back address / enable pipeline
     // -------------------------------------------------------------------------
     localparam TOTAL_LATENCY = {TOTAL_LATENCY};
+    localparam AGU_PIPE_LATENCY = {AGU_PIPE_LATENCY};
 
     (* srl_style = "srl" *) reg [TOTAL_LATENCY-1:0]  wr_en_pipe;
     (* srl_style = "srl" *) reg [ADDR_WIDTH-1:0]     wr_addr_a_pipe [0:TOTAL_LATENCY-1];
@@ -223,10 +294,10 @@ module fp16_fft_{n}_core #(
                 wr_addr_b_pipe[i] <= 0;
             end
         end else begin
-            wr_en_pipe <= {{wr_en_pipe[TOTAL_LATENCY-2:0], streaming_enable}};
+            wr_en_pipe <= {{wr_en_pipe[TOTAL_LATENCY-2:0], streaming_enable_r}};
 
-            wr_addr_a_pipe[0] <= idx_a;
-            wr_addr_b_pipe[0] <= idx_b;
+            wr_addr_a_pipe[0] <= idx_a_r;
+            wr_addr_b_pipe[0] <= idx_b_r;
 
             for (i = 1; i < TOTAL_LATENCY; i = i + 1) begin
                 wr_addr_a_pipe[i] <= wr_addr_a_pipe[i-1];
@@ -247,8 +318,8 @@ module fp16_fft_{n}_core #(
     // Memory
     // -------------------------------------------------------------------------
     wire                  active_rd_bank = ext_reading ? ext_bank_sel : fft_bank_sel;
-    wire [ADDR_WIDTH-1:0] mem_rd_addr_a  = ext_reading ? ext_rd_addr  : idx_a;
-    wire [ADDR_WIDTH-1:0] mem_rd_addr_b  = ext_reading ? ext_rd_addr  : idx_b;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_a  = ext_reading ? ext_rd_addr  : idx_a_r;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_b  = ext_reading ? ext_rd_addr  : idx_b_r;
 
     wire [31:0] rd_data_a_32, rd_data_b_32;
     wire [31:0] X_wr_32, Y_wr_32;
@@ -347,7 +418,11 @@ module fp16_fft_{n}_core #(
                     end
                     if (safe_done_fft) begin
                         state         <= FLUSH_ST;
-                        flush_counter <= TOTAL_LATENCY;
+                        // +AGU_PIPE_LATENCY: safe_done_fft fires on the AGU's
+                        // raw (undelayed) state, 1 cycle before this same
+                        // transaction's idx_a_r/k_r (and hence its write-back
+                        // pipe entry) become valid -- see AGU_PIPE_LATENCY.
+                        flush_counter <= TOTAL_LATENCY + AGU_PIPE_LATENCY;
                     end
                 end
 

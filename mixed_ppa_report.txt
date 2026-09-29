@@ -1,0 +1,8 @@
+Mixed-precision FFT (all-FP8 reference chromosome) - PPA extraction
+(Yosys synthesis + area; OpenSTA timing; no OpenROAD P&R)
+Clock period: 10.0 ns
+Power is measured from a SAIF file converted (vcd_to_saif.py) from a real RTL-simulation VCD annotated by OpenSTA's `read_saif` onto a hierarchy-preserved netlist (ActivitySrc=saif_measured) when at least 20 nets match (AnnotatedSignals=annotated/total). No flat-activity fallback -- see run_fp16_synthesis.py for the shared methodology this mirrors.
+
+     N |  Area (um^2) | CritDelay (ns) | Slack (ns) |  Power (mW) |           ActivitySrc |         AnnotatedSignals |  NormLat |  Status
+-----------------------------------------------------------------------------------------------------------------------------------------
+    16 |     206740.5 |          7.880 |      2.120 |      6.6000 |         saif_measured |        526/21716 (2.42%) |    0.788 |      OK

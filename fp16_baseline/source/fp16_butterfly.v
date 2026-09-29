@@ -1,25 +1,47 @@
 // =============================================================================
-// FP16 Radix-2 DIT Butterfly -- internally pipelined, 2-cycle latency
+// FP16 Radix-2 DIT Butterfly -- internally pipelined, 4-cycle latency
 //
 // Memory / datapath format: 32-bit complex FP16
 //   [31:16] FP16 Real, [15:0] FP16 Imag
 //
 // Mirrors fp32_baseline/source/fp32_butterfly.v structurally (same
-// X = A + W*B / Y = A - W*B, same 2-cycle internal pipeline split at the
-// multiply / combine-add / final-add boundaries), scaled down to binary16.
-// The FP16 multiply/add primitives are individually smaller and faster than
-// their FP32 counterparts, but this baseline keeps the identical pipeline
-// depth as the FP32 baseline for architectural parity across the precision
-// sweep (same TOTAL_LATENCY / STALL_CYCLES in fp16_template_generator.py) --
-// see fp32_butterfly.v's header for the full timing rationale that motivated
-// the split.
+// X = A + W*B / Y = A - W*B, same 4-cycle internal pipeline split), scaled
+// down to binary16. The FP16 multiply/add primitives are individually
+// smaller and faster than their FP32 counterparts, but this baseline keeps
+// the identical pipeline depth as the FP32 baseline for architectural
+// parity across the precision sweep (same TOTAL_LATENCY / STALL_CYCLES in
+// fp16_template_generator.py) -- see fp32_butterfly.v's header for the full
+// timing rationale that motivated the split.
 //
-//   cycle T   : 4 real multiplies (B x W)                     -> register
-//   cycle T+1 : complex-multiply combine (ac-bd, ad+bc = W*B)  -> register
-//   cycle T+2 : final complex add/sub, X = A + WB, Y = A - WB  (combinational)
+//   cycle T   : 4 real multiplies (B x W)                       -> register
+//   cycle T+1 : complex-multiply combine (ac-bd, ad+bc = W*B)    -> register
+//   cycle T+2 : final complex add/sub, align + significand add   -> register
+//               (inside fp16_complex_add_sub_pipe)
+//   cycle T+3 : final complex add/sub, normalize + round         -> register
 //
 // A is carried alongside in shift registers so it reaches the final add in
 // lock-step with the now-2-cycle-delayed W*B product.
+//
+// Two things changed here under real post-route parasitics (OpenROAD
+// floorplan + macro placement + global route, not the pre-route
+// zero/estimated-parasitic view), neither visible pre-route:
+//   1. cycle T+2 used to drive X/Y straight out combinationally from a
+//      single fp16_complex_add_sub feeding directly into the SRAM write
+//      port -- once the SRAM macros are floorplanned that pin is physically
+//      far away, and the combined path measured 17.46ns against the 10ns
+//      budget. Registering X/Y (what is now cycle T+3's register) split
+//      that into two independent paths that each budget separately.
+//   2. even after that split, the final complex add/sub ALONE (one
+//      fp16_complex_add_sub, register-to-register) still measured 11.45ns:
+//      a full FP16 add (exponent compare, mantissa align, add, leading-one
+//      detect, normalize shift, round) is a genuinely deep combinational
+//      block on its own post-route. fp16_complex_add_sub_pipe (see
+//      fp16_adder.v) splits it at its standard, natural boundary --
+//      align+add, then normalize+round -- with a register in between, which
+//      is what makes this a 4-cycle butterfly instead of 3. The OTHER
+//      fp16_add_sub call site (the complex-multiply combine, cycle T+1)
+//      already met timing as a single combinational block and is
+//      unchanged.
 // =============================================================================
 
 module fp16_butterfly_generation_unit(
@@ -67,20 +89,35 @@ module fp16_butterfly_generation_unit(
 
     wire [31:0] wb_product = {wb_real_r, wb_imag_r};
 
-    // ---- Stage 2 (combinational): final complex add / subtract ----
-    fp16_complex_add_sub adder_inst (
+    // ---- Stage 2+3 (2-cycle internally pipelined): final complex add / subtract ----
+    wire [31:0] X_w, Y_w;
+
+    fp16_complex_add_sub_pipe adder_inst (
+        .clk (clk),
         .a   (A_stage2),
         .b   (wb_product),
         .sub (1'b0),
-        .out (X)
+        .out (X_w)
     );
 
-    fp16_complex_add_sub sub_inst (
+    fp16_complex_add_sub_pipe sub_inst (
+        .clk (clk),
         .a   (A_stage2),
         .b   (wb_product),
         .sub (1'b1),
-        .out (Y)
+        .out (Y_w)
     );
+
+    // ---- Stage 4 (register): pipeline the final add/sub result ----
+    reg [31:0] X_r, Y_r;
+
+    always @(posedge clk) begin
+        X_r <= X_w;
+        Y_r <= Y_w;
+    end
+
+    assign X = X_r;
+    assign Y = Y_r;
 
 endmodule
 
@@ -89,7 +126,7 @@ endmodule
 // Thin wrapper kept for structural parity with butterfly_wrapper in
 // verilog_sources/mixed_precision_wrappers.v, so the FP16 core instantiates
 // a like-named block.  No precision plumbing: the baseline is FP16 throughout.
-// Passes `clk` through for the internal 2-cycle pipeline above.
+// Passes `clk` through for the internal 4-cycle pipeline above.
 // -----------------------------------------------------------------------------
 module fp16_butterfly_wrapper (
     input         clk,

@@ -5,8 +5,8 @@
 // against the NSGA-optimised mixed-precision FP4/FP8 core mixed_fft_128_core
 // and the FP32 baseline fp32_fft_128_core.
 //
-// Cycle-for-cycle identical control: same AGU, same TOTAL_LATENCY = 13,
-// same 14-cycle inter-stage pipeline flush, same FSM.
+// Cycle-for-cycle identical control: same AGU, same TOTAL_LATENCY = 15,
+// same 17-cycle inter-stage pipeline flush, same FSM.
 // Active-low asynchronous reset (negedge rst).
 //
 // Memory word: [31:16] FP16 Real, [15:0] FP16 Imag
@@ -69,7 +69,7 @@ module fp16_fft_128_core #(
         if (!rst) begin
             pipeline_stall_cnt <= 0;
         end else if (safe_done_stage && !safe_done_fft) begin
-            pipeline_stall_cnt <= 14;
+            pipeline_stall_cnt <= 17;
         end else if (pipeline_stall_cnt > 0) begin
             pipeline_stall_cnt <= pipeline_stall_cnt - 1;
         end
@@ -93,20 +93,56 @@ module fp16_fft_128_core #(
         .curr_stage   (curr_stage)
     );
 
+    // Register idx_a/idx_b/k/streaming_enable one cycle after the AGU (see
+    // AGU_PIPE_LATENCY above) so the AGU's runtime multiply/shift logic
+    // (k = butterfly * num_groups, group_offset = group * group_size) lands
+    // in its own cycle instead of combining with the twiddle ROM's
+    // scaling/symmetry logic and the SRAM read address in the same cycle.
+    // done_stage/done_fft/pipeline_stall_cnt/agu_stall above are NOT
+    // delayed -- see AGU_PIPE_LATENCY's comment for why.
+    reg [ADDR_WIDTH-1:0] idx_a_r, idx_b_r, k_r;
+    reg                  streaming_enable_r;
+
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            idx_a_r            <= 0;
+            idx_b_r            <= 0;
+            k_r                <= 0;
+            streaming_enable_r <= 1'b0;
+        end else begin
+            idx_a_r            <= idx_a;
+            idx_b_r            <= idx_b;
+            k_r                <= k;
+            streaming_enable_r <= streaming_enable;
+        end
+    end
+
     // -------------------------------------------------------------------------
-    // Twiddle ROM (combinational) + latency-matching pipeline
+    // Twiddle ROM (1-cycle internally pipelined) + latency-matching pipeline
     // -------------------------------------------------------------------------
     wire [31:0] twiddle_comb;
-    localparam TWIDDLE_LATENCY = 10;
+    localparam TWIDDLE_LATENCY = 9;
 
     twiddle_factor_fp16 #(
         .MAX_N     (MAX_N),
         .ADDR_WIDTH(ADDR_WIDTH)
     ) twiddle_gen (
-        .k          (k),
+        .clk        (clk),
+        .k          (k_r),
         .n          (11'd128),
         .twiddle_out(twiddle_comb)
     );
+
+    // streaming_enable must be delayed by the same 1 cycle the ROM now takes
+    // internally (address-compute -> lookup), otherwise v_pipe (which tracks
+    // validity) falls 1 cycle out of lockstep with twiddle_pipe (which
+    // carries the now-1-cycle-later ROM output) as they shift through the
+    // pipe below together.
+    reg streaming_enable_d;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) streaming_enable_d <= 1'b0;
+        else      streaming_enable_d <= streaming_enable_r;
+    end
 
     (* srl_style = "srl" *) reg [31:0] twiddle_pipe [0:TWIDDLE_LATENCY];
     (* srl_style = "srl" *) reg        v_pipe       [0:TWIDDLE_LATENCY];
@@ -120,7 +156,7 @@ module fp16_fft_128_core #(
             end
         end else begin
             twiddle_pipe[0] <= twiddle_comb;
-            v_pipe[0]       <= streaming_enable;
+            v_pipe[0]       <= streaming_enable_d;
 
             for (t_idx = 1; t_idx <= TWIDDLE_LATENCY; t_idx = t_idx + 1) begin
                 twiddle_pipe[t_idx] <= twiddle_pipe[t_idx-1];
@@ -134,7 +170,8 @@ module fp16_fft_128_core #(
     // -------------------------------------------------------------------------
     // Write-back address / enable pipeline
     // -------------------------------------------------------------------------
-    localparam TOTAL_LATENCY = 13;
+    localparam TOTAL_LATENCY = 15;
+    localparam AGU_PIPE_LATENCY = 1;
 
     (* srl_style = "srl" *) reg [TOTAL_LATENCY-1:0]  wr_en_pipe;
     (* srl_style = "srl" *) reg [ADDR_WIDTH-1:0]     wr_addr_a_pipe [0:TOTAL_LATENCY-1];
@@ -151,10 +188,10 @@ module fp16_fft_128_core #(
                 wr_addr_b_pipe[i] <= 0;
             end
         end else begin
-            wr_en_pipe <= {wr_en_pipe[TOTAL_LATENCY-2:0], streaming_enable};
+            wr_en_pipe <= {wr_en_pipe[TOTAL_LATENCY-2:0], streaming_enable_r};
 
-            wr_addr_a_pipe[0] <= idx_a;
-            wr_addr_b_pipe[0] <= idx_b;
+            wr_addr_a_pipe[0] <= idx_a_r;
+            wr_addr_b_pipe[0] <= idx_b_r;
 
             for (i = 1; i < TOTAL_LATENCY; i = i + 1) begin
                 wr_addr_a_pipe[i] <= wr_addr_a_pipe[i-1];
@@ -175,8 +212,8 @@ module fp16_fft_128_core #(
     // Memory
     // -------------------------------------------------------------------------
     wire                  active_rd_bank = ext_reading ? ext_bank_sel : fft_bank_sel;
-    wire [ADDR_WIDTH-1:0] mem_rd_addr_a  = ext_reading ? ext_rd_addr  : idx_a;
-    wire [ADDR_WIDTH-1:0] mem_rd_addr_b  = ext_reading ? ext_rd_addr  : idx_b;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_a  = ext_reading ? ext_rd_addr  : idx_a_r;
+    wire [ADDR_WIDTH-1:0] mem_rd_addr_b  = ext_reading ? ext_rd_addr  : idx_b_r;
 
     wire [31:0] rd_data_a_32, rd_data_b_32;
     wire [31:0] X_wr_32, Y_wr_32;
@@ -275,7 +312,11 @@ module fp16_fft_128_core #(
                     end
                     if (safe_done_fft) begin
                         state         <= FLUSH_ST;
-                        flush_counter <= TOTAL_LATENCY;
+                        // +AGU_PIPE_LATENCY: safe_done_fft fires on the AGU's
+                        // raw (undelayed) state, 1 cycle before this same
+                        // transaction's idx_a_r/k_r (and hence its write-back
+                        // pipe entry) become valid -- see AGU_PIPE_LATENCY.
+                        flush_counter <= TOTAL_LATENCY + AGU_PIPE_LATENCY;
                     end
                 end
 

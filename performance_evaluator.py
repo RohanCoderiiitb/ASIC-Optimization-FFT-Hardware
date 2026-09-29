@@ -32,10 +32,11 @@ SIGNAL_LABELS = [
 
 
 class PerformanceEvaluator:
-    def __init__(self, fft_size):
+    def __init__(self, fft_size, dump_vcd=False):
         self.fft_size            = fft_size
         self.num_stages          = int(math.log2(fft_size))
         self.verilog_sources_dir = './verilog_sources'
+        self.dump_vcd            = dump_vcd
         self.test_vectors        = self._generate_test_vectors()
         self.golden_outputs      = self._compute_golden_outputs()
 
@@ -245,6 +246,13 @@ class PerformanceEvaluator:
                 vec_hex_lines.append(f"        tv[{ti*n + si}] = 16'h{word:04x};")
         vec_init = '\n'.join(vec_hex_lines)
 
+        dump_block = f"""
+    initial begin
+        $dumpfile("{self.vcd_path(design_name)}");
+        $dumpvars(0, tb_{design_name});
+    end
+""" if self.dump_vcd else ""
+
         tb = f"""\
 `timescale 1ns/1ps
 module tb_{design_name};
@@ -260,7 +268,7 @@ module tb_{design_name};
         .load_en(load_en), .load_addr(load_addr), .load_data(load_data),
         .unload_en(unload_en), .unload_addr(unload_addr), .unload_data(unload_data)
     );
-
+{dump_block}
     initial clk = 0;
     always #5 clk = ~clk;
 
@@ -335,6 +343,10 @@ endmodule
     def _sanitize_name(name):
         import re
         return re.sub(r'[^A-Za-z0-9_]', '_', name)
+
+    def vcd_path(self, design_name):
+        design_name = self._sanitize_name(design_name)
+        return os.path.abspath(os.path.join('./sim', f'{design_name}.vcd'))
 
     def run_verilog_simulation(self, verilog_file, design_name):
         design_name = self._sanitize_name(design_name)

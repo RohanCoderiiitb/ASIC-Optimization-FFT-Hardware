@@ -186,3 +186,174 @@ module fp32_complex_add_sub(
 
     assign out = {out_real, out_imag};
 endmodule
+
+
+// -----------------------------------------------------------------------------
+// FP32 scalar add / subtract -- 2-stage internally pipelined variant
+//
+// Bit-identical arithmetic to fp32_add_sub, split at its natural boundary:
+// stage A (sign/exponent compare, mantissa alignment shift, significand
+// add/subtract) is registered before stage B (leading-one detect, the
+// normalize shift, and round-to-nearest-even). Used only where a single
+// combinational fp32_add_sub measured over budget post-route (the
+// butterfly's final complex add/sub, see fp32_butterfly.v) -- the OTHER
+// fp32_add_sub call site (the complex-multiply combine stage) already meets
+// timing as a single combinational block and is left untouched, so this
+// does not change its behaviour or latency.
+// -----------------------------------------------------------------------------
+module fp32_add_sub_pipe(
+    input         clk,
+    input  [31:0] a,
+    input  [31:0] b,
+    input         sub,
+    output [31:0] out
+);
+    wire        sign_a = a[31];
+    wire [7:0]  exp_a  = a[30:23];
+    wire [22:0] mant_a = a[22:0];
+    wire        sign_b = b[31];
+    wire [7:0]  exp_b  = b[30:23];
+    wire [22:0] mant_b = b[22:0];
+
+    wire sign_b_eff = sub ? ~sign_b : sign_b;
+
+    // ---- Stage A (combinational): compare, align, add/subtract ----
+    wire a_larger = (exp_a > exp_b) || ((exp_a == exp_b) && (mant_a >= mant_b));
+
+    wire        sign_l_w = a_larger ? sign_a     : sign_b_eff;
+    wire [7:0]  exp_l    = a_larger ? exp_a      : exp_b;
+    wire [22:0] mant_l   = a_larger ? mant_a     : mant_b;
+    wire        sign_s   = a_larger ? sign_b_eff : sign_a;
+    wire [7:0]  exp_s    = a_larger ? exp_b      : exp_a;
+    wire [22:0] mant_s   = a_larger ? mant_b     : mant_a;
+
+    wire hidden_l = (exp_l != 8'd0);
+    wire hidden_s = (exp_s != 8'd0);
+    wire [7:0] eff_exp_l_w = hidden_l ? exp_l : 8'd1;
+    wire [7:0] eff_exp_s   = hidden_s ? exp_s : 8'd1;
+    wire [7:0] exp_diff    = eff_exp_l_w - eff_exp_s;
+
+    wire [27:0] sig_l           = {1'b0, hidden_l, mant_l, 3'b000};
+    wire [27:0] sig_s_unaligned = {1'b0, hidden_s, mant_s, 3'b000};
+
+    wire [27:0] shift_mask   = (28'd1 << exp_diff) - 28'd1;
+    wire        sticky_lost  = (exp_diff >= 8'd28) ? (|sig_s_unaligned)
+                                                   : (|(sig_s_unaligned & shift_mask));
+    wire [27:0] sig_s_shift  = (exp_diff >= 8'd28) ? 28'd0
+                                                   : (sig_s_unaligned >> exp_diff);
+    wire [27:0] sig_s        = sig_s_shift | {27'd0, sticky_lost};
+
+    wire do_sub = (sign_l_w != sign_s);
+
+    wire [28:0] sig_result_raw_w = do_sub ? ({1'b0, sig_l} - {1'b0, sig_s})
+                                          : ({1'b0, sig_l} + {1'b0, sig_s});
+
+    // ---- pipeline register: align+add | normalize+round ----
+    reg         sign_l_r;
+    reg  [7:0]  eff_exp_l_r;
+    reg  [28:0] sig_result_raw_r;
+
+    always @(posedge clk) begin
+        sign_l_r         <= sign_l_w;
+        eff_exp_l_r      <= eff_exp_l_w;
+        sig_result_raw_r <= sig_result_raw_w;
+    end
+
+    // ---- Stage B (combinational): leading-one detect, normalize, round ----
+    integer   idx;
+    reg [4:0] msb_pos;
+    reg       any_bit;
+    always @(*) begin
+        msb_pos = 5'd0;
+        any_bit = 1'b0;
+        for (idx = 28; idx >= 0; idx = idx - 1) begin
+            if (!any_bit && sig_result_raw_r[idx]) begin
+                msb_pos = idx[4:0];
+                any_bit = 1'b1;
+            end
+        end
+    end
+
+    reg  [28:0] sig_norm;
+    reg  [8:0]  exp_res;
+
+    reg [4:0] sh_r, sh_l;
+    always @(*) begin
+        sig_norm      = sig_result_raw_r;
+        exp_res       = {1'b0, eff_exp_l_r};
+        sh_r          = 5'd0;
+        sh_l          = 5'd0;
+
+        if (any_bit) begin
+            if (msb_pos > 5'd26) begin
+                sh_r     = msb_pos - 5'd26;
+                sig_norm = (sig_result_raw_r >> sh_r) |
+                           {28'd0, |(sig_result_raw_r & ((29'd1 << sh_r) - 29'd1))};
+                exp_res  = {1'b0, eff_exp_l_r} + {4'd0, sh_r};
+            end
+            else if (msb_pos < 5'd26) begin
+                sh_l = 5'd26 - msb_pos;
+                if ({1'b0, eff_exp_l_r} > {4'd0, sh_l}) begin
+                    sig_norm = sig_result_raw_r << sh_l;
+                    exp_res  = {1'b0, eff_exp_l_r} - {4'd0, sh_l};
+                end else begin
+                    sig_norm = sig_result_raw_r << (eff_exp_l_r - 8'd1);
+                    exp_res  = 9'd0;
+                end
+            end
+        end
+    end
+
+    wire [22:0] raw_mant = sig_norm[25:3];
+    wire        guard    = sig_norm[2];
+    wire        sticky   = |sig_norm[1:0];
+    wire        round_up = guard & (sticky | raw_mant[0]);
+
+    wire [23:0] mant_rounded = {1'b0, raw_mant} + {23'd0, round_up};
+    wire        mant_ovf     = mant_rounded[23];
+
+    wire [8:0]  exp_final  = mant_ovf ? (exp_res + 9'd1) : exp_res;
+    wire [22:0] mant_final = mant_ovf ? 23'd0 : mant_rounded[22:0];
+
+    reg [31:0] result;
+    always @(*) begin
+        if (!any_bit) begin
+            result = 32'h0000_0000;
+        end
+        else if (exp_final >= 9'd255) begin
+            result = {sign_l_r, 8'd254, 23'h7FFFFF};
+        end
+        else if ((exp_final == 9'd0) && (mant_final == 23'd0)) begin
+            result = 32'h0000_0000;
+        end
+        else begin
+            result = {sign_l_r, exp_final[7:0], mant_final};
+        end
+    end
+
+    assign out = result;
+endmodule
+
+
+// -----------------------------------------------------------------------------
+// FP32 complex add / subtract -- 2-stage internally pipelined variant
+//   Packing: {real[31:0], imag[31:0]}
+// -----------------------------------------------------------------------------
+module fp32_complex_add_sub_pipe(
+    input         clk,
+    input  [63:0] a,
+    input  [63:0] b,
+    input         sub,
+    output [63:0] out
+);
+    wire [31:0] a_real = a[63:32];
+    wire [31:0] a_imag = a[31:0];
+    wire [31:0] b_real = b[63:32];
+    wire [31:0] b_imag = b[31:0];
+    wire [31:0] out_real, out_imag;
+
+    fp32_add_sub_pipe adder_real (.clk(clk), .a(a_real), .b(b_real), .sub(sub), .out(out_real));
+    fp32_add_sub_pipe adder_imag (.clk(clk), .a(a_imag), .b(b_imag), .sub(sub), .out(out_imag));
+
+    assign out = {out_real, out_imag};
+endmodule

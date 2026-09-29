@@ -20,7 +20,24 @@ class FFTTemplateGenerator:
 
         self.MEM_RD_LATENCY    = 1
         self.TWIDDLE_LATENCY   = 10
-        self.BUTTERFLY_LATENCY = 0
+        # BUTTERFLY_LATENCY = 2: two pipeline registers inside the shared
+        # butterfly's data path, both added to fix post-route 10ns timing
+        # violations (mirroring the fp16/fp32 baselines' own butterfly-
+        # pipelining fix):
+        #   1. butterfly_wrapper_gated's PIPELINE_OPERANDS=1 registers the
+        #      boundary between [complex multiply + FP4/FP8 format
+        #      converters] and [complex add/sub] -- see that module's header
+        #      ("breaks the mult->add critical path, which is what actually
+        #      blocks any claim above ~30 MHz"). Fully combinational
+        #      (BUTTERFLY_LATENCY=0) measured -9.33ns slack (N=16) /
+        #      -13.37ns (N=1024) against a 10ns clock; this alone closed
+        #      most of the gap (-1.03ns / -1.37ns).
+        #   2. The X_bf_r/Y_bf_r register in the core template (see
+        #      writeback_block) registers the butterfly's raw output before
+        #      the FP4/FP8 write-back format converters and write-data mux,
+        #      which post-route measured driving the SRAM write port
+        #      combinationally as a high-fanout ~35-gate chain.
+        self.BUTTERFLY_LATENCY = 2
         self.TOTAL_PIPE_LATENCY = self.TWIDDLE_LATENCY + self.BUTTERFLY_LATENCY + 1
 
     def get_chromosome_length(self):
@@ -183,7 +200,9 @@ class FFTTemplateGenerator:
             "",
             "    wire [15:0] X_bf, Y_bf;",
             "    wire        bf_is_fp8;",
-            "    butterfly_wrapper_gated shared_bf (",
+            "    butterfly_wrapper_gated #(",
+            "        .PIPELINE_OPERANDS(1)",
+            "    ) shared_bf (",
             "        .clk          (clk),",
             "        .A            (A_24_aligned),",
             "        .B            (B_24_aligned),",
@@ -225,21 +244,38 @@ class FFTTemplateGenerator:
         )
 
         writeback_block = (
+            "    // Register the butterfly's raw output before the FP4/FP8 format\n"
+            "    // converters and write-data mux -- post-route measured this whole\n"
+            "    // block (converters + mux) driving the SRAM write port\n"
+            "    // combinationally as a high-fanout ~35-gate chain (two single-gate\n"
+            "    // delays over 2ns each, the classic signature of a control signal\n"
+            "    // feeding a wide mux/decode structure). Mirrors the fp16/fp32\n"
+            "    // baselines' own fix: \"registering the final complex add/sub's\n"
+            "    // output rather than driving the SRAM write port combinationally\n"
+            "    // from it closed most of the gap.\" See BUTTERFLY_LATENCY.\n"
+            "    reg [15:0] X_bf_r, Y_bf_r;\n"
+            "    reg        bf_is_fp8_r;\n"
+            "    always @(posedge clk) begin\n"
+            "        X_bf_r      <= X_bf;\n"
+            "        Y_bf_r      <= Y_bf;\n"
+            "        bf_is_fp8_r <= bf_is_fp8;\n"
+            "    end\n"
+            "\n"
             "    wire [7:0]  X_fp4_packed, Y_fp4_packed;\n"
             "    wire [15:0] X_fp8_packed, Y_fp8_packed;\n"
             "\n"
-            "    fp8_to_fp4_converter conv_xr (.fp8_in(X_bf[15:8]), .fp4_out(X_fp4_packed[7:4]));\n"
-            "    fp8_to_fp4_converter conv_xi (.fp8_in(X_bf[7:0]),  .fp4_out(X_fp4_packed[3:0]));\n"
-            "    fp8_to_fp4_converter conv_yr (.fp8_in(Y_bf[15:8]), .fp4_out(Y_fp4_packed[7:4]));\n"
-            "    fp8_to_fp4_converter conv_yi (.fp8_in(Y_bf[7:0]),  .fp4_out(Y_fp4_packed[3:0]));\n"
+            "    fp8_to_fp4_converter conv_xr (.fp8_in(X_bf_r[15:8]), .fp4_out(X_fp4_packed[7:4]));\n"
+            "    fp8_to_fp4_converter conv_xi (.fp8_in(X_bf_r[7:0]),  .fp4_out(X_fp4_packed[3:0]));\n"
+            "    fp8_to_fp4_converter conv_yr (.fp8_in(Y_bf_r[15:8]), .fp4_out(Y_fp4_packed[7:4]));\n"
+            "    fp8_to_fp4_converter conv_yi (.fp8_in(Y_bf_r[7:0]),  .fp4_out(Y_fp4_packed[3:0]));\n"
             "\n"
-            "    fp4_to_fp8_converter conv_xr8 (.fp4_in(X_bf[7:4]), .fp8_out(X_fp8_packed[15:8]));\n"
-            "    fp4_to_fp8_converter conv_xi8 (.fp4_in(X_bf[3:0]), .fp8_out(X_fp8_packed[7:0]));\n"
-            "    fp4_to_fp8_converter conv_yr8 (.fp4_in(Y_bf[7:4]), .fp8_out(Y_fp8_packed[15:8]));\n"
-            "    fp4_to_fp8_converter conv_yi8 (.fp4_in(Y_bf[3:0]), .fp8_out(Y_fp8_packed[7:0]));\n"
+            "    fp4_to_fp8_converter conv_xr8 (.fp4_in(X_bf_r[7:4]), .fp8_out(X_fp8_packed[15:8]));\n"
+            "    fp4_to_fp8_converter conv_xi8 (.fp4_in(X_bf_r[3:0]), .fp8_out(X_fp8_packed[7:0]));\n"
+            "    fp4_to_fp8_converter conv_yr8 (.fp4_in(Y_bf_r[7:4]), .fp8_out(Y_fp8_packed[15:8]));\n"
+            "    fp4_to_fp8_converter conv_yi8 (.fp4_in(Y_bf_r[3:0]), .fp8_out(Y_fp8_packed[7:0]));\n"
             "\n"
-            "    assign X_wr_24 = bf_is_fp8 ? {X_bf, X_fp4_packed} : {X_fp8_packed, X_bf[7:0]};\n"
-            "    assign Y_wr_24 = bf_is_fp8 ? {Y_bf, Y_fp4_packed} : {Y_fp8_packed, Y_bf[7:0]};"
+            "    assign X_wr_24 = bf_is_fp8_r ? {X_bf_r, X_fp4_packed} : {X_fp8_packed, X_bf_r[7:0]};\n"
+            "    assign Y_wr_24 = bf_is_fp8_r ? {Y_bf_r, Y_fp4_packed} : {Y_fp8_packed, Y_bf_r[7:0]};"
         )
 
         return f"""\
@@ -430,7 +466,28 @@ module {core_module_name} #(
 
     wire [15:0] rd_data_a_16, rd_data_b_16;
     wire [23:0] X_wr_24, Y_wr_24;
-    assign ext_rd_data = rd_data_a_16;
+
+    // Register the EXTERNAL read port only (rd_data_a_16 itself, consumed
+    // separately below by the internal compute pipeline's mem_rd_a_24 ->
+    // A_24_pipe chain, is left untouched -- registering it there too would
+    // also add a cycle to the internal operand-alignment path, requiring
+    // the same kind of TWIDDLE_LATENCY/A_24_pipe-depth reconciliation the
+    // twiddle ROM and AGU fixes needed elsewhere in this project. Isolating
+    // the register to ext_rd_data keeps this fix contained to the read-side
+    // external interface only). Post-route measured the un-registered
+    // rd_data_a_16 -> ext_rd_data -> unload_data chain (through the
+    // dual-bank/precision select mux, itself fed by the SRAM's own
+    // negedge-clocked dout) violating by about -1ns at every N -- this
+    // register gives that mux the SRAM's full remaining half-cycle instead
+    // of squeezing it against unload_data's external output-delay budget.
+    // Whoever drives unload_addr/unload_en must now wait 1 more cycle for
+    // unload_data to become valid.
+    reg [15:0] ext_rd_data_r;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) ext_rd_data_r <= 16'd0;
+        else      ext_rd_data_r <= rd_data_a_16;
+    end
+    assign ext_rd_data = ext_rd_data_r;
 
     mixed_dual_bank_memory_concurrent #(
         .n         ({n}),
@@ -581,6 +638,16 @@ module {top_module_name} (
     );
     wire [23:0] load_data_24 = {{load_data, load_fp4}};
 
+    // NOTE: a register was tried here on load_en/load_addr_rev/load_data_24
+    // (mirroring the unload-path fix below) to close a small residual
+    // post-route violation on this path, but it broke correctness (SQNR
+    // collapsed from ~39dB to ~1dB): bit-reversed addressing means a
+    // late-loaded sample can map to an early internal address the AGU reads
+    // first, and the extra cycle ate into an already-tight margin between
+    // "last load write commits" and "first compute read" -- fixing that
+    // properly needs a matching delay on when the compute FSM starts, not
+    // attempted here. Left un-registered; see BUTTERFLY_LATENCY's comment
+    // for the two fixes that ARE in place and verified bit-identical.
     {core_module_name} #(
         .MAX_N     ({MAXn}),
         .ADDR_WIDTH({aw})

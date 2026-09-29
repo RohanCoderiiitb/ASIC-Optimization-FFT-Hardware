@@ -1,0 +1,2308 @@
+VERSION 5.4 ;
+NAMESCASESENSITIVE ON ;
+BUSBITCHARS "[]" ;
+DIVIDERCHAR "/" ;
+UNITS
+  DATABASE MICRONS 2000 ;
+END UNITS
+MACRO sram_512x64_2rw
+   CLASS BLOCK ;
+   SIZE 416.455 BY 259.305 ;
+   SYMMETRY X Y R90 ;
+   PIN din0[0]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  39.090 0.000 39.230 0.140 ;
+      END
+   END din0[0]
+   PIN din0[1]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  41.950 0.000 42.090 0.140 ;
+      END
+   END din0[1]
+   PIN din0[2]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  44.810 0.000 44.950 0.140 ;
+      END
+   END din0[2]
+   PIN din0[3]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  47.670 0.000 47.810 0.140 ;
+      END
+   END din0[3]
+   PIN din0[4]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  50.530 0.000 50.670 0.140 ;
+      END
+   END din0[4]
+   PIN din0[5]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  53.390 0.000 53.530 0.140 ;
+      END
+   END din0[5]
+   PIN din0[6]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  56.250 0.000 56.390 0.140 ;
+      END
+   END din0[6]
+   PIN din0[7]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  59.110 0.000 59.250 0.140 ;
+      END
+   END din0[7]
+   PIN din0[8]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  61.970 0.000 62.110 0.140 ;
+      END
+   END din0[8]
+   PIN din0[9]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  64.830 0.000 64.970 0.140 ;
+      END
+   END din0[9]
+   PIN din0[10]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  67.690 0.000 67.830 0.140 ;
+      END
+   END din0[10]
+   PIN din0[11]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  70.550 0.000 70.690 0.140 ;
+      END
+   END din0[11]
+   PIN din0[12]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  73.410 0.000 73.550 0.140 ;
+      END
+   END din0[12]
+   PIN din0[13]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  76.270 0.000 76.410 0.140 ;
+      END
+   END din0[13]
+   PIN din0[14]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  79.130 0.000 79.270 0.140 ;
+      END
+   END din0[14]
+   PIN din0[15]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  81.990 0.000 82.130 0.140 ;
+      END
+   END din0[15]
+   PIN din0[16]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  84.850 0.000 84.990 0.140 ;
+      END
+   END din0[16]
+   PIN din0[17]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  87.710 0.000 87.850 0.140 ;
+      END
+   END din0[17]
+   PIN din0[18]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  90.570 0.000 90.710 0.140 ;
+      END
+   END din0[18]
+   PIN din0[19]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  93.430 0.000 93.570 0.140 ;
+      END
+   END din0[19]
+   PIN din0[20]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  96.290 0.000 96.430 0.140 ;
+      END
+   END din0[20]
+   PIN din0[21]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  99.150 0.000 99.290 0.140 ;
+      END
+   END din0[21]
+   PIN din0[22]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  102.010 0.000 102.150 0.140 ;
+      END
+   END din0[22]
+   PIN din0[23]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  104.870 0.000 105.010 0.140 ;
+      END
+   END din0[23]
+   PIN din0[24]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  107.730 0.000 107.870 0.140 ;
+      END
+   END din0[24]
+   PIN din0[25]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  110.590 0.000 110.730 0.140 ;
+      END
+   END din0[25]
+   PIN din0[26]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  113.450 0.000 113.590 0.140 ;
+      END
+   END din0[26]
+   PIN din0[27]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  116.310 0.000 116.450 0.140 ;
+      END
+   END din0[27]
+   PIN din0[28]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  119.170 0.000 119.310 0.140 ;
+      END
+   END din0[28]
+   PIN din0[29]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  122.030 0.000 122.170 0.140 ;
+      END
+   END din0[29]
+   PIN din0[30]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  124.890 0.000 125.030 0.140 ;
+      END
+   END din0[30]
+   PIN din0[31]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  127.750 0.000 127.890 0.140 ;
+      END
+   END din0[31]
+   PIN din0[32]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  130.610 0.000 130.750 0.140 ;
+      END
+   END din0[32]
+   PIN din0[33]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  133.470 0.000 133.610 0.140 ;
+      END
+   END din0[33]
+   PIN din0[34]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  136.330 0.000 136.470 0.140 ;
+      END
+   END din0[34]
+   PIN din0[35]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  139.190 0.000 139.330 0.140 ;
+      END
+   END din0[35]
+   PIN din0[36]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  142.050 0.000 142.190 0.140 ;
+      END
+   END din0[36]
+   PIN din0[37]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  144.910 0.000 145.050 0.140 ;
+      END
+   END din0[37]
+   PIN din0[38]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  147.770 0.000 147.910 0.140 ;
+      END
+   END din0[38]
+   PIN din0[39]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  150.630 0.000 150.770 0.140 ;
+      END
+   END din0[39]
+   PIN din0[40]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  153.490 0.000 153.630 0.140 ;
+      END
+   END din0[40]
+   PIN din0[41]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  156.350 0.000 156.490 0.140 ;
+      END
+   END din0[41]
+   PIN din0[42]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  159.210 0.000 159.350 0.140 ;
+      END
+   END din0[42]
+   PIN din0[43]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  162.070 0.000 162.210 0.140 ;
+      END
+   END din0[43]
+   PIN din0[44]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  164.930 0.000 165.070 0.140 ;
+      END
+   END din0[44]
+   PIN din0[45]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  167.790 0.000 167.930 0.140 ;
+      END
+   END din0[45]
+   PIN din0[46]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  170.650 0.000 170.790 0.140 ;
+      END
+   END din0[46]
+   PIN din0[47]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  173.510 0.000 173.650 0.140 ;
+      END
+   END din0[47]
+   PIN din0[48]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  176.370 0.000 176.510 0.140 ;
+      END
+   END din0[48]
+   PIN din0[49]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  179.230 0.000 179.370 0.140 ;
+      END
+   END din0[49]
+   PIN din0[50]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  182.090 0.000 182.230 0.140 ;
+      END
+   END din0[50]
+   PIN din0[51]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  184.950 0.000 185.090 0.140 ;
+      END
+   END din0[51]
+   PIN din0[52]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  187.810 0.000 187.950 0.140 ;
+      END
+   END din0[52]
+   PIN din0[53]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  190.670 0.000 190.810 0.140 ;
+      END
+   END din0[53]
+   PIN din0[54]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  193.530 0.000 193.670 0.140 ;
+      END
+   END din0[54]
+   PIN din0[55]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  196.390 0.000 196.530 0.140 ;
+      END
+   END din0[55]
+   PIN din0[56]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  199.250 0.000 199.390 0.140 ;
+      END
+   END din0[56]
+   PIN din0[57]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  202.110 0.000 202.250 0.140 ;
+      END
+   END din0[57]
+   PIN din0[58]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  204.970 0.000 205.110 0.140 ;
+      END
+   END din0[58]
+   PIN din0[59]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  207.830 0.000 207.970 0.140 ;
+      END
+   END din0[59]
+   PIN din0[60]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  210.690 0.000 210.830 0.140 ;
+      END
+   END din0[60]
+   PIN din0[61]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  213.550 0.000 213.690 0.140 ;
+      END
+   END din0[61]
+   PIN din0[62]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  216.410 0.000 216.550 0.140 ;
+      END
+   END din0[62]
+   PIN din0[63]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  219.270 0.000 219.410 0.140 ;
+      END
+   END din0[63]
+   PIN din1[0]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  191.890 259.165 192.030 259.305 ;
+      END
+   END din1[0]
+   PIN din1[1]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  194.750 259.165 194.890 259.305 ;
+      END
+   END din1[1]
+   PIN din1[2]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  197.610 259.165 197.750 259.305 ;
+      END
+   END din1[2]
+   PIN din1[3]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  200.470 259.165 200.610 259.305 ;
+      END
+   END din1[3]
+   PIN din1[4]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  203.330 259.165 203.470 259.305 ;
+      END
+   END din1[4]
+   PIN din1[5]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  206.190 259.165 206.330 259.305 ;
+      END
+   END din1[5]
+   PIN din1[6]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  209.050 259.165 209.190 259.305 ;
+      END
+   END din1[6]
+   PIN din1[7]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  211.910 259.165 212.050 259.305 ;
+      END
+   END din1[7]
+   PIN din1[8]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  214.770 259.165 214.910 259.305 ;
+      END
+   END din1[8]
+   PIN din1[9]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  217.630 259.165 217.770 259.305 ;
+      END
+   END din1[9]
+   PIN din1[10]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  220.490 259.165 220.630 259.305 ;
+      END
+   END din1[10]
+   PIN din1[11]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  223.350 259.165 223.490 259.305 ;
+      END
+   END din1[11]
+   PIN din1[12]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  226.210 259.165 226.350 259.305 ;
+      END
+   END din1[12]
+   PIN din1[13]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  229.070 259.165 229.210 259.305 ;
+      END
+   END din1[13]
+   PIN din1[14]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  231.930 259.165 232.070 259.305 ;
+      END
+   END din1[14]
+   PIN din1[15]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  234.790 259.165 234.930 259.305 ;
+      END
+   END din1[15]
+   PIN din1[16]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  237.650 259.165 237.790 259.305 ;
+      END
+   END din1[16]
+   PIN din1[17]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  240.510 259.165 240.650 259.305 ;
+      END
+   END din1[17]
+   PIN din1[18]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  243.370 259.165 243.510 259.305 ;
+      END
+   END din1[18]
+   PIN din1[19]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  246.230 259.165 246.370 259.305 ;
+      END
+   END din1[19]
+   PIN din1[20]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  249.090 259.165 249.230 259.305 ;
+      END
+   END din1[20]
+   PIN din1[21]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  251.950 259.165 252.090 259.305 ;
+      END
+   END din1[21]
+   PIN din1[22]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  254.810 259.165 254.950 259.305 ;
+      END
+   END din1[22]
+   PIN din1[23]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  257.670 259.165 257.810 259.305 ;
+      END
+   END din1[23]
+   PIN din1[24]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  260.525 259.165 260.670 259.305 ;
+      END
+   END din1[24]
+   PIN din1[25]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  263.390 259.165 263.525 259.305 ;
+      END
+   END din1[25]
+   PIN din1[26]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  266.250 259.165 266.390 259.305 ;
+      END
+   END din1[26]
+   PIN din1[27]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  269.110 259.165 269.250 259.305 ;
+      END
+   END din1[27]
+   PIN din1[28]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  271.965 259.165 272.110 259.305 ;
+      END
+   END din1[28]
+   PIN din1[29]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  274.825 259.165 274.965 259.305 ;
+      END
+   END din1[29]
+   PIN din1[30]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  277.690 259.165 277.825 259.305 ;
+      END
+   END din1[30]
+   PIN din1[31]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  280.550 259.165 280.690 259.305 ;
+      END
+   END din1[31]
+   PIN din1[32]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  283.410 259.165 283.550 259.305 ;
+      END
+   END din1[32]
+   PIN din1[33]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  286.265 259.165 286.410 259.305 ;
+      END
+   END din1[33]
+   PIN din1[34]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  289.130 259.165 289.265 259.305 ;
+      END
+   END din1[34]
+   PIN din1[35]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  291.990 259.165 292.130 259.305 ;
+      END
+   END din1[35]
+   PIN din1[36]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  294.850 259.165 294.990 259.305 ;
+      END
+   END din1[36]
+   PIN din1[37]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  297.705 259.165 297.850 259.305 ;
+      END
+   END din1[37]
+   PIN din1[38]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  300.570 259.165 300.705 259.305 ;
+      END
+   END din1[38]
+   PIN din1[39]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  303.430 259.165 303.570 259.305 ;
+      END
+   END din1[39]
+   PIN din1[40]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  306.290 259.165 306.430 259.305 ;
+      END
+   END din1[40]
+   PIN din1[41]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  309.145 259.165 309.290 259.305 ;
+      END
+   END din1[41]
+   PIN din1[42]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  312.010 259.165 312.145 259.305 ;
+      END
+   END din1[42]
+   PIN din1[43]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  314.870 259.165 315.010 259.305 ;
+      END
+   END din1[43]
+   PIN din1[44]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  317.730 259.165 317.870 259.305 ;
+      END
+   END din1[44]
+   PIN din1[45]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  320.585 259.165 320.730 259.305 ;
+      END
+   END din1[45]
+   PIN din1[46]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  323.450 259.165 323.585 259.305 ;
+      END
+   END din1[46]
+   PIN din1[47]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  326.310 259.165 326.450 259.305 ;
+      END
+   END din1[47]
+   PIN din1[48]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  329.170 259.165 329.310 259.305 ;
+      END
+   END din1[48]
+   PIN din1[49]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  332.030 259.165 332.170 259.305 ;
+      END
+   END din1[49]
+   PIN din1[50]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  334.890 259.165 335.030 259.305 ;
+      END
+   END din1[50]
+   PIN din1[51]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  337.750 259.165 337.890 259.305 ;
+      END
+   END din1[51]
+   PIN din1[52]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  340.610 259.165 340.750 259.305 ;
+      END
+   END din1[52]
+   PIN din1[53]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  343.470 259.165 343.610 259.305 ;
+      END
+   END din1[53]
+   PIN din1[54]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  346.330 259.165 346.470 259.305 ;
+      END
+   END din1[54]
+   PIN din1[55]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  349.190 259.165 349.330 259.305 ;
+      END
+   END din1[55]
+   PIN din1[56]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  352.050 259.165 352.190 259.305 ;
+      END
+   END din1[56]
+   PIN din1[57]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  354.910 259.165 355.050 259.305 ;
+      END
+   END din1[57]
+   PIN din1[58]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  357.770 259.165 357.910 259.305 ;
+      END
+   END din1[58]
+   PIN din1[59]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  360.630 259.165 360.770 259.305 ;
+      END
+   END din1[59]
+   PIN din1[60]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  363.490 259.165 363.630 259.305 ;
+      END
+   END din1[60]
+   PIN din1[61]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  366.350 259.165 366.490 259.305 ;
+      END
+   END din1[61]
+   PIN din1[62]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  369.210 259.165 369.350 259.305 ;
+      END
+   END din1[62]
+   PIN din1[63]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  372.070 259.165 372.210 259.305 ;
+      END
+   END din1[63]
+   PIN addr0[0]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  33.370 0.000 33.510 0.140 ;
+      END
+   END addr0[0]
+   PIN addr0[1]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  36.230 0.000 36.370 0.140 ;
+      END
+   END addr0[1]
+   PIN addr0[2]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 64.760 0.140 64.900 ;
+      END
+   END addr0[2]
+   PIN addr0[3]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 67.490 0.140 67.630 ;
+      END
+   END addr0[3]
+   PIN addr0[4]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 69.700 0.140 69.840 ;
+      END
+   END addr0[4]
+   PIN addr0[5]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 72.430 0.140 72.570 ;
+      END
+   END addr0[5]
+   PIN addr0[6]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 74.640 0.140 74.780 ;
+      END
+   END addr0[6]
+   PIN addr0[7]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 77.370 0.140 77.510 ;
+      END
+   END addr0[7]
+   PIN addr0[8]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 79.580 0.140 79.720 ;
+      END
+   END addr0[8]
+   PIN addr1[0]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  380.080 259.165 380.220 259.305 ;
+      END
+   END addr1[0]
+   PIN addr1[1]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  377.220 259.165 377.360 259.305 ;
+      END
+   END addr1[1]
+   PIN addr1[2]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 32.650 416.455 32.790 ;
+      END
+   END addr1[2]
+   PIN addr1[3]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 29.920 416.455 30.060 ;
+      END
+   END addr1[3]
+   PIN addr1[4]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 27.710 416.455 27.850 ;
+      END
+   END addr1[4]
+   PIN addr1[5]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  388.090 0.000 388.230 0.140 ;
+      END
+   END addr1[5]
+   PIN addr1[6]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  389.230 0.000 389.370 0.140 ;
+      END
+   END addr1[6]
+   PIN addr1[7]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  388.375 0.000 388.515 0.140 ;
+      END
+   END addr1[7]
+   PIN addr1[8]
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  388.660 0.000 388.800 0.140 ;
+      END
+   END addr1[8]
+   PIN csb0
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 11.720 0.140 11.860 ;
+      END
+   END csb0
+   PIN csb1
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 246.970 416.455 247.110 ;
+      END
+   END csb1
+   PIN web0
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 14.450 0.140 14.590 ;
+      END
+   END web0
+   PIN web1
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 244.240 416.455 244.380 ;
+      END
+   END web1
+   PIN clk0
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 11.955 0.140 12.095 ;
+      END
+   END clk0
+   PIN clk1
+      DIRECTION INPUT ;
+      PORT
+         LAYER Metal3 ;
+         RECT  416.315 246.735 416.455 246.875 ;
+      END
+   END clk1
+   PIN dout0[0]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  57.690 0.000 57.830 0.140 ;
+      END
+   END dout0[0]
+   PIN dout0[1]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  62.390 0.000 62.530 0.140 ;
+      END
+   END dout0[1]
+   PIN dout0[2]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  66.855 0.000 66.995 0.140 ;
+      END
+   END dout0[2]
+   PIN dout0[3]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  71.785 0.000 71.925 0.140 ;
+      END
+   END dout0[3]
+   PIN dout0[4]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  76.560 0.000 76.700 0.140 ;
+      END
+   END dout0[4]
+   PIN dout0[5]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  81.190 0.000 81.330 0.140 ;
+      END
+   END dout0[5]
+   PIN dout0[6]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  85.890 0.000 86.030 0.140 ;
+      END
+   END dout0[6]
+   PIN dout0[7]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  90.860 0.000 91.000 0.140 ;
+      END
+   END dout0[7]
+   PIN dout0[8]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  95.290 0.000 95.430 0.140 ;
+      END
+   END dout0[8]
+   PIN dout0[9]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  99.990 0.000 100.130 0.140 ;
+      END
+   END dout0[9]
+   PIN dout0[10]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  104.115 0.000 104.255 0.140 ;
+      END
+   END dout0[10]
+   PIN dout0[11]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  109.390 0.000 109.530 0.140 ;
+      END
+   END dout0[11]
+   PIN dout0[12]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  114.090 0.000 114.230 0.140 ;
+      END
+   END dout0[12]
+   PIN dout0[13]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  118.415 0.000 118.555 0.140 ;
+      END
+   END dout0[13]
+   PIN dout0[14]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  123.490 0.000 123.630 0.140 ;
+      END
+   END dout0[14]
+   PIN dout0[15]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  128.190 0.000 128.325 0.140 ;
+      END
+   END dout0[15]
+   PIN dout0[16]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  132.650 0.000 132.790 0.140 ;
+      END
+   END dout0[16]
+   PIN dout0[17]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  137.590 0.000 137.725 0.140 ;
+      END
+   END dout0[17]
+   PIN dout0[18]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  142.340 0.000 142.475 0.140 ;
+      END
+   END dout0[18]
+   PIN dout0[19]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  146.990 0.000 147.130 0.140 ;
+      END
+   END dout0[19]
+   PIN dout0[20]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  151.690 0.000 151.825 0.140 ;
+      END
+   END dout0[20]
+   PIN dout0[21]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  156.635 0.000 156.780 0.140 ;
+      END
+   END dout0[21]
+   PIN dout0[22]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  161.090 0.000 161.225 0.140 ;
+      END
+   END dout0[22]
+   PIN dout0[23]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  165.790 0.000 165.930 0.140 ;
+      END
+   END dout0[23]
+   PIN dout0[24]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  171.060 0.000 171.200 0.140 ;
+      END
+   END dout0[24]
+   PIN dout0[25]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  175.190 0.000 175.330 0.140 ;
+      END
+   END dout0[25]
+   PIN dout0[26]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  179.890 0.000 180.030 0.140 ;
+      END
+   END dout0[26]
+   PIN dout0[27]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  184.195 0.000 184.335 0.140 ;
+      END
+   END dout0[27]
+   PIN dout0[28]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  189.290 0.000 189.430 0.140 ;
+      END
+   END dout0[28]
+   PIN dout0[29]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  193.990 0.000 194.130 0.140 ;
+      END
+   END dout0[29]
+   PIN dout0[30]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  198.450 0.000 198.590 0.140 ;
+      END
+   END dout0[30]
+   PIN dout0[31]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  203.390 0.000 203.530 0.140 ;
+      END
+   END dout0[31]
+   PIN dout0[32]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  208.120 0.000 208.260 0.140 ;
+      END
+   END dout0[32]
+   PIN dout0[33]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  212.790 0.000 212.930 0.140 ;
+      END
+   END dout0[33]
+   PIN dout0[34]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  217.490 0.000 217.630 0.140 ;
+      END
+   END dout0[34]
+   PIN dout0[35]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  222.190 0.000 222.325 0.140 ;
+      END
+   END dout0[35]
+   PIN dout0[36]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  226.890 0.000 227.030 0.140 ;
+      END
+   END dout0[36]
+   PIN dout0[37]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  231.590 0.000 231.730 0.140 ;
+      END
+   END dout0[37]
+   PIN dout0[38]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  236.290 0.000 236.430 0.140 ;
+      END
+   END dout0[38]
+   PIN dout0[39]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  240.990 0.000 241.130 0.140 ;
+      END
+   END dout0[39]
+   PIN dout0[40]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  245.690 0.000 245.825 0.140 ;
+      END
+   END dout0[40]
+   PIN dout0[41]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  250.390 0.000 250.530 0.140 ;
+      END
+   END dout0[41]
+   PIN dout0[42]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  255.090 0.000 255.230 0.140 ;
+      END
+   END dout0[42]
+   PIN dout0[43]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  259.790 0.000 259.930 0.140 ;
+      END
+   END dout0[43]
+   PIN dout0[44]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  264.490 0.000 264.630 0.140 ;
+      END
+   END dout0[44]
+   PIN dout0[45]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  269.190 0.000 269.325 0.140 ;
+      END
+   END dout0[45]
+   PIN dout0[46]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  273.890 0.000 274.025 0.140 ;
+      END
+   END dout0[46]
+   PIN dout0[47]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  278.585 0.000 278.730 0.140 ;
+      END
+   END dout0[47]
+   PIN dout0[48]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  283.290 0.000 283.430 0.140 ;
+      END
+   END dout0[48]
+   PIN dout0[49]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  287.990 0.000 288.130 0.140 ;
+      END
+   END dout0[49]
+   PIN dout0[50]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  292.690 0.000 292.825 0.140 ;
+      END
+   END dout0[50]
+   PIN dout0[51]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  297.390 0.000 297.525 0.140 ;
+      END
+   END dout0[51]
+   PIN dout0[52]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  302.085 0.000 302.230 0.140 ;
+      END
+   END dout0[52]
+   PIN dout0[53]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  306.790 0.000 306.930 0.140 ;
+      END
+   END dout0[53]
+   PIN dout0[54]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  311.490 0.000 311.630 0.140 ;
+      END
+   END dout0[54]
+   PIN dout0[55]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  316.190 0.000 316.325 0.140 ;
+      END
+   END dout0[55]
+   PIN dout0[56]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  320.890 0.000 321.025 0.140 ;
+      END
+   END dout0[56]
+   PIN dout0[57]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  325.585 0.000 325.730 0.140 ;
+      END
+   END dout0[57]
+   PIN dout0[58]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  330.290 0.000 330.430 0.140 ;
+      END
+   END dout0[58]
+   PIN dout0[59]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  334.990 0.000 335.130 0.140 ;
+      END
+   END dout0[59]
+   PIN dout0[60]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  339.690 0.000 339.830 0.140 ;
+      END
+   END dout0[60]
+   PIN dout0[61]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  344.390 0.000 344.530 0.140 ;
+      END
+   END dout0[61]
+   PIN dout0[62]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  349.090 0.000 349.230 0.140 ;
+      END
+   END dout0[62]
+   PIN dout0[63]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  353.790 0.000 353.930 0.140 ;
+      END
+   END dout0[63]
+   PIN dout1[0]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  57.690 259.165 57.830 259.305 ;
+      END
+   END dout1[0]
+   PIN dout1[1]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  62.390 259.165 62.530 259.305 ;
+      END
+   END dout1[1]
+   PIN dout1[2]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  67.090 259.165 67.230 259.305 ;
+      END
+   END dout1[2]
+   PIN dout1[3]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  71.785 259.165 71.925 259.305 ;
+      END
+   END dout1[3]
+   PIN dout1[4]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  76.490 259.165 76.630 259.305 ;
+      END
+   END dout1[4]
+   PIN dout1[5]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  81.190 259.165 81.330 259.305 ;
+      END
+   END dout1[5]
+   PIN dout1[6]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  85.890 259.165 86.030 259.305 ;
+      END
+   END dout1[6]
+   PIN dout1[7]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  90.590 259.165 90.730 259.305 ;
+      END
+   END dout1[7]
+   PIN dout1[8]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  95.290 259.165 95.430 259.305 ;
+      END
+   END dout1[8]
+   PIN dout1[9]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  99.990 259.165 100.130 259.305 ;
+      END
+   END dout1[9]
+   PIN dout1[10]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  104.690 259.165 104.830 259.305 ;
+      END
+   END dout1[10]
+   PIN dout1[11]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  109.390 259.165 109.530 259.305 ;
+      END
+   END dout1[11]
+   PIN dout1[12]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  114.090 259.165 114.230 259.305 ;
+      END
+   END dout1[12]
+   PIN dout1[13]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  118.790 259.165 118.930 259.305 ;
+      END
+   END dout1[13]
+   PIN dout1[14]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  123.490 259.165 123.630 259.305 ;
+      END
+   END dout1[14]
+   PIN dout1[15]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  128.190 259.165 128.325 259.305 ;
+      END
+   END dout1[15]
+   PIN dout1[16]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  132.885 259.165 133.030 259.305 ;
+      END
+   END dout1[16]
+   PIN dout1[17]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  137.590 259.165 137.725 259.305 ;
+      END
+   END dout1[17]
+   PIN dout1[18]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  142.290 259.165 142.430 259.305 ;
+      END
+   END dout1[18]
+   PIN dout1[19]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  146.990 259.165 147.130 259.305 ;
+      END
+   END dout1[19]
+   PIN dout1[20]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  151.690 259.165 151.825 259.305 ;
+      END
+   END dout1[20]
+   PIN dout1[21]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  156.385 259.165 156.530 259.305 ;
+      END
+   END dout1[21]
+   PIN dout1[22]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  161.090 259.165 161.225 259.305 ;
+      END
+   END dout1[22]
+   PIN dout1[23]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  165.790 259.165 165.930 259.305 ;
+      END
+   END dout1[23]
+   PIN dout1[24]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  170.490 259.165 170.630 259.305 ;
+      END
+   END dout1[24]
+   PIN dout1[25]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  175.190 259.165 175.330 259.305 ;
+      END
+   END dout1[25]
+   PIN dout1[26]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  179.890 259.165 180.030 259.305 ;
+      END
+   END dout1[26]
+   PIN dout1[27]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  184.590 259.165 184.730 259.305 ;
+      END
+   END dout1[27]
+   PIN dout1[28]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  189.290 259.165 189.430 259.305 ;
+      END
+   END dout1[28]
+   PIN dout1[29]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  193.990 259.165 194.130 259.305 ;
+      END
+   END dout1[29]
+   PIN dout1[30]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  198.690 259.165 198.830 259.305 ;
+      END
+   END dout1[30]
+   PIN dout1[31]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  203.610 259.165 203.750 259.305 ;
+      END
+   END dout1[31]
+   PIN dout1[32]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  208.090 259.165 208.230 259.305 ;
+      END
+   END dout1[32]
+   PIN dout1[33]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  212.790 259.165 212.930 259.305 ;
+      END
+   END dout1[33]
+   PIN dout1[34]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  218.060 259.165 218.200 259.305 ;
+      END
+   END dout1[34]
+   PIN dout1[35]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  222.190 259.165 222.325 259.305 ;
+      END
+   END dout1[35]
+   PIN dout1[36]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  226.890 259.165 227.030 259.305 ;
+      END
+   END dout1[36]
+   PIN dout1[37]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  231.170 259.165 231.310 259.305 ;
+      END
+   END dout1[37]
+   PIN dout1[38]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  236.290 259.165 236.430 259.305 ;
+      END
+   END dout1[38]
+   PIN dout1[39]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  240.990 259.165 241.130 259.305 ;
+      END
+   END dout1[39]
+   PIN dout1[40]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  245.450 259.165 245.590 259.305 ;
+      END
+   END dout1[40]
+   PIN dout1[41]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  250.390 259.165 250.530 259.305 ;
+      END
+   END dout1[41]
+   PIN dout1[42]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  255.090 259.165 255.230 259.305 ;
+      END
+   END dout1[42]
+   PIN dout1[43]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  259.770 259.165 259.910 259.305 ;
+      END
+   END dout1[43]
+   PIN dout1[44]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  264.490 259.165 264.630 259.305 ;
+      END
+   END dout1[44]
+   PIN dout1[45]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  269.390 259.165 269.535 259.305 ;
+      END
+   END dout1[45]
+   PIN dout1[46]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  273.890 259.165 274.025 259.305 ;
+      END
+   END dout1[46]
+   PIN dout1[47]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  278.585 259.165 278.730 259.305 ;
+      END
+   END dout1[47]
+   PIN dout1[48]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  283.860 259.165 284.000 259.305 ;
+      END
+   END dout1[48]
+   PIN dout1[49]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  287.990 259.165 288.130 259.305 ;
+      END
+   END dout1[49]
+   PIN dout1[50]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  292.690 259.165 292.825 259.305 ;
+      END
+   END dout1[50]
+   PIN dout1[51]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  296.950 259.165 297.090 259.305 ;
+      END
+   END dout1[51]
+   PIN dout1[52]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  302.085 259.165 302.230 259.305 ;
+      END
+   END dout1[52]
+   PIN dout1[53]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  306.790 259.165 306.930 259.305 ;
+      END
+   END dout1[53]
+   PIN dout1[54]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  311.250 259.165 311.390 259.305 ;
+      END
+   END dout1[54]
+   PIN dout1[55]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  316.190 259.165 316.325 259.305 ;
+      END
+   END dout1[55]
+   PIN dout1[56]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  320.890 259.165 321.025 259.305 ;
+      END
+   END dout1[56]
+   PIN dout1[57]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  325.550 259.165 325.690 259.305 ;
+      END
+   END dout1[57]
+   PIN dout1[58]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  330.290 259.165 330.430 259.305 ;
+      END
+   END dout1[58]
+   PIN dout1[59]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  335.170 259.165 335.310 259.305 ;
+      END
+   END dout1[59]
+   PIN dout1[60]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  339.690 259.165 339.830 259.305 ;
+      END
+   END dout1[60]
+   PIN dout1[61]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  344.390 259.165 344.530 259.305 ;
+      END
+   END dout1[61]
+   PIN dout1[62]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  349.660 259.165 349.800 259.305 ;
+      END
+   END dout1[62]
+   PIN dout1[63]
+      DIRECTION OUTPUT ;
+      PORT
+         LAYER Metal4 ;
+         RECT  353.790 259.165 353.930 259.305 ;
+      END
+   END dout1[63]
+   PIN vdd
+      DIRECTION INOUT ;
+      USE POWER ; 
+      SHAPE ABUTMENT ; 
+      PORT
+         LAYER Metal3 ;
+         RECT  0.000 258.605 416.455 259.305 ;
+         LAYER Metal4 ;
+         RECT  415.755 0.000 416.455 259.305 ;
+         LAYER Metal4 ;
+         RECT  0.000 0.000 0.700 259.305 ;
+         LAYER Metal3 ;
+         RECT  0.000 0.000 416.455 0.700 ;
+      END
+   END vdd
+   PIN gnd
+      DIRECTION INOUT ;
+      USE GROUND ; 
+      SHAPE ABUTMENT ; 
+      PORT
+         LAYER Metal3 ;
+         RECT  1.400 1.400 415.055 2.100 ;
+         LAYER Metal4 ;
+         RECT  414.355 1.400 415.055 257.905 ;
+         LAYER Metal4 ;
+         RECT  1.400 1.400 2.100 257.905 ;
+         LAYER Metal3 ;
+         RECT  1.400 257.205 415.055 257.905 ;
+      END
+   END gnd
+   OBS
+   LAYER  metal1 ;
+      RECT  0.140 0.140 416.315 259.165 ;
+   LAYER  metal2 ;
+      RECT  0.140 0.140 416.315 259.165 ;
+   LAYER  Metal3 ;
+      RECT  0.280 64.620 416.315 65.040 ;
+      RECT  0.140 65.040 0.280 67.350 ;
+      RECT  0.140 67.770 0.280 69.560 ;
+      RECT  0.140 69.980 0.280 72.290 ;
+      RECT  0.140 72.710 0.280 74.500 ;
+      RECT  0.140 74.920 0.280 77.230 ;
+      RECT  0.140 77.650 0.280 79.440 ;
+      RECT  0.280 32.510 416.175 32.930 ;
+      RECT  0.280 32.930 416.175 64.620 ;
+      RECT  416.175 32.930 416.315 64.620 ;
+      RECT  416.175 30.200 416.315 32.510 ;
+      RECT  416.175 27.990 416.315 29.780 ;
+      RECT  0.280 65.040 416.175 246.830 ;
+      RECT  0.280 246.830 416.175 247.250 ;
+      RECT  0.140 14.730 0.280 64.620 ;
+      RECT  416.175 65.040 416.315 244.100 ;
+      RECT  0.140 12.235 0.280 14.310 ;
+      RECT  416.175 244.520 416.315 246.595 ;
+      RECT  0.140 79.860 0.280 258.465 ;
+      RECT  416.175 247.250 416.315 258.465 ;
+      RECT  416.175 0.840 416.315 27.570 ;
+      RECT  0.140 0.840 0.280 11.580 ;
+      RECT  0.280 0.840 1.260 1.260 ;
+      RECT  0.280 1.260 1.260 2.240 ;
+      RECT  0.280 2.240 1.260 32.510 ;
+      RECT  1.260 0.840 415.195 1.260 ;
+      RECT  1.260 2.240 415.195 32.510 ;
+      RECT  415.195 0.840 416.175 1.260 ;
+      RECT  415.195 1.260 416.175 2.240 ;
+      RECT  415.195 2.240 416.175 32.510 ;
+      RECT  0.280 247.250 1.260 257.065 ;
+      RECT  0.280 257.065 1.260 258.045 ;
+      RECT  0.280 258.045 1.260 258.465 ;
+      RECT  1.260 247.250 415.195 257.065 ;
+      RECT  1.260 258.045 415.195 258.465 ;
+      RECT  415.195 247.250 416.175 257.065 ;
+      RECT  415.195 257.065 416.175 258.045 ;
+      RECT  415.195 258.045 416.175 258.465 ;
+   LAYER  Metal4 ;
+      RECT  38.810 0.420 39.510 259.165 ;
+      RECT  39.510 0.140 41.670 0.420 ;
+      RECT  42.370 0.140 44.530 0.420 ;
+      RECT  45.230 0.140 47.390 0.420 ;
+      RECT  48.090 0.140 50.250 0.420 ;
+      RECT  50.950 0.140 53.110 0.420 ;
+      RECT  53.810 0.140 55.970 0.420 ;
+      RECT  59.530 0.140 61.690 0.420 ;
+      RECT  68.110 0.140 70.270 0.420 ;
+      RECT  73.830 0.140 75.995 0.420 ;
+      RECT  82.410 0.140 84.570 0.420 ;
+      RECT  88.130 0.140 90.290 0.420 ;
+      RECT  96.710 0.140 98.870 0.420 ;
+      RECT  105.290 0.140 107.450 0.420 ;
+      RECT  111.010 0.140 113.170 0.420 ;
+      RECT  119.590 0.140 121.750 0.420 ;
+      RECT  125.310 0.140 127.470 0.420 ;
+      RECT  133.895 0.140 136.050 0.420 ;
+      RECT  139.610 0.140 141.770 0.420 ;
+      RECT  148.190 0.140 150.350 0.420 ;
+      RECT  153.910 0.140 156.070 0.420 ;
+      RECT  162.490 0.140 164.650 0.420 ;
+      RECT  168.210 0.140 170.370 0.420 ;
+      RECT  176.790 0.140 178.950 0.420 ;
+      RECT  185.370 0.140 187.530 0.420 ;
+      RECT  191.090 0.140 193.250 0.420 ;
+      RECT  199.670 0.140 201.830 0.420 ;
+      RECT  205.390 0.140 207.550 0.420 ;
+      RECT  213.970 0.140 216.130 0.420 ;
+      RECT  39.510 0.420 191.610 258.885 ;
+      RECT  191.610 0.420 192.310 258.885 ;
+      RECT  195.170 258.885 197.330 259.165 ;
+      RECT  200.890 258.885 203.050 259.165 ;
+      RECT  209.470 258.885 211.630 259.165 ;
+      RECT  215.190 258.885 217.350 259.165 ;
+      RECT  223.770 258.885 225.930 259.165 ;
+      RECT  232.350 258.885 234.510 259.165 ;
+      RECT  238.070 258.885 240.230 259.165 ;
+      RECT  246.650 258.885 248.810 259.165 ;
+      RECT  252.370 258.885 254.530 259.165 ;
+      RECT  260.950 258.885 263.110 259.165 ;
+      RECT  266.670 258.885 268.825 259.165 ;
+      RECT  275.250 258.885 277.410 259.165 ;
+      RECT  280.965 258.885 283.130 259.165 ;
+      RECT  289.550 258.885 291.705 259.165 ;
+      RECT  298.130 258.885 300.290 259.165 ;
+      RECT  303.850 258.885 306.010 259.165 ;
+      RECT  312.430 258.885 314.585 259.165 ;
+      RECT  318.145 258.885 320.310 259.165 ;
+      RECT  326.730 258.885 328.890 259.165 ;
+      RECT  332.450 258.885 334.610 259.165 ;
+      RECT  341.030 258.885 343.190 259.165 ;
+      RECT  346.750 258.885 348.910 259.165 ;
+      RECT  355.330 258.885 357.490 259.165 ;
+      RECT  358.190 258.885 360.350 259.165 ;
+      RECT  361.050 258.885 363.210 259.165 ;
+      RECT  363.910 258.885 366.070 259.165 ;
+      RECT  366.770 258.885 368.930 259.165 ;
+      RECT  369.630 258.885 371.790 259.165 ;
+      RECT  33.790 0.140 35.950 0.420 ;
+      RECT  36.655 0.140 38.810 0.420 ;
+      RECT  372.490 258.885 376.940 259.165 ;
+      RECT  377.640 258.885 379.800 259.165 ;
+      RECT  56.670 0.140 57.410 0.420 ;
+      RECT  58.110 0.140 58.830 0.420 ;
+      RECT  62.810 0.140 64.550 0.420 ;
+      RECT  65.250 0.140 66.570 0.420 ;
+      RECT  67.270 0.140 67.410 0.420 ;
+      RECT  70.970 0.140 71.505 0.420 ;
+      RECT  72.205 0.140 73.130 0.420 ;
+      RECT  76.980 0.140 78.855 0.420 ;
+      RECT  79.550 0.140 80.910 0.420 ;
+      RECT  81.610 0.140 81.710 0.420 ;
+      RECT  85.270 0.140 85.610 0.420 ;
+      RECT  86.310 0.140 87.430 0.420 ;
+      RECT  91.280 0.140 93.150 0.420 ;
+      RECT  93.850 0.140 95.010 0.420 ;
+      RECT  95.710 0.140 96.010 0.420 ;
+      RECT  99.570 0.140 99.710 0.420 ;
+      RECT  100.410 0.140 101.730 0.420 ;
+      RECT  102.430 0.140 103.835 0.420 ;
+      RECT  104.535 0.140 104.590 0.420 ;
+      RECT  108.150 0.140 109.110 0.420 ;
+      RECT  109.810 0.140 110.310 0.420 ;
+      RECT  114.505 0.140 116.030 0.420 ;
+      RECT  116.730 0.140 118.135 0.420 ;
+      RECT  118.835 0.140 118.890 0.420 ;
+      RECT  122.450 0.140 123.210 0.420 ;
+      RECT  123.910 0.140 124.610 0.420 ;
+      RECT  128.605 0.140 130.330 0.420 ;
+      RECT  131.030 0.140 132.370 0.420 ;
+      RECT  133.070 0.140 133.190 0.420 ;
+      RECT  136.750 0.140 137.310 0.420 ;
+      RECT  138.005 0.140 138.910 0.420 ;
+      RECT  142.755 0.140 144.630 0.420 ;
+      RECT  145.330 0.140 146.710 0.420 ;
+      RECT  147.410 0.140 147.490 0.420 ;
+      RECT  151.050 0.140 151.410 0.420 ;
+      RECT  152.105 0.140 153.210 0.420 ;
+      RECT  157.060 0.140 158.930 0.420 ;
+      RECT  159.630 0.140 160.810 0.420 ;
+      RECT  161.505 0.140 161.790 0.420 ;
+      RECT  165.350 0.140 165.510 0.420 ;
+      RECT  166.210 0.140 167.510 0.420 ;
+      RECT  171.480 0.140 173.230 0.420 ;
+      RECT  173.930 0.140 174.910 0.420 ;
+      RECT  175.610 0.140 176.090 0.420 ;
+      RECT  180.310 0.140 181.810 0.420 ;
+      RECT  182.510 0.140 183.915 0.420 ;
+      RECT  184.615 0.140 184.670 0.420 ;
+      RECT  188.230 0.140 189.010 0.420 ;
+      RECT  189.710 0.140 190.390 0.420 ;
+      RECT  194.410 0.140 196.110 0.420 ;
+      RECT  196.810 0.140 198.170 0.420 ;
+      RECT  198.870 0.140 198.970 0.420 ;
+      RECT  202.530 0.140 203.110 0.420 ;
+      RECT  203.810 0.140 204.690 0.420 ;
+      RECT  208.540 0.140 210.410 0.420 ;
+      RECT  211.110 0.140 212.510 0.420 ;
+      RECT  213.210 0.140 213.270 0.420 ;
+      RECT  216.830 0.140 217.210 0.420 ;
+      RECT  217.910 0.140 218.990 0.420 ;
+      RECT  219.690 0.140 221.910 0.420 ;
+      RECT  222.610 0.140 226.610 0.420 ;
+      RECT  227.310 0.140 231.310 0.420 ;
+      RECT  232.010 0.140 236.010 0.420 ;
+      RECT  236.710 0.140 240.710 0.420 ;
+      RECT  241.410 0.140 245.410 0.420 ;
+      RECT  246.110 0.140 250.110 0.420 ;
+      RECT  250.810 0.140 254.810 0.420 ;
+      RECT  255.510 0.140 259.510 0.420 ;
+      RECT  260.205 0.140 264.205 0.420 ;
+      RECT  264.910 0.140 268.910 0.420 ;
+      RECT  269.610 0.140 273.610 0.420 ;
+      RECT  274.310 0.140 278.310 0.420 ;
+      RECT  279.010 0.140 283.010 0.420 ;
+      RECT  283.705 0.140 287.705 0.420 ;
+      RECT  288.410 0.140 292.410 0.420 ;
+      RECT  293.110 0.140 297.110 0.420 ;
+      RECT  297.810 0.140 301.810 0.420 ;
+      RECT  302.510 0.140 306.510 0.420 ;
+      RECT  307.205 0.140 311.205 0.420 ;
+      RECT  311.910 0.140 315.910 0.420 ;
+      RECT  316.610 0.140 320.610 0.420 ;
+      RECT  321.310 0.140 325.310 0.420 ;
+      RECT  326.010 0.140 330.010 0.420 ;
+      RECT  330.710 0.140 334.710 0.420 ;
+      RECT  335.410 0.140 339.410 0.420 ;
+      RECT  340.110 0.140 344.110 0.420 ;
+      RECT  344.810 0.140 348.810 0.420 ;
+      RECT  349.510 0.140 353.510 0.420 ;
+      RECT  354.210 0.140 387.810 0.420 ;
+      RECT  39.510 258.885 57.410 259.165 ;
+      RECT  58.110 258.885 62.110 259.165 ;
+      RECT  62.810 258.885 66.810 259.165 ;
+      RECT  67.505 258.885 71.505 259.165 ;
+      RECT  72.205 258.885 76.205 259.165 ;
+      RECT  76.910 258.885 80.910 259.165 ;
+      RECT  81.610 258.885 85.610 259.165 ;
+      RECT  86.310 258.885 90.310 259.165 ;
+      RECT  91.010 258.885 95.010 259.165 ;
+      RECT  95.710 258.885 99.710 259.165 ;
+      RECT  100.410 258.885 104.410 259.165 ;
+      RECT  105.110 258.885 109.110 259.165 ;
+      RECT  109.810 258.885 113.810 259.165 ;
+      RECT  114.505 258.885 118.505 259.165 ;
+      RECT  119.210 258.885 123.210 259.165 ;
+      RECT  123.910 258.885 127.910 259.165 ;
+      RECT  128.605 258.885 132.605 259.165 ;
+      RECT  133.310 258.885 137.310 259.165 ;
+      RECT  138.005 258.885 142.005 259.165 ;
+      RECT  142.710 258.885 146.710 259.165 ;
+      RECT  147.410 258.885 151.410 259.165 ;
+      RECT  152.105 258.885 156.105 259.165 ;
+      RECT  156.810 258.885 160.810 259.165 ;
+      RECT  161.505 258.885 165.510 259.165 ;
+      RECT  166.210 258.885 170.210 259.165 ;
+      RECT  170.910 258.885 174.910 259.165 ;
+      RECT  175.610 258.885 179.610 259.165 ;
+      RECT  180.310 258.885 184.310 259.165 ;
+      RECT  185.010 258.885 189.010 259.165 ;
+      RECT  189.710 258.885 191.610 259.165 ;
+      RECT  192.310 258.885 193.710 259.165 ;
+      RECT  194.410 258.885 194.470 259.165 ;
+      RECT  198.030 258.885 198.410 259.165 ;
+      RECT  199.110 258.885 200.190 259.165 ;
+      RECT  204.030 258.885 205.910 259.165 ;
+      RECT  206.610 258.885 207.810 259.165 ;
+      RECT  208.510 258.885 208.770 259.165 ;
+      RECT  212.330 258.885 212.510 259.165 ;
+      RECT  213.210 258.885 214.490 259.165 ;
+      RECT  218.480 258.885 220.210 259.165 ;
+      RECT  220.910 258.885 221.910 259.165 ;
+      RECT  222.610 258.885 223.070 259.165 ;
+      RECT  227.310 258.885 228.790 259.165 ;
+      RECT  229.490 258.885 230.890 259.165 ;
+      RECT  231.590 258.885 231.650 259.165 ;
+      RECT  235.210 258.885 236.010 259.165 ;
+      RECT  236.710 258.885 237.370 259.165 ;
+      RECT  241.410 258.885 243.090 259.165 ;
+      RECT  243.790 258.885 245.170 259.165 ;
+      RECT  245.870 258.885 245.950 259.165 ;
+      RECT  249.510 258.885 250.110 259.165 ;
+      RECT  250.810 258.885 251.670 259.165 ;
+      RECT  255.510 258.885 257.390 259.165 ;
+      RECT  258.085 258.885 259.490 259.165 ;
+      RECT  260.190 258.885 260.250 259.165 ;
+      RECT  263.810 258.885 264.205 259.165 ;
+      RECT  264.910 258.885 265.965 259.165 ;
+      RECT  269.810 258.885 271.690 259.165 ;
+      RECT  272.390 258.885 273.610 259.165 ;
+      RECT  274.310 258.885 274.550 259.165 ;
+      RECT  278.110 258.885 278.310 259.165 ;
+      RECT  279.010 258.885 280.265 259.165 ;
+      RECT  284.280 258.885 285.990 259.165 ;
+      RECT  286.690 258.885 287.705 259.165 ;
+      RECT  288.410 258.885 288.850 259.165 ;
+      RECT  293.110 258.885 294.570 259.165 ;
+      RECT  295.265 258.885 296.670 259.165 ;
+      RECT  297.370 258.885 297.430 259.165 ;
+      RECT  300.990 258.885 301.810 259.165 ;
+      RECT  302.510 258.885 303.145 259.165 ;
+      RECT  307.205 258.885 308.870 259.165 ;
+      RECT  309.570 258.885 310.970 259.165 ;
+      RECT  311.670 258.885 311.730 259.165 ;
+      RECT  315.290 258.885 315.910 259.165 ;
+      RECT  316.610 258.885 317.450 259.165 ;
+      RECT  321.310 258.885 323.170 259.165 ;
+      RECT  323.870 258.885 325.270 259.165 ;
+      RECT  325.970 258.885 326.025 259.165 ;
+      RECT  329.590 258.885 330.010 259.165 ;
+      RECT  330.710 258.885 331.750 259.165 ;
+      RECT  335.590 258.885 337.470 259.165 ;
+      RECT  338.170 258.885 339.410 259.165 ;
+      RECT  340.110 258.885 340.330 259.165 ;
+      RECT  343.890 258.885 344.110 259.165 ;
+      RECT  344.810 258.885 346.050 259.165 ;
+      RECT  350.080 258.885 351.770 259.165 ;
+      RECT  352.470 258.885 353.510 259.165 ;
+      RECT  354.210 258.885 354.630 259.165 ;
+      RECT  380.500 258.885 415.475 259.165 ;
+      RECT  389.650 0.140 415.475 0.420 ;
+      RECT  0.980 0.140 33.090 0.420 ;
+      RECT  192.310 0.420 414.075 1.120 ;
+      RECT  192.310 1.120 414.075 258.185 ;
+      RECT  192.310 258.185 414.075 258.885 ;
+      RECT  414.075 0.420 415.335 1.120 ;
+      RECT  414.075 258.185 415.335 258.885 ;
+      RECT  415.335 0.420 415.475 1.120 ;
+      RECT  415.335 1.120 415.475 258.185 ;
+      RECT  415.335 258.185 415.475 258.885 ;
+      RECT  0.980 0.420 1.120 1.120 ;
+      RECT  0.980 1.120 1.120 258.185 ;
+      RECT  0.980 258.185 1.120 259.165 ;
+      RECT  1.120 0.420 2.380 1.120 ;
+      RECT  1.120 258.185 2.380 259.165 ;
+      RECT  2.380 0.420 38.810 1.120 ;
+      RECT  2.380 1.120 38.810 258.185 ;
+      RECT  2.380 258.185 38.810 259.165 ;
+   END
+END    sram_512x64_2rw
+END    LIBRARY
