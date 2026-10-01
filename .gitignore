@@ -5,8 +5,20 @@ __pycache__/
 synth_work/
 sim/
 reports/
-results/
 venv/
+
+# Results: keep the plots/summaries/solution CSVs per FFT size, plus the
+# combined cross-size files; everything else (RTL/synth_work/solution_logs
+# zips, .npy/.npz dumps) stays ignored.
+results/*
+!results/fft_*
+results/fft_*/*
+!results/fft_*/*.png
+!results/fft_*/summary.txt
+!results/fft_*/*.csv
+!results/all_pareto_solutions.csv
+!results/comparison_all_fft_sizes.png
+!results/comprehensive_summary.txt
 
 # Log files
 *.log

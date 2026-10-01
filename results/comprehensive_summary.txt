@@ -1,0 +1,105 @@
+Mixed-Precision FFT Optimization — Comprehensive Summary
+========================================================================
+
+Clock target: 10.0 ns  |  ASIC Process: 45nm_PDK
+
+
+FFT Size: 2
+------------------------------------------------------------------------
+  Pareto front size  : 1
+  Energy/FFT range   : 1.2726 – 1.2726 nJ
+  Power range        : 7.070000 – 7.070000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 100.00 – 100.00 dB
+  Crit-path range    : 9.720 – 9.720 ns
+  Timing pass rate   : 1/1 (100%)
+
+FFT Size: 4
+------------------------------------------------------------------------
+  Pareto front size  : 4
+  Energy/FFT range   : 2.4675 – 2.8000 nJ
+  Power range        : 7.050000 – 8.000000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 32.69 – 86.25 dB
+  Crit-path range    : 9.460 – 10.550 ns
+  Timing pass rate   : 4/4 (100%)
+
+FFT Size: 8
+------------------------------------------------------------------------
+  Pareto front size  : 5
+  Energy/FFT range   : 4.0470 – 4.6341 nJ
+  Power range        : 7.100000 – 8.130000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 12.20 – 27.65 dB
+  Crit-path range    : 9.350 – 10.690 ns
+  Timing pass rate   : 5/5 (100%)
+
+FFT Size: 16
+------------------------------------------------------------------------
+  Pareto front size  : 12
+  Energy/FFT range   : 6.5975 – 7.8806 nJ
+  Power range        : 7.250000 – 8.660000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 10.76 – 39.00 dB
+  Crit-path range    : 9.090 – 10.500 ns
+  Timing pass rate   : 12/12 (100%)
+
+FFT Size: 32
+------------------------------------------------------------------------
+  Pareto front size  : 5
+  Energy/FFT range   : 11.1078 – 11.6739 nJ
+  Power range        : 7.260000 – 7.630000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 15.35 – 37.39 dB
+  Crit-path range    : 9.140 – 10.370 ns
+  Timing pass rate   : 5/5 (100%)
+
+FFT Size: 64
+------------------------------------------------------------------------
+  Pareto front size  : 8
+  Energy/FFT range   : 20.1438 – 23.8545 nJ
+  Power range        : 7.220000 – 8.550000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 10.09 – 37.00 dB
+  Crit-path range    : 9.590 – 10.580 ns
+  Timing pass rate   : 8/8 (100%)
+
+FFT Size: 128
+------------------------------------------------------------------------
+  Pareto front size  : 7
+  Energy/FFT range   : 38.4849 – 45.4572 nJ
+  Power range        : 7.010000 – 8.280000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 12.07 – 19.14 dB
+  Crit-path range    : 9.300 – 10.640 ns
+  Timing pass rate   : 7/7 (100%)
+
+FFT Size: 256
+------------------------------------------------------------------------
+  Pareto front size  : 14
+  Energy/FFT range   : 79.2402 – 93.8536 nJ
+  Power range        : 6.957000 – 8.240000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 10.75 – 36.70 dB
+  Crit-path range    : 8.830 – 10.380 ns
+  Timing pass rate   : 14/14 (100%)
+
+FFT Size: 512
+------------------------------------------------------------------------
+  Pareto front size  : 11
+  Energy/FFT range   : 163.1326 – 181.7451 nJ
+  Power range        : 6.705000 – 7.470000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 10.02 – 20.43 dB
+  Crit-path range    : 8.710 – 10.580 ns
+  Timing pass rate   : 11/11 (100%)
+
+FFT Size: 1024
+------------------------------------------------------------------------
+  Pareto front size  : 12
+  Energy/FFT range   : 351.0947 – 434.1975 nJ
+  Power range        : 6.671000 – 8.250000 mW
+  Area range         : 294719 – 294719 µm²
+  SQNR range         : 10.12 – 18.03 dB
+  Crit-path range    : 9.750 – 10.570 ns
+  Timing pass rate   : 12/12 (100%)

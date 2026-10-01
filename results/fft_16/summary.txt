@@ -1,0 +1,75 @@
+Mixed-Precision FFT Optimization Results
+========================================================================
+
+FFT Size              : 16
+Population            : 30
+Generations           : 100
+Objectives            : 3  (Energy/FFT, SQNR, Critical-Path Delay)
+Area                  : hard constraint (<= 600000 µm²), not an objective
+Clock target          : 10.0 ns
+ASIC Process          : 45nm_PDK
+
+Pareto Front Solutions: 12
+
+Timing pass rate      : 12/12 (100%)
+
+ID    Energy(nJ)  Power(mW)  Area(µm²)   SQNR(dB)   NormLat   CritDelay(ns)  Slack(ns)  MeetsTiming  ExecCycles  TotSimCycles
+-----------------------------------------------------------------------------------------------------------------------------
+0     6.7067      7.370000   294718      39.00      1.0350    10.350         0.410      YES          91          1716        
+1     7.0980      7.800000   294718      11.34      0.9300    9.300          1.120      YES          91          1716        
+2     7.0161      7.710000   294718      11.34      0.9800    9.800          0.460      YES          91          1716        
+3     6.8887      7.570000   294718      21.22      0.9840    9.840          0.910      YES          91          1716        
+4     6.9797      7.670000   294718      11.32      0.9440    9.440          0.890      YES          91          1716        
+5     6.7431      7.410000   294718      14.74      1.0110    10.110         0.240      YES          91          1716        
+6     6.7522      7.420000   294718      19.96      1.0270    10.270         0.270      YES          91          1716        
+7     7.8806      8.660000   294718      11.66      0.9290    9.290          1.060      YES          91          1716        
+8     6.8978      7.580000   294718      10.76      0.9090    9.090          1.130      YES          91          1716        
+9     6.5975      7.250000   294718      15.93      1.0500    10.500         0.250      YES          91          1716        
+10    6.6703      7.330000   294718      18.40      1.0260    10.260         0.500      YES          91          1716        
+11    7.5985      8.350000   294718      23.64      1.0250    10.250         0.190      YES          91          1716        
+
+
+Best Solutions by Objective:
+------------------------------------------------------------
+
+Best Energy/FFT (min):
+  Solution ID       : 9
+  Energy/FFT        : 6.5975 nJ
+  Dynamic Power     : 7.250000 mW
+  Static Power      : 0.055300 mW
+  Total Power       : 7.310000 mW
+  Area              : 294718 µm²
+  SQNR              : 15.93 dB
+  Norm Latency      : 1.0500x (clock = 10.0 ns)
+  Crit Path Delay   : 10.500 ns  (slack 0.250 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 91
+  Tot Sim Cycles    : 1716
+  Chromosome        : [0, 1, 0, 1, 1, 1, 1, 1]
+
+Best SQNR (max perf):
+  Solution ID       : 0
+  Energy/FFT        : 6.7067 nJ
+  Dynamic Power     : 7.370000 mW
+  Static Power      : 0.055300 mW
+  Total Power       : 7.430000 mW
+  Area              : 294718 µm²
+  SQNR              : 39.00 dB
+  Norm Latency      : 1.0350x (clock = 10.0 ns)
+  Crit Path Delay   : 10.350 ns  (slack 0.410 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 91
+  Tot Sim Cycles    : 1716
+  Chromosome        : [1, 1, 1, 1, 1, 1, 1, 1]
+
+Best Crit-Path (min):
+  Solution ID       : 8
+  Energy/FFT        : 6.8978 nJ
+  Dynamic Power     : 7.580000 mW
+  Static Power      : 0.055200 mW
+  Total Power       : 7.640000 mW
+  Area              : 294718 µm²
+  SQNR              : 10.76 dB
+  Norm Latency      : 0.9090x (clock = 10.0 ns)
+  Crit Path Delay   : 9.090 ns  (slack 1.130 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 91
+  Tot Sim Cycles    : 1716
+  Chromosome        : [1, 0, 0, 0, 1, 0, 0, 0]

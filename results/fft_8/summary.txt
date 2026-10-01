@@ -1,0 +1,68 @@
+Mixed-Precision FFT Optimization Results
+========================================================================
+
+FFT Size              : 8
+Population            : 30
+Generations           : 100
+Objectives            : 3  (Energy/FFT, SQNR, Critical-Path Delay)
+Area                  : hard constraint (<= 600000 µm²), not an objective
+Clock target          : 10.0 ns
+ASIC Process          : 45nm_PDK
+
+Pareto Front Solutions: 5
+
+Timing pass rate      : 5/5 (100%)
+
+ID    Energy(nJ)  Power(mW)  Area(µm²)   SQNR(dB)   NormLat   CritDelay(ns)  Slack(ns)  MeetsTiming  ExecCycles  TotSimCycles
+-----------------------------------------------------------------------------------------------------------------------------
+0     4.4517      7.810000   294718      12.20      0.9350    9.350          0.930      YES          57          990         
+1     4.1895      7.350000   294718      22.10      1.0400    10.400         0.360      YES          57          990         
+2     4.6341      8.130000   294718      27.65      1.0690    10.690         0.070      YES          57          990         
+3     4.0470      7.100000   294718      21.20      0.9490    9.490          1.270      YES          57          990         
+4     4.3548      7.640000   294718      12.20      0.9390    9.390          0.910      YES          57          990         
+
+
+Best Solutions by Objective:
+------------------------------------------------------------
+
+Best Energy/FFT (min):
+  Solution ID       : 3
+  Energy/FFT        : 4.0470 nJ
+  Dynamic Power     : 7.100000 mW
+  Static Power      : 0.055300 mW
+  Total Power       : 7.150000 mW
+  Area              : 294718 µm²
+  SQNR              : 21.20 dB
+  Norm Latency      : 0.9490x (clock = 10.0 ns)
+  Crit Path Delay   : 9.490 ns  (slack 1.270 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 57
+  Tot Sim Cycles    : 990
+  Chromosome        : [1, 1, 1, 1, 0, 1]
+
+Best SQNR (max perf):
+  Solution ID       : 2
+  Energy/FFT        : 4.6341 nJ
+  Dynamic Power     : 8.130000 mW
+  Static Power      : 0.055400 mW
+  Total Power       : 8.180000 mW
+  Area              : 294718 µm²
+  SQNR              : 27.65 dB
+  Norm Latency      : 1.0690x (clock = 10.0 ns)
+  Crit Path Delay   : 10.690 ns  (slack 0.070 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 57
+  Tot Sim Cycles    : 990
+  Chromosome        : [0, 0, 0, 1, 1, 1]
+
+Best Crit-Path (min):
+  Solution ID       : 0
+  Energy/FFT        : 4.4517 nJ
+  Dynamic Power     : 7.810000 mW
+  Static Power      : 0.055100 mW
+  Total Power       : 7.860000 mW
+  Area              : 294718 µm²
+  SQNR              : 12.20 dB
+  Norm Latency      : 0.9350x (clock = 10.0 ns)
+  Crit Path Delay   : 9.350 ns  (slack 0.930 ns)  <- MEETS TIMING
+  Avg Exec Cycles   : 57
+  Tot Sim Cycles    : 990
+  Chromosome        : [0, 0, 1, 0, 1, 0]

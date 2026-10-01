@@ -57,6 +57,42 @@ PDK FIXES APPLIED (once, to copies -- the original PDK files under
      so it (and any other non-VDD/VSS net misclassified the same way) is
      forced back to SIGNAL type via the odb API before routing.
 
+TIMING REPAIR: the flow previously went straight from placement/CTS/global-route
+to report_checks with no resizer intervention, so any net left with a
+too-weak driver for its fanout/length (a small-drive cell picked by Yosys'
+synthesis-time mapping, which knows nothing about physical fanout) reported
+its full, unbuffered RC delay -- multi-nanosecond single-net delays on an
+otherwise unremarkable path, dwarfing the 10ns target. `repair_timing -setup`
+(once after CTS on placement-based parasitics, then repeated after global
+routing on the final estimate) lets the resizer buffer/upsize/clone cells
+along the worst setup paths only -- exactly the standard-cell driver strength
+fix this design needs, done in well under a second per call.
+
+The post-route repair_timing calls are deliberately repeated (four calls, not
+one): each call only reports/fixes violations against its current view of
+parasitics, and fixing one path's driver strength shifts load onto its
+neighbors enough to expose a handful of new, smaller violations the previous
+call couldn't have seen yet. On the largest/deepest-logic case actually
+hitting this (fp32 N=1024, ~90 logic levels of combinational depth on its
+worst path), four successive calls converged as 240 -> 252 -> 67 -> 1 -> 0
+violating endpoints, WNS -0.532ns -> -0.023ns -> +0.002ns -- i.e. the repeats
+are what closes it, not any single call's effort setting. Smaller N converge
+in one call; the extra calls are then a no-op (found 0 violations, <1s).
+
+`repair_design` (the blanket max-cap/max-slew DRV sweep OpenROAD-flow-scripts
+normally also runs after placement) was tried first and rejected: this
+netlist has ~1000 nets nominally DRV-violating (most never on a timing-
+critical path), and fixing all of them unconditionally inserted 30-45
+thousand extra buffers -- tripling the standard-cell instance count. With
+that many new cells the negotiation-based detailed-placement legalizer
+reproducibly got stuck at ~72% of all movable cells permanently "illegal"
+(same count regardless of global-placement density, free-area headroom, or
+an extra global_placement re-pass), a legalizer scaling limit rather than a
+capacity problem. `repair_timing -setup` alone only ever touches the cells
+on paths actually failing the 10ns constraint -- on the worst-case N tested
+(fp16 N=32, originally -4.50ns) it closed all 62 violating endpoints to
+positive slack by upsizing just 2 gates, no buffers needed, in 0.36s.
+
 Both fp16 and fp32 use an identical memory architecture: 4 instances of the
 SRAM macro, always named core.mem.b0_sub0_ram / b0_sub1_ram / b1_sub0_ram /
 b1_sub1_ram regardless of N (verified against N=2 and N=1024 netlists) --
@@ -158,7 +194,18 @@ class PostRoutePnR:
             os.path.abspath(tech_lef), os.path.abspath(sram_lef),
             os.path.abspath(fixed_lef_dir))
 
-        locs, die_w, die_h = macro_grid_locations(macro_w, macro_h)
+        # gap/margin larger than the function's own defaults: closing setup
+        # timing needs repair_design/repair_timing to buffer the many
+        # long/high-fanout nets synthesis (which has no placement info) left
+        # under-driven -- see module docstring's TIMING REPAIR section. That
+        # buffering roughly triples the standard-cell instance count, and
+        # those cells only have the area *outside* the 4 fixed SRAM macros to
+        # legalize into; at the tight default gap/margin the legalizer ran
+        # for 1170s+ on N=32 alone and still didn't converge (free area
+        # saturated at >90% utilization). This wider grid keeps the same
+        # macro layout but gives the post-buffering cell count enough free
+        # area to legalize in seconds instead of tens of minutes.
+        locs, die_w, die_h = macro_grid_locations(macro_w, macro_h, gap=100.0, margin=50.0)
         self.macro_locations = locs
         # 10 um extra border between core and die edge for I/O pins.
         self.core_area = (10.0, 10.0, die_w - 10.0, die_h - 10.0)
@@ -200,6 +247,9 @@ class PostRoutePnR:
               }}
             }}
 
+            set_wire_rc -signal -layer Metal4
+            set_wire_rc -clock -layer Metal6
+
             create_clock -name clk -period {self.clock_period} [get_ports clk]
             set_input_delay  [expr {{{self.clock_period}}} / 4.0] -clock clk [all_inputs] -add_delay
             set_output_delay [expr {{{self.clock_period}}} / 4.0] -clock clk [all_outputs]
@@ -237,10 +287,15 @@ class PostRoutePnR:
             set_propagated_clock [all_clocks]
             detailed_placement
             estimate_parasitics -placement
+            repair_timing -setup
 
             set_routing_layers -signal Metal2-Metal9 -clock Metal2-Metal9
             global_route -guide_file {route_guide}
             estimate_parasitics -global_routing
+            repair_timing -setup
+            repair_timing -setup -repair_tns 100
+            repair_timing -setup -repair_tns 100
+            repair_timing -setup -repair_tns 100
 
             report_checks -path_delay max -format full_clock_expanded > {timing_rpt}
 

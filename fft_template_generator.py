@@ -39,6 +39,19 @@ class FFTTemplateGenerator:
         #      combinationally as a high-fanout ~35-gate chain.
         self.BUTTERFLY_LATENCY = 2
         self.TOTAL_PIPE_LATENCY = self.TWIDDLE_LATENCY + self.BUTTERFLY_LATENCY + 1
+        # Fixed delay (in cycles) from current_stage_stable/idx_a being valid
+        # to A_24_aligned/twiddle becoming valid: MEM_RD_LATENCY-style read
+        # path (A_24_pipe, hardcoded [0:9]) and the twiddle ROM pipe
+        # (twiddle_pipe[1:TWIDDLE_LATENCY]) are BOTH untouched by
+        # BUTTERFLY_LATENCY, so this stays TWIDDLE_LATENCY+1 regardless of
+        # it -- unlike TOTAL_PIPE_LATENCY, which grows with BUTTERFLY_LATENCY
+        # to keep the *write-back* address/stage pipes (wr_addr_*_pipe,
+        # stable_stage_pipe's TOTAL_LATENCY-1 tap) aligned with the now-
+        # longer writeback datapath. bf_mult_prec/bf_add_prec select the
+        # precision for the butterfly operating on A_24_aligned THIS cycle,
+        # so they must be driven off a stage-tracking signal delayed by
+        # BF_PREC_LATENCY, not TOTAL_PIPE_LATENCY -- see current_stage_stable_bf.
+        self.BF_PREC_LATENCY = self.TWIDDLE_LATENCY + 1
 
     def get_chromosome_length(self):
         return self.chromosome_length
@@ -185,7 +198,7 @@ class FFTTemplateGenerator:
             "    // SINGLE SHARED BUTTERFLY UNIT",
             "    reg bf_mult_prec, bf_add_prec;",
             "    always @(*) begin",
-            "        case (current_stage_stable_delayed)",
+            "        case (current_stage_stable_bf)",
         ]
         for s in stages:
             sn = s['stage_num']
@@ -457,6 +470,20 @@ module {core_module_name} #(
     // Stalls guarantee writes finish before the next stage starts.
     wire                  mem_wr_bank     = fft_bank_sel;
     wire [3:0]            current_stage_stable_delayed = stable_stage_pipe[TOTAL_LATENCY-1];
+
+    // SQNR FIX: bf_mult_prec/bf_add_prec (in butterfly_block below) select
+    // the precision for the operands THIS cycle's A_24_aligned/twiddle
+    // actually carry. Those arrive with a FIXED delay of BF_PREC_LATENCY
+    // cycles from current_stage_stable (A_24_pipe is hardcoded [0:9] and
+    // the twiddle ROM pipe is sized off TWIDDLE_LATENCY alone -- neither
+    // moves with BUTTERFLY_LATENCY). current_stage_stable_delayed, above,
+    // is tapped at TOTAL_LATENCY-1 instead, which grew by BUTTERFLY_LATENCY
+    // when the writeback pipeline registers were added for timing closure;
+    // reusing it here desynced the butterfly's precision select from its
+    // own operands by BUTTERFLY_LATENCY cycles at every stage transition,
+    // corrupting mixed-precision (differing per-stage) solutions -- same
+    // stable_stage_pipe array, correct fixed tap instead.
+    wire [3:0]            current_stage_stable_bf = stable_stage_pipe[{self.BF_PREC_LATENCY - 1}];
 
 {prec_mux}
 
