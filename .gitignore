@@ -24,3 +24,6 @@ results/fft_*/*
 *.log
 fp16_baseline/synth/fp16_synth_artifacts.zip
 fp32_baseline/synth/fp32_synth_artifacts.zip
+# Large synthesis artifacts
+fp16_baseline/synth/*.zip
+fp32_baseline/synth/*.zip
