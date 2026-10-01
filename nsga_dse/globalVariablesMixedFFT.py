@@ -9,8 +9,8 @@ import math
 from multiprocessing.pool import ThreadPool
 
 # ======================= NSGA-II Parameters =======================
-POPULATION = 30
-GENERATIONS = 100
+POPULATION = 100
+GENERATIONS = 30
 SEED = 42
 MUTATION_RATE = 0.05
 CROSSOVER_RATE = 0.9

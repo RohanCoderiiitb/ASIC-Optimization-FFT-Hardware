@@ -22,8 +22,9 @@ import shutil
 import sys
 import zipfile
 
-REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, REPO_ROOT)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.insert(0, SCRIPT_DIR)
 
 from postroute_pnr import PostRoutePnR  # noqa: E402
 from run_mixed_synthesis import (  # noqa: E402

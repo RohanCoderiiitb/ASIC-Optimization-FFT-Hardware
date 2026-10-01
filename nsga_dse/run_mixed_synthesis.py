@@ -31,8 +31,9 @@ import sys
 import textwrap
 import zipfile
 
-REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, REPO_ROOT)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.insert(0, SCRIPT_DIR)
 
 from fft_template_generator import FFTTemplateGenerator  # noqa: E402
 from performance_evaluator import PerformanceEvaluator  # noqa: E402
