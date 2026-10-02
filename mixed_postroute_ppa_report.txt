@@ -1,8 +1,0 @@
-Mixed-precision FFT (all-FP8 reference chromosome) - POST-ROUTE PPA (OpenROAD: floorplan + macro placement + PDN + global placement + CTS + global route; SAIF-measured power)
-NOT full DRC-clean detailed routing -- see postroute_pnr.py's module docstring for exactly why and what stage 'post-route' refers to here.
-Clock period: 10.0 ns
-Area is the fixed floorplan's core area (same for every N -- the 4-macro SRAM layout dominates area and does not change with N), not a cell-area sum. Power: SAIF conversion of a real RTL-simulation VCD annotated via OpenSTA's read_saif onto the FLATTENED P&R netlist (ActivitySrc=saif_measured, >= 20 nets); no flat-activity fallback -- below that floor, or on any P&R failure, Status=FAILED.
-
-     N |  Area (um^2) | CritDelay (ns) | Slack (ns) |  Power (mW) |           ActivitySrc |         AnnotatedSignals |  Status
-------------------------------------------------------------------------------------------------------------------------------
-  1024 |     294718.9 |         10.390 |      0.090 |      6.8000 |         saif_measured |         58/18002 (0.32%) |      OK
