@@ -86,6 +86,7 @@ REPO_ROOT = os.path.dirname(BASE_DIR)                             # repo root
 
 sys.path.insert(0, os.path.join(BASE_DIR, "sim"))
 sys.path.insert(0, REPO_ROOT)
+sys.path.insert(0, os.path.join(REPO_ROOT, "nsga_dse"))
 from fp32_performance_evaluator import FP32PerformanceEvaluator  # noqa: E402
 from vcd_to_saif import vcd_to_saif  # noqa: E402
 
@@ -554,7 +555,7 @@ def main():
         description="FP32 baseline PPA extraction (Yosys + OpenSTA, mixed-evaluator methodology)")
     ap.add_argument("--sizes", type=int, nargs="*", default=ALL_SIZES)
     ap.add_argument("--clock-period", type=float, default=10.0,
-                     help="Clock period in ns (default 10.0, matches the mixed-precision flow)")
+                     help="Clock period in ns (default 10.0)")
     ap.add_argument("--std-lib", default=DEFAULT_STD_LIB)
     ap.add_argument("--ram-lib", default=DEFAULT_RAM_LIB)
     ap.add_argument("--source-dir", default=DEFAULT_SOURCE_DIR)

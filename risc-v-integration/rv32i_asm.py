@@ -10,7 +10,8 @@ field layout the real assembler will eventually emit for `.insn r 0x0B, ...`.
 
 Supported mnemonics: addi, add, sub, lui, lw, sw, beq, bne, blt, bge, jal, j,
 li (pseudo, expands to addi or lui+addi), nop, fftload, fftstore, fftstart,
-fftwait, fftstatus.
+fftwait, fftstatus, fftloadhi, fftstorehi (the last two: 64-bit/FP32 samples
+only -- see encode_insn.py).
 """
 
 import sys
@@ -176,6 +177,14 @@ def assemble(lines):
         elif mnem == "fftstatus":
             rd_ = reg(args[0])
             words.append(r_type(0, 0, 0, 0b101, rd_, OPCODE_CUSTOM0)); pc += 4
+        elif mnem == "fftloadhi":
+            # funct7=1 (not a new funct3) -- see encode_insn.py's module
+            # docstring for why.
+            rd_, rs1_, rs2_ = reg(args[0]), reg(args[1]), reg(args[2])
+            words.append(r_type(1, rs2_, rs1_, 0b001, rd_, OPCODE_CUSTOM0)); pc += 4
+        elif mnem == "fftstorehi":
+            rd_, rs1_ = reg(args[0]), reg(args[1])
+            words.append(r_type(1, 0, rs1_, 0b010, rd_, OPCODE_CUSTOM0)); pc += 4
         else:
             raise ValueError(f"unsupported mnemonic: {mnem}")
 

@@ -75,7 +75,10 @@ RESULTS_DIR = './results'
 # ======================= Constraint Thresholds =======================
 MAX_POWER_MW = 500.0
 MAX_AREA_UM2 = 600000.0
-MIN_SQNR_DB = 10.0              
+# Kept in sync with energyObjective.MIN_SQNR_DB, the value actually used as
+# the NSGA-II feasibility floor -- this copy is unused by the optimizer but
+# is left matching so it doesn't mislead anyone reading just this file.
+MIN_SQNR_DB = 10.0
 MAX_LATENCY_NORM = 10.0        
 MIN_FREQ_MHZ = 80.0
 

@@ -1,0 +1,202 @@
+==============================================================================
+FP16 vs FP32 vs MIXED FP4/FP8 - ASIC COMPARISON, POST-ROUTE (OPENROAD FLOORPLAN -> GLOBAL ROUTE)
+==============================================================================
+
+Mixed track: one design per N chosen by select_best_design.py's 'balanced' rule
+(equal-weight distance to the ideal point over energy, area, critical path and SQNR (lowest wins)) from results/fft_N/all_solutions_fftN.csv -- the same design
+results/asic_best_designs.txt reports for that N; chromosome shown in TABLE 1.
+All three tracks: same 45 nm library, same clock constraint, SAIF-measured power.
+Ratios above 1.00 favour the mixed core.
+
+NOTE: post-route area is the fixed floorplan core area (set by the SRAM
+macros, constant across N within a track). Its ratio compares macro
+sizes, not logic; use the pre-route table for the logic comparison.
+NOTE: post-route runs repair_timing, which stops once the 10 ns constraint
+is met. Post-route critical paths near 10 ns therefore mean 'met timing',
+not 'cannot go faster', so post-route frequency and throughput ratios are
+not ceilings. See report_implementation_delta_asic.py.
+
+
+TABLE 1  AREA
+FFT size                      Mixed chromosome  FP16 area  FP32 area  Mixed area   Area ratio vs FP16   Area ratio vs FP32
+  points  1 = FP8, 0 = FP4; mult/add per stage       um^2       um^2        um^2  x smaller for mixed  x smaller for mixed
+--------------------------------------------------------------------------------------------------------------------------
+       2                                    10    594,050    888,781     523,502                 1.13                 1.70
+       4                                  0101    594,050    888,781     523,502                 1.13                 1.70
+       8                                110111    594,050    888,781     523,502                 1.13                 1.70
+      16                              11011101    594,050    888,781     523,502                 1.13                 1.70
+      32                            1111010101    594,050    888,781     523,502                 1.13                 1.70
+      64                          111111011111    594,050    888,781     523,502                 1.13                 1.70
+     128                        11111111011111    594,050    888,781     523,502                 1.13                 1.70
+     256                      1001111110101000    594,050    888,781     523,502                 1.13                 1.70
+     512                    100000000100100000    594,050    888,781     523,502                 1.13                 1.70
+    1024                  10001111111111101110    594,050    888,781     523,502                 1.13                 1.70
+
+TABLE 2  ACHIEVABLE CLOCK FREQUENCY
+FFT size  FP16 critical path  FP32 critical path  Mixed critical path  FP16 maximum frequency  FP32 maximum frequency  Mixed maximum frequency  Frequency ratio vs FP16  Frequency ratio vs FP32
+  points                  ns                  ns                   ns                     MHz                     MHz                      MHz       x faster for mixed       x faster for mixed
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2               7.210               7.300               10.660                   138.7                   137.0                     93.8                     0.68                     0.68
+       4               7.230               7.330               10.730                   138.3                   136.4                     93.2                     0.67                     0.68
+       8              10.490              10.580               10.100                    95.3                    94.5                     99.0                     1.04                     1.05
+      16              10.450              10.670               10.140                    95.7                    93.7                     98.6                     1.03                     1.05
+      32               7.220              10.610                9.910                   138.5                    94.3                    100.9                     0.73                     1.07
+      64               7.220               7.340               10.140                   138.5                   136.2                     98.6                     0.71                     0.72
+     128              10.210              10.780               10.260                    97.9                    92.8                     97.5                     1.00                     1.05
+     256               7.280              10.670               10.060                   137.4                    93.7                     99.4                     0.72                     1.06
+     512              10.350               7.370               10.090                    96.6                   135.7                     99.1                     1.03                     0.73
+    1024              10.390              10.720               10.090                    96.2                    93.3                     99.1                     1.03                     1.06
+
+TABLE 3  COMPUTE-ONLY THROUGHPUT (datapath only)
+FFT size  FP16 cycles per transform  FP32 cycles per transform  Mixed cycles per transform  FP16 compute-only throughput  FP32 compute-only throughput  Mixed compute-only throughput  Compute-only throughput ratio vs FP16  Compute-only throughput ratio vs FP32
+  points               clock cycles               clock cycles                clock cycles         transforms per second         transforms per second          transforms per second                     x faster for mixed                     x faster for mixed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                         21                         21                          18                     6,604,584                     6,523,157                      5,211,591                                   0.79                                   0.80
+       4                         41                         41                          35                     3,373,478                     3,327,455                      2,662,761                                   0.79                                   0.80
+       8                         66                         66                          57                     1,444,377                     1,432,090                      1,737,016                                   1.20                                   1.21
+      16                        103                        103                          91                       929,066                       909,910                      1,083,729                                   1.17                                   1.19
+      32                        168                        168                         153                       824,429                       561,016                        659,531                                   0.80                                   1.18
+      64                        297                        297                         279                       466,344                       458,720                        353,474                                   0.76                                   0.77
+     128                        570                        570                         549                       171,830                       162,745                        177,533                                   1.03                                   1.09
+     256                       1163                       1163                        1139                       118,111                        80,585                         87,273                                   0.74                                   1.08
+     512                       2460                       2460                        2433                        39,276                        55,157                         40,735                                   1.04                                   0.74
+    1024                       5293                       5293                        5263                        18,184                        17,624                         18,831                                   1.04                                   1.07
+  Compute-only throughput = fmax / cycles, cycles being ExecCyc (the datapath
+  load+compute+unload cycles the ASIC drivers already measure directly against
+  the core's ports, with no CPU in the loop). Cycles for the mixed track come
+  from the NSGA results; a dash there means the all-FP8 chromosome was not
+  visited. See TABLE 9 for END-TO-END throughput (through a real RISC-V core).
+
+TABLE 4  POWER AND ENERGY PER TRANSFORM
+FFT size  FP16 power  FP32 power  Mixed power  FP16 energy per transform  FP32 energy per transform  Mixed energy per transform  Energy ratio vs FP16  Energy ratio vs FP32
+  points          mW          mW           mW                 nanojoules                 nanojoules                  nanojoules     x lower for mixed     x lower for mixed
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2       8.540      15.900        7.410                       1.79                       3.34                        1.33                  1.34                  2.50
+       4       8.710      16.200        6.900                       3.57                       6.64                        2.42                  1.48                  2.75
+       8       8.980      17.300        7.870                       5.93                      11.42                        4.49                  1.32                  2.55
+      16       9.130      17.200        7.460                       9.40                      17.72                        6.79                  1.39                  2.61
+      32       9.020      18.200        7.420                      15.15                      30.58                       11.35                  1.33                  2.69
+      64       9.050      17.000        7.030                      26.88                      50.49                       19.61                  1.37                  2.57
+     128       9.250      17.400        7.140                      52.73                      99.18                       39.20                  1.35                  2.53
+     256       8.930      17.300        8.160                     103.86                     201.20                       92.94                  1.12                  2.16
+     512       8.920      16.900        7.530                     219.43                     415.74                      183.20                  1.20                  2.27
+    1024       9.080      16.900        8.090                     480.60                     894.52                      425.78                  1.13                  2.10
+  Energy = power x cycles x constraint clock. Power is SAIF-measured; see
+  TABLE 8 for how much of each netlist the SAIF actually covered.
+
+TABLE 5  ENERGY EFFICIENCY (compute-only)
+FFT size  FP16 compute-only throughput per watt  FP32 compute-only throughput per watt  Mixed compute-only throughput per watt  Per-watt ratio vs FP16  Per-watt ratio vs FP32
+  points                   transforms per joule                   transforms per joule                    transforms per joule      x better for mixed      x better for mixed
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                            557,600,089                            299,490,866                             749,737,592                    1.34                    2.50
+       4                            280,025,762                            150,557,061                             414,078,675                    1.48                    2.75
+       8                            168,725,113                             87,581,012                             222,920,707                    1.32                    2.55
+      16                            106,338,859                             56,446,150                             147,305,777                    1.39                    2.61
+      32                             65,990,920                             32,705,390                              88,085,549                    1.33                    2.69
+      64                             37,204,457                             19,805,902                              50,984,771                    1.37                    2.57
+     128                             18,966,335                             10,082,678                              25,511,115                    1.35                    2.53
+     256                              9,628,726                              4,970,204                              10,759,352                    1.12                    2.16
+     512                              4,557,220                              2,405,349                               5,458,369                    1.20                    2.27
+    1024                              2,080,713                              1,117,922                               2,348,649                    1.13                    2.10
+  Throughput per watt is 1 / energy per transform, so this table carries
+  the same information as the energy ratios, in units reviewers ask for.
+  Compute-only, same basis as TABLE 3; see TABLE 10 for end-to-end efficiency.
+
+TABLE 6  AREA EFFICIENCY (compute-only)
+FFT size  FP16 compute-only throughput per mm^2  FP32 compute-only throughput per mm^2  Mixed compute-only throughput per mm^2  Per-area ratio vs FP16  Per-area ratio vs FP32
+  points                  transforms per second                  transforms per second                   transforms per second      x better for mixed      x better for mixed
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                             11,117,892                              7,339,442                               9,955,245                    0.90                    1.36
+       4                              5,678,777                              3,743,841                               5,086,440                    0.90                    1.36
+       8                              2,431,407                              1,611,297                               3,318,069                    1.36                    2.06
+      16                              1,563,952                              1,023,773                               2,070,152                    1.32                    2.02
+      32                              1,387,812                                631,220                               1,259,843                    0.91                    2.00
+      64                                785,025                                516,122                                 675,211                    0.86                    1.31
+     128                                289,252                                183,110                                 339,127                    1.17                    1.85
+     256                                198,823                                 90,669                                 166,709                    0.84                    1.84
+     512                                 66,115                                 62,059                                  77,812                    1.18                    1.25
+    1024                                 30,610                                 19,829                                  35,971                    1.18                    1.81
+
+TABLE 7  ACCURACY - WHAT THE EFFICIENCY COSTS
+FFT size  FP16 average SQNR  FP32 average SQNR  Mixed average SQNR  Accuracy lost vs FP16  Accuracy lost vs FP32
+  points                 dB                 dB                  dB                     dB                     dB
+----------------------------------------------------------------------------------------------------------------
+       2                  -                  -              100.00                      -                      -
+       4                  -                  -               21.48                      -                      -
+       8                  -                  -               22.10                      -                      -
+      16                  -                  -               18.93                      -                      -
+      32                  -                  -               17.40                      -                      -
+      64                  -                  -               21.10                      -                      -
+     128                  -                  -               19.76                      -                      -
+     256                  -                  -               27.47                      -                      -
+     512                  -                  -               26.47                      -                      -
+    1024                  -                  -               27.44                      -                      -
+  This decides whether the efficiency ratios are a real win. Baseline SQNR
+  is read from sim/perf/<track>_sqnr_results.txt; mixed SQNR is the NSGA
+  evaluator's figure for the mixed design shown. A bit-exact signal is
+  credited 100 dB, so an average near 100 dB means mostly exact signals.
+
+TABLE 8  VALIDITY
+FFT size  FP16 status  FP32 status  Mixed status  FP16 SAIF coverage  FP32 SAIF coverage  Mixed SAIF coverage
+  points                                                   % of nets           % of nets            % of nets
+-------------------------------------------------------------------------------------------------------------
+       2           OK           OK            OK                0.38                0.40                    -
+       4           OK           OK            OK                0.31                0.24                    -
+       8           OK           OK            OK                0.23                0.16                    -
+      16           OK           OK            OK                0.22                0.15                    -
+      32           OK           OK            OK                0.21                0.14                    -
+      64           OK           OK            OK                0.21                0.14                    -
+     128           OK           OK            OK                0.21                0.14                    -
+     256           OK           OK            OK                0.21                0.14                    -
+     512           OK           OK            OK                0.22                0.14                    -
+    1024           OK           OK            OK                0.21                0.14                    -
+  A track whose Status is not OK contributes dashes above, never a number.
+  SAIF coverage is the share of netlist nets the activity file annotated;
+  it is low for every track, so absolute power carries that uncertainty and
+  the energy ratios are only as good as the three coverages are alike.
+  The mixed post-route summaries do not record SAIF coverage, so it is a
+  dash there; that is missing information, not zero coverage.
+
+TABLE 9  END-TO-END THROUGHPUT (RISC-V SoC simulation)
+FFT size  FP16 end-to-end throughput  FP32 end-to-end throughput  Mixed end-to-end throughput  End-to-end throughput ratio vs FP16  End-to-end throughput ratio vs FP32
+  points       transforms per second       transforms per second        transforms per second                   x faster for mixed                   x faster for mixed
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                     727,186                     537,771                      499,700                                 0.69                                 0.93
+       4                     413,206                     294,828                      283,505                                 0.69                                 0.96
+       8                     156,861                     109,430                      165,367                                 1.05                                 1.51
+      16                      83,888                      56,707                       87,372                                 1.04                                 1.54
+      32                      63,021                      29,255                       46,230                                 0.73                                 1.58
+      64                      32,130                      21,426                       22,974                                 0.72                                 1.07
+     128                      11,453                       7,334                       11,425                                 1.00                                 1.56
+     256                       8,042                       3,708                        5,828                                 0.72                                 1.57
+     512                       2,821                       2,680                        2,896                                 1.03                                 1.08
+    1024                       1,398                         918                        1,441                                 1.03                                 1.57
+  End-to-end = fmax / cycles measured by actually simulating each track's
+  chosen design inside a PicoRV32 SoC -- load+compute+unload through real
+  RISC-V instructions (risc-v-integration/run_soc_eval.py), not an idealized
+  bus. fmax/power/area are each track's own post-route numbers (TABLE 1/2/4).
+  A dash means run_soc_eval.py hasn't been run for that (track, N) yet.
+
+TABLE 10  END-TO-END EFFICIENCY
+FFT size  FP16 end-to-end per Watt  FP32 end-to-end per Watt  Mixed end-to-end per Watt  Per-watt ratio vs FP16  Per-watt ratio vs FP32        FP16 end-to-end per mm^2        FP32 end-to-end per mm^2       Mixed end-to-end per mm^2  Per-area ratio vs FP16  Per-area ratio vs FP32
+  points      transforms per joule      transforms per joule       transforms per joule      x better for mixed      x better for mixed  transforms per second per mm^2  transforms per second per mm^2  transforms per second per mm^2      x better for mixed      x better for mixed
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                85,150,628                33,822,049                 67,435,861                    0.79                    1.99                       1,224,116                         605,065                         954,533                    0.78                    1.58
+       4                47,440,462                18,199,244                 41,087,702                    0.87                    2.26                         695,575                         331,721                         541,555                    0.78                    1.63
+       8                17,467,771                 6,325,432                 21,012,265                    1.20                    3.32                         264,053                         123,124                         315,885                    1.20                    2.57
+      16                 9,188,192                 3,296,896                 11,712,056                    1.27                    3.55                         141,214                          63,803                         166,899                    1.18                    2.62
+      32                 6,986,858                 1,607,400                  6,230,493                    0.89                    3.88                         106,088                          32,916                          88,310                    0.83                    2.68
+      64                 3,550,287                 1,260,331                  3,267,933                    0.92                    2.59                          54,087                          24,107                          43,884                    0.81                    1.82
+     128                 1,238,165                   421,521                  1,600,178                    1.29                    3.80                          19,280                           8,252                          21,825                    1.13                    2.64
+     256                   900,556                   214,357                    714,194                    0.79                    3.33                          13,538                           4,172                          11,132                    0.82                    2.67
+     512                   316,255                   158,564                    384,591                    1.22                    2.43                           4,749                           3,015                           5,532                    1.16                    1.83
+    1024                   154,007                    54,331                    178,071                    1.16                    3.28                           2,354                           1,033                           2,752                    1.17                    2.66
+  Same end-to-end throughput as TABLE 9, divided by each track's own
+  post-route power/area -- the system-level efficiency a reviewer who has
+  seen the datapath-only TABLE 5/6 numbers will ask for next.
+
+READING THE RATIOS
+  Above 1.00  the mixed core is better on that figure of merit.
+  Below 1.00  the baseline is better.
+  A dash      one of the two numbers is missing or untrustworthy; it is
+              never a 1.00 and never an assumption of equality.

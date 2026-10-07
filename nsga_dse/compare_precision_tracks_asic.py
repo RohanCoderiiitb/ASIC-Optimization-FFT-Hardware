@@ -38,24 +38,34 @@ DEFINITIONS (ASIC-specific)
   per-watt    1 / energy, in transforms per joule.
 
 WHERE THE MIXED NUMBERS COME FROM
-  --stage postroute  results/fft_N/summary.txt, one per size. Each lists the
-                     NSGA-II Pareto-front designs with post-route area, critical
-                     path, slack, power, SQNR and cycles, and names the
-                     chromosome of its three "best" designs. One design per N
-                     is chosen with --mixed-pick, restricted to designs that
-                     met timing:
-                       energy (default)  lowest energy per transform
-                       sqnr              highest SQNR
-                       crit              shortest critical path
+  --stage postroute  results/fft_N/all_solutions_fftN[_fixed].csv, one per size --
+                     the NSGA-II evaluator's own per-individual results, which
+                     are POST-ROUTE (OpenROAD P&R + SAIF power; see
+                     objectiveEvaluationFFT.py's _run_postroute_pnr). One
+                     design per N is chosen by select_best_design.choose(),
+                     the exact function results/asic_best_designs.txt uses, via
+                     --mixed-pick (a select_best_design.py --method name):
+                       balanced (default)  equal-weight distance to the ideal
+                                           point over energy, area, critical
+                                           path and SQNR
+                       score               SQNR-weighted score
+                       sqnr                lowest energy within 0.5 dB of the
+                                           best SQNR
+                       tolerance           highest SQNR within 2% of the
+                                           lowest energy
                      The pick changes every mixed number, so the output file
-                     name carries it. Pick `energy` is the efficiency headline;
-                     it trades accuracy away, which TABLE 7 shows.
+                     name carries it. The default, `balanced`, is the same
+                     design results/asic_best_designs.txt names for that N.
   --stage synth      mixed_ppa_report.txt, which holds only the sizes
                      run_mixed_synthesis.py was run for, all with the all-FP8
-                     reference chromosome. Other sizes print as dashes.
-  Cycles come from the summaries for both stages (they are the same for every
-  design at a given N). SQNR comes from the chosen design (post-route) or from
-  the all-FP8 row of the NSGA results (pre-route).
+                     reference chromosome. Other sizes print as dashes. This is
+                     PRE-ROUTE (Yosys+OpenSTA only); the all_solutions_fftN.csv
+                     data above is post-route, so it is NOT substituted here --
+                     doing so would compare post-route Mixed numbers against
+                     pre-route FP16/FP32 numbers.
+  Cycles come from the same source as the rest of each stage's Mixed row.
+  SQNR comes from the chosen design (post-route) or from the all-FP8 row of
+  the NSGA results (pre-route).
 
 COMPARABILITY
   --stage synth      Yosys cell area + OpenSTA timing, no placement. Area is the
@@ -77,9 +87,36 @@ import glob
 import math
 import os
 import re
+import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+
+sys.path.insert(0, SCRIPT_DIR)
+from select_best_design import load_designs, choose  # noqa: E402
+
+SOC_THROUGHPUT_CSV = os.path.join(REPO_ROOT, "results", "asic_soc_throughput.csv")
+SOC_TRACK_NAMES = {"FP16": "fp16", "FP32": "fp32", "Mixed": "mixed"}
+
+
+def load_soc_throughput(path=SOC_THROUGHPUT_CSV):
+    """{(TRACKS-name, N): e2e_cycles_per_xform} from
+    results/asic_soc_throughput.csv (risc-v-integration/run_soc_eval.py),
+    OK rows only, or {} if that file doesn't exist yet."""
+    if not os.path.isfile(path):
+        return {}
+    inv = {v: k for k, v in SOC_TRACK_NAMES.items()}
+    out = {}
+    with open(path, newline="", encoding="utf-8") as f:
+        for r in csv_mod.DictReader(f):
+            if r.get("status") != "OK":
+                continue
+            track = inv.get(r.get("track"))
+            if track is None:
+                continue
+            out[(track, int(r["n"]))] = float(r["e2e_cycles_per_xform"])
+    return out
+
 
 REPORTS = {
     "synth": {
@@ -214,38 +251,47 @@ def read_summary(n):
     return {"rows": rows, "clock": clock} if rows else None
 
 
-MIXED_PICKS = {
-    "energy": ("lowest energy per transform", lambda r: (r["energy"], -r["sqnr"])),
-    "sqnr":   ("highest SQNR",                lambda r: (-r["sqnr"], r["energy"])),
-    "crit":   ("shortest critical path",      lambda r: (r["crit"], r["energy"])),
+MIXED_METHOD_DESC = {
+    "balanced":  "equal-weight distance to the ideal point over energy, area, critical "
+                 "path and SQNR (lowest wins)",
+    "score":     "SQNR weight 0.7 / energy weight 0.3 (each scaled 0..1 within the pool)",
+    "sqnr":      "lowest energy within 0.5 dB of the best SQNR",
+    "tolerance": "highest SQNR within 2% of the lowest energy",
 }
 
 
-def mixed_postroute_rows(pick):
-    """({N: report-style row}, clock) for the mixed track from the NSGA summaries.
+def mixed_postroute_rows(method="balanced"):
+    """({N: report-style row}, clock) for the mixed track, post-route.
 
-    One Pareto-front design is chosen per N by `pick`, restricted to designs that
-    met timing, and returned in the same header-keyed form read_report() yields
-    so the rest of the script treats it like any other track."""
+    One design per N is chosen by select_best_design.choose() -- the SAME rule
+    (and, by default, the same 'balanced' method) that produces
+    results/asic_best_designs.txt/.csv -- from
+    results/fft_N/all_solutions_fftN[_fixed].csv, the NSGA-II evaluator's own
+    per-individual results. This file already holds POST-ROUTE OpenROAD P&R +
+    SAIF-power numbers (objectiveEvaluationFFT.py's _run_postroute_pnr runs
+    every generation now, not the old pre-route _run_yosys_opensta it
+    replaced), which is why this function backs --stage postroute only: using
+    it for --stage synth would compare post-route Mixed numbers against
+    pre-route FP16/FP32 Yosys+OpenSTA numbers. Sourcing from the same
+    load_designs()/choose() select_best_design.py uses (instead of an
+    independently re-derived pick parsed out of results/fft_N/summary.txt)
+    keeps the mixed design named in TABLE 1 identical to the one
+    asic_best_designs.txt reports for that N."""
+    data = load_designs(RESULTS_DIR)
     out, clock = {}, None
-    for d in sorted(glob.glob(os.path.join(RESULTS_DIR, "fft_*"))):
-        m = re.match(r"fft_(\d+)$", os.path.basename(d))
-        if not m:
-            continue
-        n = int(m.group(1))
-        sm = read_summary(n)
-        if not sm:
-            continue
-        clock = clock or sm["clock"]
-        ok = [r for r in sm["rows"] if r["meets"]]
-        if not ok:
+    for n in sorted(data):
+        if clock is None:
+            sm = read_summary(n)
+            if sm:
+                clock = sm["clock"]
+        best, _info = choose(data[n], method=method)
+        if best is None:
             out[n] = {"Status": "TIMING_FAIL"}
             continue
-        r = min(ok, key=MIXED_PICKS[pick][1])
-        out[n] = {"Area (um^2)": str(r["area"]), "CritDelay (ns)": str(r["crit"]),
-                  "Slack (ns)": str(r["slack"]), "Power (mW)": str(r["power"]),
-                  "ExecCyc": str(r["cycles"]), "Status": "OK", "AnnotatedSignals": "",
-                  "_sqnr": r["sqnr"], "_chrom": r["chrom"]}
+        out[n] = {"Area (um^2)": str(best["area"]), "CritDelay (ns)": str(best["crit"]),
+                  "Slack (ns)": str(best["slack"]), "Power (mW)": str(best["power"]),
+                  "ExecCyc": str(best["cycles"]), "Status": "OK", "AnnotatedSignals": "",
+                  "_sqnr": best["sqnr"], "_chrom": best["chrom"]}
     return out, clock
 
 
@@ -278,7 +324,7 @@ def f(v, fmt="{:.2f}", dash="-"):
     return dash if v is None else fmt.format(v)
 
 
-def build_rows(stage, pick="energy"):
+def build_rows(stage, pick="balanced"):
     """One dict per N with every derived quantity, keyed by track."""
     raw, clocks = {}, {}
     for t in TRACKS:
@@ -341,9 +387,10 @@ def main():
                     help="which pair of reports to compare (default: pre-route "
                          "synthesis; see the module docstring for what post-route "
                          "area means)")
-    ap.add_argument("--mixed-pick", choices=sorted(MIXED_PICKS), default="energy",
-                    help="post-route only: which Pareto-front design represents the "
-                         "mixed core at each N (default: lowest energy)")
+    ap.add_argument("--mixed-pick", choices=sorted(MIXED_METHOD_DESC), default="balanced",
+                    help="post-route only: selection rule for the one mixed design shown "
+                         "per N -- the same select_best_design.py --method rule, so the "
+                         "default ('balanced') matches results/asic_best_designs.txt")
     ap.add_argument("--out", default=None,
                     help="output text file (default: results/asic_fp16_fp32_mixed_comparison_<stage>[_<pick>].txt)")
     ap.add_argument("--csv", default=None, help="also write the joined rows as CSV")
@@ -365,9 +412,11 @@ def main():
     L = ["=" * 78,
          "FP16 vs FP32 vs MIXED FP4/FP8 - ASIC COMPARISON, " + stage_name.upper(),
          "=" * 78, "",
-         *(["Mixed track: NSGA-II Pareto-front design per N from results/fft_N/summary.txt,",
-            "chosen by '%s' (%s); chromosome shown in TABLE 1." %
-            (args.mixed_pick, MIXED_PICKS[args.mixed_pick][0])]
+         *(["Mixed track: one design per N chosen by select_best_design.py's '%s' rule" %
+            args.mixed_pick,
+            "(%s) from results/fft_N/all_solutions_fftN.csv -- the same design" %
+            MIXED_METHOD_DESC[args.mixed_pick],
+            "results/asic_best_designs.txt reports for that N; chromosome shown in TABLE 1."]
            if args.stage == "postroute" else
            ["Mixed track: the all-FP8 reference chromosome (highest-precision corner of",
             "the NSGA-II space), only for the sizes run_mixed_synthesis.py was run on."]),
@@ -412,11 +461,14 @@ def main():
                 "TABLE 2  ACHIEVABLE CLOCK FREQUENCY")
 
     L += render(rows, [N] + trio("cycles per transform", "clock cycles", "cyc", "{:.0f}")
-                + trio("throughput", "transforms per second", "thr", "{:,.0f}")
-                + ratios("Throughput ratio", "x faster for mixed", "thr", False),
-                "TABLE 3  THROUGHPUT", notes=[
-                    "Throughput = fmax / cycles. Cycles for the mixed track come from the",
-                    "NSGA results; a dash there means the all-FP8 chromosome was not visited.",
+                + trio("compute-only throughput", "transforms per second", "thr", "{:,.0f}")
+                + ratios("Compute-only throughput ratio", "x faster for mixed", "thr", False),
+                "TABLE 3  COMPUTE-ONLY THROUGHPUT (datapath only)", notes=[
+                    "Compute-only throughput = fmax / cycles, cycles being ExecCyc (the datapath",
+                    "load+compute+unload cycles the ASIC drivers already measure directly against",
+                    "the core's ports, with no CPU in the loop). Cycles for the mixed track come",
+                    "from the NSGA results; a dash there means the all-FP8 chromosome was not",
+                    "visited. See TABLE 9 for END-TO-END throughput (through a real RISC-V core).",
                 ])
 
     L += render(rows, [N] + trio("power", "mW", "pwr", "{:.3f}")
@@ -427,16 +479,17 @@ def main():
                     "TABLE 8 for how much of each netlist the SAIF actually covered.",
                 ])
 
-    L += render(rows, [N] + trio("throughput per watt", "transforms per joule", "tpj", "{:,.0f}")
+    L += render(rows, [N] + trio("compute-only throughput per watt", "transforms per joule", "tpj", "{:,.0f}")
                 + ratios("Per-watt ratio", "x better for mixed", "tpj", False),
-                "TABLE 5  ENERGY EFFICIENCY", notes=[
+                "TABLE 5  ENERGY EFFICIENCY (compute-only)", notes=[
                     "Throughput per watt is 1 / energy per transform, so this table carries",
                     "the same information as the energy ratios, in units reviewers ask for.",
+                    "Compute-only, same basis as TABLE 3; see TABLE 10 for end-to-end efficiency.",
                 ])
 
-    L += render(rows, [N] + trio("throughput per mm^2", "transforms per second", "tpa", "{:,.0f}")
+    L += render(rows, [N] + trio("compute-only throughput per mm^2", "transforms per second", "tpa", "{:,.0f}")
                 + ratios("Per-area ratio", "x better for mixed", "tpa", False),
-                "TABLE 6  AREA EFFICIENCY")
+                "TABLE 6  AREA EFFICIENCY (compute-only)")
 
     def lost(t):
         return lambda r: f(None if r["sqnr"][t] is None or r["sqnr"]["Mixed"] is None
@@ -463,6 +516,52 @@ def main():
                     "The mixed post-route summaries do not record SAIF coverage, so it is a",
                     "dash there; that is missing information, not zero coverage.",
                 ])
+
+    soc_throughput = load_soc_throughput() if args.stage == "postroute" else {}
+    if soc_throughput:
+        def e2e_hz(r, t):
+            cyc = soc_throughput.get((t, r["N"]))
+            return (r["fmax"][t] * 1e6 / cyc) if cyc and r["fmax"][t] else None
+
+        def e2e_per_w(r, t):
+            v = e2e_hz(r, t)
+            return (v / (r["pwr"][t] / 1000.0)) if v and r["pwr"][t] else None
+
+        def e2e_per_mm2(r, t):
+            v = e2e_hz(r, t)
+            return (v / (r["area"][t] / 1e6)) if v and r["area"][t] else None
+
+        def e2e_ratios(label, unit, key_fn):
+            out = []
+            for t in ("FP16", "FP32"):
+                out.append((f"{label} vs {t}", unit,
+                            (lambda r, t=t: f(ratio(key_fn(r, "Mixed"), key_fn(r, t))))))
+            return out
+
+        L += render(rows, [N]
+                    + [(f"{t} end-to-end throughput", "transforms per second",
+                        (lambda r, t=t: f(e2e_hz(r, t), "{:,.0f}"))) for t in TRACKS]
+                    + e2e_ratios("End-to-end throughput ratio", "x faster for mixed", e2e_hz),
+                    "TABLE 9  END-TO-END THROUGHPUT (RISC-V SoC simulation)", notes=[
+                        "End-to-end = fmax / cycles measured by actually simulating each track's",
+                        "chosen design inside a PicoRV32 SoC -- load+compute+unload through real",
+                        "RISC-V instructions (risc-v-integration/run_soc_eval.py), not an idealized",
+                        "bus. fmax/power/area are each track's own post-route numbers (TABLE 1/2/4).",
+                        "A dash means run_soc_eval.py hasn't been run for that (track, N) yet.",
+                    ])
+
+        L += render(rows, [N]
+                    + [(f"{t} end-to-end per Watt", "transforms per joule",
+                        (lambda r, t=t: f(e2e_per_w(r, t), "{:,.0f}"))) for t in TRACKS]
+                    + e2e_ratios("Per-watt ratio", "x better for mixed", e2e_per_w)
+                    + [(f"{t} end-to-end per mm^2", "transforms per second per mm^2",
+                        (lambda r, t=t: f(e2e_per_mm2(r, t), "{:,.0f}"))) for t in TRACKS]
+                    + e2e_ratios("Per-area ratio", "x better for mixed", e2e_per_mm2),
+                    "TABLE 10  END-TO-END EFFICIENCY", notes=[
+                        "Same end-to-end throughput as TABLE 9, divided by each track's own",
+                        "post-route power/area -- the system-level efficiency a reviewer who has",
+                        "seen the datapath-only TABLE 5/6 numbers will ask for next.",
+                    ])
 
     L += ["", "READING THE RATIOS",
           "  Above 1.00  the mixed core is better on that figure of merit.",

@@ -173,7 +173,8 @@ class PostRoutePnR:
     def __init__(self, design_prefix, std_lib, tech_lef, cell_lef, sram_lef,
                  sram_liberty, macro_module, macro_instances, macro_w, macro_h,
                  clock_period, fixed_lef_dir, openroad_path="openroad",
-                 sta_path="sta", timeout=1800, min_annotated_pins=20):
+                 sta_path="sta", timeout=1800, min_annotated_pins=20,
+                 setup_margin=0.0):
         self.design_prefix = design_prefix          # "fp16_fft" / "fp32_fft"
         self.std_lib = os.path.abspath(std_lib)
         self.cell_lef = os.path.abspath(cell_lef)
@@ -185,6 +186,11 @@ class PostRoutePnR:
         self.sta_path = sta_path
         self.timeout = timeout
         self.min_annotated_pins = min_annotated_pins
+        # Extra setup margin (ns) `repair_timing -setup` targets on top of the
+        # bare 0-slack requirement, so the design closes with real margin
+        # instead of landing exactly on "slack (MET) 0.00". 0.0 keeps the
+        # original bare-closure behaviour.
+        self.setup_margin = setup_margin
 
         # `fixed_lef_dir` is caller-owned scratch space (e.g. this baseline's
         # own synth/ directory) -- deliberately NOT inside the vendored PDK
@@ -287,15 +293,15 @@ class PostRoutePnR:
             set_propagated_clock [all_clocks]
             detailed_placement
             estimate_parasitics -placement
-            repair_timing -setup
+            repair_timing -setup -setup_margin {self.setup_margin}
 
             set_routing_layers -signal Metal2-Metal9 -clock Metal2-Metal9
             global_route -guide_file {route_guide}
             estimate_parasitics -global_routing
-            repair_timing -setup
-            repair_timing -setup -repair_tns 100
-            repair_timing -setup -repair_tns 100
-            repair_timing -setup -repair_tns 100
+            repair_timing -setup -setup_margin {self.setup_margin}
+            repair_timing -setup -setup_margin {self.setup_margin} -repair_tns 100
+            repair_timing -setup -setup_margin {self.setup_margin} -repair_tns 100
+            repair_timing -setup -setup_margin {self.setup_margin} -repair_tns 100
 
             report_checks -path_delay max -format full_clock_expanded > {timing_rpt}
 

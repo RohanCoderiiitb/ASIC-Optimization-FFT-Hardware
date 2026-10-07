@@ -31,6 +31,7 @@ REPO_ROOT = os.path.dirname(BASE_DIR)
 
 sys.path.insert(0, REPO_ROOT)
 sys.path.insert(0, SYNTH_DIR)
+sys.path.insert(0, os.path.join(REPO_ROOT, "nsga_dse"))
 from postroute_pnr import PostRoutePnR  # noqa: E402
 from run_fp32_synthesis import (  # noqa: E402
     Fp32Synthesizer, DEFAULT_STD_LIB, DEFAULT_RAM_LIB, DEFAULT_SOURCE_DIR,
@@ -77,6 +78,10 @@ def main():
     ap = argparse.ArgumentParser(description="FP32 baseline POST-ROUTE PPA extraction (OpenROAD)")
     ap.add_argument("--sizes", type=int, nargs="*", default=ALL_SIZES)
     ap.add_argument("--clock-period", type=float, default=10.0)
+    ap.add_argument("--setup-margin", type=float, default=0.15,
+                     help="extra setup margin (ns) repair_timing -setup targets on top "
+                          "of bare 0-slack closure, so the design closes with real slack "
+                          "instead of landing exactly on 'slack (MET) 0.00' (default 0.1)")
     ap.add_argument("--std-lib", default=DEFAULT_STD_LIB)
     ap.add_argument("--ram-lib", default=DEFAULT_RAM_LIB)
     ap.add_argument("--source-dir", default=DEFAULT_SOURCE_DIR)
@@ -104,7 +109,7 @@ def main():
         macro_w=MACRO_W, macro_h=MACRO_H, clock_period=args.clock_period,
         fixed_lef_dir=os.path.join(SYNTH_DIR, "_pnr_fixed_lef"),
         openroad_path=args.openroad, sta_path=args.sta,
-        min_annotated_pins=MIN_ANNOTATED_PINS,
+        min_annotated_pins=MIN_ANNOTATED_PINS, setup_margin=args.setup_margin,
     )
 
     rows = []
@@ -156,6 +161,8 @@ def main():
         "NOT full DRC-clean detailed routing -- see this script's module docstring and "
         "postroute_pnr.py for exactly why and what stage 'post-route' refers to here.",
         f"Clock period: {args.clock_period} ns",
+        f"repair_timing -setup target margin: {args.setup_margin} ns (on top of bare "
+        "0-slack closure; see postroute_pnr.py)",
         "Energy/FFT = Power(mW) * ExecCycles * ClockPeriod(ns) / 1000, "
         f"ExecCycles from {os.path.relpath(os.path.abspath(args.cycles_file), SYNTH_DIR)}",
         "Area is the fixed floorplan's core area (same for every N -- the 4-macro SRAM "

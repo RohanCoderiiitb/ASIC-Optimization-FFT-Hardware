@@ -19,6 +19,10 @@ results/fft_*/*
 !results/all_pareto_solutions.csv
 !results/comparison_all_fft_sizes.png
 !results/comprehensive_summary.txt
+# compare_precision_tracks_asic.py output and paper_figures_asic.py figures
+!results/asic_fp16_fp32_mixed_comparison_*
+!results/asic_fig*.pdf
+!results/asic_fig*.png
 
 # Log files
 *.log

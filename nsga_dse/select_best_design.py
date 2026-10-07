@@ -66,6 +66,7 @@ import re
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 RESULTS_DIR = os.path.join(REPO_ROOT, "results")
+SOC_THROUGHPUT_CSV = os.path.join(RESULTS_DIR, "asic_soc_throughput.csv")
 
 
 def num(s):
@@ -209,6 +210,44 @@ def choose(rows, method="balanced", energy_tol=0.02, min_slack=0.0, min_sqnr=15.
                   "s_max": max(r["sqnr"] for r in pool)}
 
 
+def load_soc_throughput(path=SOC_THROUGHPUT_CSV):
+    """{N: row} for track=='mixed' from results/asic_soc_throughput.csv
+    (written by risc-v-integration/run_soc_eval.py), or {} if that file
+    doesn't exist yet -- e.g. a fresh checkout before anyone has run the
+    RISC-V SoC simulation. e2e_cycles_per_xform is the load+compute+unload
+    cycle count measured by actually simulating the chosen chromosome's RTL
+    inside a PicoRV32 SoC (see run_soc_eval.py's module docstring); it is
+    NOT derivable from the ASIC PPA data alone."""
+    if not os.path.isfile(path):
+        return {}
+    out = {}
+    with open(path, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r.get("track") == "mixed" and r.get("status") == "OK":
+                out[int(r["n"])] = r
+    return out
+
+
+def throughput_fields(best, soc_row):
+    """(compute_hz, e2e_hz, e2e_per_w, e2e_per_mm2) from a `best` design row
+    (power_mW, area_um2, crit, cycles already on it) and its matching
+    asic_soc_throughput.csv row (e2e_cycles_per_xform), or all-None if
+    required data is missing (power/area/crit absent, or no SoC row yet)."""
+    if best is None or best.get("crit") is None or not best["crit"]:
+        return None, None, None, None
+    fmax_hz = 1000.0 / best["crit"] * 1e6   # crit is ns -> fmax in Hz
+    compute_hz = (fmax_hz / best["cycles"]) if best.get("cycles") else None
+    if soc_row is None:
+        return compute_hz, None, None, None
+    e2e_cycles = float(soc_row["e2e_cycles_per_xform"])
+    e2e_hz = fmax_hz / e2e_cycles if e2e_cycles else None
+    e2e_per_w = (e2e_hz / (best["power"] / 1000.0)
+                 if e2e_hz and best.get("power") else None)
+    e2e_per_mm2 = (e2e_hz / (best["area"] / 1e6)
+                   if e2e_hz and best.get("area") else None)
+    return compute_hz, e2e_hz, e2e_per_w, e2e_per_mm2
+
+
 def render(title, cols, rows, notes=()):
     labels = [c[0] for c in cols]
     units = [c[1] for c in cols]
@@ -263,11 +302,16 @@ def main():
         kw.update(over)
         return choose(data[n], **kw)
 
+    soc_throughput = load_soc_throughput()
     picks = []
     for n in sorted(data):
         best, info = run(n)
+        compute_hz, e2e_hz, e2e_per_w, e2e_per_mm2 = throughput_fields(
+            best, soc_throughput.get(n))
         picks.append({"n": n, "best": best, "info": info,
-                      "front": sum(1 for r in data[n] if r["pareto"])})
+                      "front": sum(1 for r in data[n] if r["pareto"]),
+                      "compute_hz": compute_hz, "e2e_hz": e2e_hz,
+                      "e2e_per_w": e2e_per_w, "e2e_per_mm2": e2e_per_mm2})
 
     rule = {
         "balanced": "balanced: equal-weight distance to the ideal point over energy, area, "
@@ -328,6 +372,26 @@ def main():
         "a mixed design clears the timing and SQNR filters.",
     ])
 
+    if soc_throughput:
+        L += render("TABLE 3  THROUGHPUT (post-route)", [
+            ("FFT size", "points", lambda p: str(p["n"])),
+            ("Compute-only throughput", "transforms/s",
+             lambda p: f"{p['compute_hz']:,.0f}" if p["compute_hz"] else "-"),
+            ("End-to-end throughput", "transforms/s",
+             lambda p: f"{p['e2e_hz']:,.0f}" if p["e2e_hz"] else "-"),
+            ("End-to-end per Watt", "transforms/J",
+             lambda p: f"{p['e2e_per_w']:,.0f}" if p["e2e_per_w"] else "-"),
+            ("End-to-end per mm^2", "transforms/s/mm^2",
+             lambda p: f"{p['e2e_per_mm2']:,.0f}" if p["e2e_per_mm2"] else "-"),
+        ], picks, notes=[
+            "Compute-only = fmax / exec_cycles (datapath only, same cycles as the rest of",
+            "this table). End-to-end = fmax / cycles measured by actually simulating this",
+            "chromosome's RTL inside a PicoRV32 SoC (risc-v-integration/run_soc_eval.py) --",
+            "load+compute+unload through real RISC-V instructions, not an idealized bus.",
+            "fmax/power/area are this design's own post-route numbers (TABLE 1). A dash",
+            "means run_soc_eval.py hasn't been run for that N yet.",
+        ])
+
     if args.method == "score":
         ws = (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
         sens = []
@@ -337,7 +401,7 @@ def main():
                 b, _ = run(n, w_sqnr=w, w_energy=1.0 - w)
                 ids.append(b["id"] if b else None)
             sens.append({"n": n, "ids": ids, "stable": len(set(ids)) == 1})
-        L += render("TABLE 3  DOES THE WEIGHT MATTER?  (solution id picked per SQNR weight)", [
+        L += render("TABLE 4  DOES THE WEIGHT MATTER?  (solution id picked per SQNR weight)", [
             ("FFT size", "points", lambda r: str(r["n"]))]
             + [(f"w_sqnr {w:g}", "", (lambda r, i=i: str(r["ids"][i]))) for i, w in enumerate(ws)]
             + [("Pick moves?", "", lambda r: "no" if r["stable"] else "YES")], sens, notes=[
@@ -358,14 +422,20 @@ def main():
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["N", "solution_id", "chromosome", "config", "energy_nJ", "sqnr_dB",
-                    "crit_delay_ns", "slack_ns", "exec_cycles", "balance_score", "pool", "status"])
+                    "crit_delay_ns", "slack_ns", "exec_cycles", "power_mW", "area_um2",
+                    "balance_score", "pool", "status",
+                    "throughput_compute_hz", "throughput_e2e_hz",
+                    "throughput_e2e_per_w", "throughput_e2e_per_mm2"])
         for p in picks:
             b = p["best"]
             w.writerow([p["n"]] + ([b["id"], b["chrom"], p["info"]["config"], b["energy"],
                                     b["sqnr"], b["crit"], b["slack"], b["cycles"],
+                                    b["power"], b["area"],
                                     "" if p["info"]["score"] is None else p["info"]["score"]]
-                                   if b else [""] * 9)
-                       + [p["info"]["pool"], stat(p)])
+                                   if b else [""] * 11)
+                       + [p["info"]["pool"], stat(p),
+                          p["compute_hz"] or "", p["e2e_hz"] or "",
+                          p["e2e_per_w"] or "", p["e2e_per_mm2"] or ""])
     print("\n" + text)
     print(f"[best-design] table: {args.out}\n[best-design] csv  : {csv_path}")
 

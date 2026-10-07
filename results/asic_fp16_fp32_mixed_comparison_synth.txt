@@ -1,0 +1,153 @@
+==============================================================================
+FP16 vs FP32 vs MIXED FP4/FP8 - ASIC COMPARISON, PRE-ROUTE (YOSYS + OPENSTA)
+==============================================================================
+
+Mixed track: the all-FP8 reference chromosome (highest-precision corner of
+the NSGA-II space), only for the sizes run_mixed_synthesis.py was run on.
+All three tracks: same 45 nm library, same clock constraint, SAIF-measured power.
+Ratios above 1.00 favour the mixed core.
+
+MISSING reports for: Mixed (/home/ihs24/Desktop/ASIC-Optimization-FFT-Hardware/mixed_ppa_report.txt)
+
+
+TABLE 1  AREA
+FFT size                      Mixed chromosome  FP16 area  FP32 area  Mixed area   Area ratio vs FP16   Area ratio vs FP32
+  points  1 = FP8, 0 = FP4; mult/add per stage       um^2       um^2        um^2  x smaller for mixed  x smaller for mixed
+--------------------------------------------------------------------------------------------------------------------------
+       2                                     -    254,433    455,998           -                    -                    -
+       4                                     -    257,248    468,696           -                    -                    -
+       8                                     -    263,047    484,504           -                    -                    -
+      16                                     -    264,502    488,940           -                    -                    -
+      32                                     -    266,189    492,814           -                    -                    -
+      64                                     -    266,557    493,802           -                    -                    -
+     128                                     -    266,829    494,173           -                    -                    -
+     256                                     -    267,034    494,651           -                    -                    -
+     512                                     -    267,318    495,503           -                    -                    -
+    1024                                     -    268,436    498,299           -                    -                    -
+
+TABLE 2  ACHIEVABLE CLOCK FREQUENCY
+FFT size  FP16 critical path  FP32 critical path  Mixed critical path  FP16 maximum frequency  FP32 maximum frequency  Mixed maximum frequency  Frequency ratio vs FP16  Frequency ratio vs FP32
+  points                  ns                  ns                   ns                     MHz                     MHz                      MHz       x faster for mixed       x faster for mixed
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+       4               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+       8               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+      16               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+      32               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+      64               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+     128               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+     256               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+     512               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+    1024               7.890               7.980                    -                   126.7                   125.3                        -                        -                        -
+
+TABLE 3  THROUGHPUT
+FFT size  FP16 cycles per transform  FP32 cycles per transform  Mixed cycles per transform        FP16 throughput        FP32 throughput       Mixed throughput  Throughput ratio vs FP16  Throughput ratio vs FP32
+  points               clock cycles               clock cycles                clock cycles  transforms per second  transforms per second  transforms per second        x faster for mixed        x faster for mixed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                         21                         21                           -              6,035,367              5,967,299                      -                         -                         -
+       4                         41                         41                           -              3,091,286              3,056,422                      -                         -                         -
+       8                         66                         66                           -              1,920,344              1,898,686                      -                         -                         -
+      16                        103                        103                           -              1,230,512              1,216,634                      -                         -                         -
+      32                        168                        168                           -                754,421                745,912                      -                         -                         -
+      64                        297                        297                           -                426,743                421,930                      -                         -                         -
+     128                        570                        570                           -                222,356                219,848                      -                         -                         -
+     256                       1163                       1163                           -                108,979                107,750                      -                         -                         -
+     512                       2460                       2460                           -                 51,521                 50,940                      -                         -                         -
+    1024                       5293                       5293                           -                 23,945                 23,675                      -                         -                         -
+  Throughput = fmax / cycles. Cycles for the mixed track come from the
+  NSGA results; a dash there means the all-FP8 chromosome was not visited.
+
+TABLE 4  POWER AND ENERGY PER TRANSFORM
+FFT size  FP16 power  FP32 power  Mixed power  FP16 energy per transform  FP32 energy per transform  Mixed energy per transform  Energy ratio vs FP16  Energy ratio vs FP32
+  points          mW          mW           mW                 nanojoules                 nanojoules                  nanojoules     x lower for mixed     x lower for mixed
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2       9.280      17.200            -                       1.95                       3.61                           -                     -                     -
+       4       9.610      17.200            -                       3.94                       7.05                           -                     -                     -
+       8       9.640      16.500            -                       6.36                      10.89                           -                     -                     -
+      16       9.980      17.300            -                      10.28                      17.82                           -                     -                     -
+      32       9.590      16.500            -                      16.11                      27.72                           -                     -                     -
+      64      10.100      16.900            -                      30.00                      50.19                           -                     -                     -
+     128       9.430      16.500            -                      53.75                      94.05                           -                     -                     -
+     256      10.200      15.900            -                     118.63                     184.92                           -                     -                     -
+     512       8.550      16.400            -                     210.33                     403.44                           -                     -                     -
+    1024      10.100      15.700            -                     534.59                     831.00                           -                     -                     -
+  Energy = power x cycles x constraint clock. Power is SAIF-measured; see
+  TABLE 8 for how much of each netlist the SAIF actually covered.
+
+TABLE 5  ENERGY EFFICIENCY
+FFT size  FP16 throughput per watt  FP32 throughput per watt  Mixed throughput per watt  Per-watt ratio vs FP16  Per-watt ratio vs FP32
+  points      transforms per joule      transforms per joule       transforms per joule      x better for mixed      x better for mixed
+---------------------------------------------------------------------------------------------------------------------------------------
+       2               513,136,289               276,854,928                          -                       -                       -
+       4               253,800,665               141,803,744                          -                       -                       -
+       8               157,173,394                91,827,365                          -                       -                       -
+      16                97,281,943                56,119,872                          -                       -                       -
+      32                62,068,623                36,075,036                          -                       -                       -
+      64                33,336,667                19,923,097                          -                       -                       -
+     128                18,604,305                10,632,642                          -                       -                       -
+     256                 8,429,855                 5,407,832                          -                       -                       -
+     512                 4,754,434                 2,478,683                          -                       -                       -
+    1024                 1,870,582                 1,203,368                          -                       -                       -
+  Throughput per watt is 1 / energy per transform, so this table carries
+  the same information as the energy ratios, in units reviewers ask for.
+
+TABLE 6  AREA EFFICIENCY
+FFT size  FP16 throughput per mm^2  FP32 throughput per mm^2  Mixed throughput per mm^2  Per-area ratio vs FP16  Per-area ratio vs FP32
+  points     transforms per second     transforms per second      transforms per second      x better for mixed      x better for mixed
+---------------------------------------------------------------------------------------------------------------------------------------
+       2                23,720,814                13,086,228                          -                       -                       -
+       4                12,016,762                 6,521,120                          -                       -                       -
+       8                 7,300,373                 3,918,824                          -                       -                       -
+      16                 4,652,190                 2,488,310                          -                       -                       -
+      32                 2,834,155                 1,513,579                          -                       -                       -
+      64                 1,600,945                   854,452                          -                       -                       -
+     128                   833,326                   444,881                          -                       -                       -
+     256                   408,109                   217,830                          -                       -                       -
+     512                   192,735                   102,805                          -                       -                       -
+    1024                    89,203                    47,512                          -                       -                       -
+
+TABLE 7  ACCURACY - WHAT THE EFFICIENCY COSTS
+FFT size  FP16 average SQNR  FP32 average SQNR  Mixed average SQNR  Accuracy lost vs FP16  Accuracy lost vs FP32
+  points                 dB                 dB                  dB                     dB                     dB
+----------------------------------------------------------------------------------------------------------------
+       2                  -                  -                   -                      -                      -
+       4                  -                  -                   -                      -                      -
+       8                  -                  -                   -                      -                      -
+      16                  -                  -                   -                      -                      -
+      32                  -                  -                   -                      -                      -
+      64                  -                  -                   -                      -                      -
+     128                  -                  -                   -                      -                      -
+     256                  -                  -                   -                      -                      -
+     512                  -                  -                   -                      -                      -
+    1024                  -                  -                   -                      -                      -
+  This decides whether the efficiency ratios are a real win. Baseline SQNR
+  is read from sim/perf/<track>_sqnr_results.txt; mixed SQNR is the NSGA
+  evaluator's figure for the mixed design shown. A bit-exact signal is
+  credited 100 dB, so an average near 100 dB means mostly exact signals.
+
+TABLE 8  VALIDITY
+FFT size  FP16 status  FP32 status  Mixed status  FP16 SAIF coverage  FP32 SAIF coverage  Mixed SAIF coverage
+  points                                                   % of nets           % of nets            % of nets
+-------------------------------------------------------------------------------------------------------------
+       2           OK           OK             -                1.47                1.08                    -
+       4           OK           OK             -                1.48                1.08                    -
+       8           OK           OK             -                1.48                1.09                    -
+      16           OK           OK             -                1.48                1.09                    -
+      32           OK           OK             -                1.49                1.09                    -
+      64           OK           OK             -                1.49                1.09                    -
+     128           OK           OK             -                1.49                1.09                    -
+     256           OK           OK             -                1.49                1.09                    -
+     512           OK           OK             -                1.50                1.09                    -
+    1024           OK           OK             -                1.50                1.10                    -
+  A track whose Status is not OK contributes dashes above, never a number.
+  SAIF coverage is the share of netlist nets the activity file annotated;
+  it is low for every track, so absolute power carries that uncertainty and
+  the energy ratios are only as good as the three coverages are alike.
+  The mixed post-route summaries do not record SAIF coverage, so it is a
+  dash there; that is missing information, not zero coverage.
+
+READING THE RATIOS
+  Above 1.00  the mixed core is better on that figure of merit.
+  Below 1.00  the baseline is better.
+  A dash      one of the two numbers is missing or untrustworthy; it is
+              never a 1.00 and never an assumption of equality.

@@ -2,70 +2,74 @@ Mixed-Precision FFT Optimization Results
 ========================================================================
 
 FFT Size              : 64
-Population            : 30
-Generations           : 100
+Population            : 100
+Generations           : 30
 Objectives            : 3  (Energy/FFT, SQNR, Critical-Path Delay)
 Area                  : hard constraint (<= 600000 µm²), not an objective
 Clock target          : 10.0 ns
 ASIC Process          : 45nm_PDK
 
-Pareto Front Solutions: 8
+Pareto Front Solutions: 12
 
-Timing pass rate      : 8/8 (100%)
+Timing pass rate      : 12/12 (100%)
 
 ID    Energy(nJ)  Power(mW)  Area(µm²)   SQNR(dB)   NormLat   CritDelay(ns)  Slack(ns)  MeetsTiming  ExecCycles  TotSimCycles
 -----------------------------------------------------------------------------------------------------------------------------
-0     20.1996     7.240000   294718      37.00      1.0360    10.360         0.400      YES          279         5896        
-1     22.7385     8.150000   294718      10.38      1.0310    10.310         0.230      YES          279         5896        
-2     22.2642     7.980000   294718      10.16      1.0340    10.340         0.100      YES          279         5896        
-3     23.2965     8.350000   294718      24.20      1.0260    10.260         0.120      YES          279         5896        
-4     20.1438     7.220000   294718      15.76      1.0580    10.580         0.180      YES          279         5896        
-5     22.4595     8.050000   294718      10.09      1.0290    10.290         0.140      YES          279         5896        
-6     23.8545     8.550000   294718      12.28      0.9940    9.940          0.510      YES          279         5896        
-7     23.2407     8.330000   294718      10.15      0.9590    9.590          0.850      YES          279         5896        
+0     20.5902     7.380000   523502      37.00      1.0360    10.360         0.210      YES          279         5896        
+1     19.0752     6.837000   523502      11.30      1.0730    10.730         0.050      YES          279         5896        
+2     21.0645     7.550000   523502      21.28      1.0110    10.110         0.460      YES          279         5896        
+3     20.6739     7.410000   523502      18.10      1.0110    10.110         0.460      YES          279         5896        
+4     21.2040     7.600000   523502      17.82      1.0090    10.090         0.480      YES          279         5896        
+5     19.6137     7.030000   523502      21.10      1.0140    10.140         0.440      YES          279         5896        
+6     20.3670     7.300000   523502      16.58      1.0070    10.070         0.500      YES          279         5896        
+7     23.2686     8.340000   523502      38.90      1.0660    10.660         0.040      YES          279         5896        
+8     20.8134     7.460000   523502      14.73      1.0000    10.000         0.570      YES          279         5896        
+9     19.8090     7.100000   523502      14.04      0.9900    9.900          0.660      YES          279         5896        
+10    19.4742     6.980000   523502      13.52      1.0120    10.120         0.450      YES          279         5896        
+11    20.8413     7.470000   523502      17.52      0.9690    9.690          0.850      YES          279         5896        
 
 
 Best Solutions by Objective:
 ------------------------------------------------------------
 
 Best Energy/FFT (min):
-  Solution ID       : 4
-  Energy/FFT        : 20.1438 nJ
-  Dynamic Power     : 7.220000 mW
-  Static Power      : 0.055300 mW
-  Total Power       : 7.280000 mW
-  Area              : 294718 µm²
-  SQNR              : 15.76 dB
-  Norm Latency      : 1.0580x (clock = 10.0 ns)
-  Crit Path Delay   : 10.580 ns  (slack 0.180 ns)  <- MEETS TIMING
+  Solution ID       : 1
+  Energy/FFT        : 19.0752 nJ
+  Dynamic Power     : 6.837000 mW
+  Static Power      : 0.055100 mW
+  Total Power       : 6.890000 mW
+  Area              : 523502 µm²
+  SQNR              : 11.30 dB
+  Norm Latency      : 1.0730x (clock = 10.0 ns)
+  Crit Path Delay   : 10.730 ns  (slack 0.050 ns)  <- MEETS TIMING
   Avg Exec Cycles   : 279
   Tot Sim Cycles    : 5896
-  Chromosome        : [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1]
+  Chromosome        : [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
 Best SQNR (max perf):
-  Solution ID       : 0
-  Energy/FFT        : 20.1996 nJ
-  Dynamic Power     : 7.240000 mW
-  Static Power      : 0.055300 mW
-  Total Power       : 7.300000 mW
-  Area              : 294718 µm²
-  SQNR              : 37.00 dB
-  Norm Latency      : 1.0360x (clock = 10.0 ns)
-  Crit Path Delay   : 10.360 ns  (slack 0.400 ns)  <- MEETS TIMING
+  Solution ID       : 7
+  Energy/FFT        : 23.2686 nJ
+  Dynamic Power     : 8.340000 mW
+  Static Power      : 0.055400 mW
+  Total Power       : 8.400000 mW
+  Area              : 523502 µm²
+  SQNR              : 38.90 dB
+  Norm Latency      : 1.0660x (clock = 10.0 ns)
+  Crit Path Delay   : 10.660 ns  (slack 0.040 ns)  <- MEETS TIMING
   Avg Exec Cycles   : 279
   Tot Sim Cycles    : 5896
-  Chromosome        : [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  Chromosome        : [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
 
 Best Crit-Path (min):
-  Solution ID       : 7
-  Energy/FFT        : 23.2407 nJ
-  Dynamic Power     : 8.330000 mW
-  Static Power      : 0.055400 mW
-  Total Power       : 8.390000 mW
-  Area              : 294718 µm²
-  SQNR              : 10.15 dB
-  Norm Latency      : 0.9590x (clock = 10.0 ns)
-  Crit Path Delay   : 9.590 ns  (slack 0.850 ns)  <- MEETS TIMING
+  Solution ID       : 11
+  Energy/FFT        : 20.8413 nJ
+  Dynamic Power     : 7.470000 mW
+  Static Power      : 0.055300 mW
+  Total Power       : 7.520000 mW
+  Area              : 523502 µm²
+  SQNR              : 17.52 dB
+  Norm Latency      : 0.9690x (clock = 10.0 ns)
+  Crit Path Delay   : 9.690 ns  (slack 0.850 ns)  <- MEETS TIMING
   Avg Exec Cycles   : 279
   Tot Sim Cycles    : 5896
-  Chromosome        : [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1]
+  Chromosome        : [1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1]

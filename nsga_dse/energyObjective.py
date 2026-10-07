@@ -102,6 +102,13 @@ WEIGHT_LATENCY = 8.0
 # Constraint limits (area and total power are now constraints only).
 MAX_AREA_UM2 = 600000.0
 MAX_ENERGY_NJ = 0.0          # 0 = no energy cap
+# Lowered back to 10.0 to widen the feasible set (and so the Pareto front)
+# after the fp8_add_sub/fp4_add_sub exponent-overflow fix (adder.v): with
+# that bug fixed, 10-19 dB readings are now genuine mixed-precision designs
+# rather than the old bug's spurious near-0 dB collapses, so it's safe to
+# readmit them. Raise this back to 20.0 if you want every surviving/Pareto
+# solution guaranteed above 20 dB -- that was deliberately traded away here
+# for front size/diversity.
 MIN_SQNR_DB = 10.0
 
 # Minimum acceptable post-route timing slack, in ns, at the ISO_FREQUENCY_NS

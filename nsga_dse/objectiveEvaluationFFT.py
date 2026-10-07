@@ -182,6 +182,13 @@ class MixedPrecisionFFTProblem(Problem):
         except Exception as e:
             log_message(f"VCD->SAIF conversion FAILED for {design_name}: {e}", level='ERROR')
             return None
+        finally:
+            # VCDs are large and only needed to produce the SAIF above --
+            # delete right away so hundreds of generations don't fill disk.
+            try:
+                os.remove(vcd_file)
+            except OSError:
+                pass
         if net_count == 0 or duration <= 0:
             log_message(f"VCD->SAIF conversion produced an empty/degenerate "
                         f"SAIF for {design_name} (nets={net_count}, "
