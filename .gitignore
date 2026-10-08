@@ -23,6 +23,7 @@ results/fft_*/*
 !results/asic_fp16_fp32_mixed_comparison_*
 !results/asic_fig*.pdf
 !results/asic_fig*.png
+!results/asic_best_designs.txt
 
 # Log files
 *.log

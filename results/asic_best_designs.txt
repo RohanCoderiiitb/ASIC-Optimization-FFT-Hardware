@@ -1,0 +1,65 @@
+==============================================================================
+BEST DESIGN PER FFT SIZE (from the NSGA-II results)
+==============================================================================
+
+Rule      : balanced: equal-weight distance to the ideal point over energy, area, critical path and SQNR (lowest wins)
+Pool      : Pareto-optimal designs that meet timing (slack >= 0 ns), SQNR >= 15 dB; mixed FP4+FP8 designs preferred
+Area      : equal for every design (fixed floorplan), so it cannot separate them.
+
+
+TABLE 1  SELECTED DESIGN
+FFT size                            Chromosome  Config  Energy per transform    SQNR  Critical path  Slack        Cycles  Energy above pool minimum  SQNR below pool maximum  Balance score  Status
+  points  1 = FP8, 0 = FP4; mult/add per stage                            nJ      dB             ns     ns  clock cycles                         nJ                       dB      0 = ideal        
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                                    10   Mixed                  1.33  100.00         10.660  0.090            18                      +0.00                    +0.00          0.000      ok
+       4                                  0101   Mixed                  2.42   21.48         10.730  0.030            35                      +0.00                    +0.00          0.000      ok
+       8                                110111   Mixed                  4.49   22.10         10.100  0.480            57                      +0.16                    +0.00          1.000      ok
+      16                              11011101   Mixed                  6.79   18.93         10.140  0.440            91                      +0.33                   -27.39          0.914      ok
+      32                            1111010101   Mixed                 11.35   17.40          9.910  0.650           153                      +0.44                   -30.08          0.946      ok
+      64                          111111011111   Mixed                 19.61   21.10         10.140  0.440           279                      +0.00                   -17.79          0.922      ok
+     128                        11111111011111   Mixed                 39.20   19.76         10.260  0.310           549                      +0.99                    -7.78          0.746      ok
+     256                      1001111110101000   Mixed                 92.94   27.47         10.060  0.500          1139                     +12.42                    -0.12          0.872      ok
+     512                    100000000100100000   Mixed                183.20   26.47         10.090  0.480          2433                     +19.95                    -1.36          0.624      ok
+    1024                  10001111111111101110   Mixed                425.78   27.44         10.090  0.480          5263                     +83.89                    +0.00          1.000      ok
+  Config: Mixed = uses both FP4 and FP8; Fallback = no mixed design cleared the
+  filters, so a uniform one is shown; Any = mixed preference switched off.
+  'Above pool minimum' and 'below pool maximum' are measured within the pool the
+  choice was made from (after the mixed preference), i.e. what was given up.
+
+TABLE 2  HOW MUCH CHOICE THERE WAS
+FFT size  Pareto-front designs  Candidates in pool  Uniform designs set aside  Selected solution id
+  points                 count               count                      count                      
+---------------------------------------------------------------------------------------------------
+       2                     2                   1                          1                     2
+       4                     2                   1                          1                     5
+       8                     4                   2                          1                    55
+      16                     7                   5                          1                    78
+      32                    10                   8                          1                    75
+      64                    12                   7                          1                    83
+     128                    19                  12                          1                    94
+     256                    14                   7                          1                    57
+     512                    43                  39                          1                    46
+    1024                     6                   4                          1                    70
+  Uniform = all FP4 or all FP8 (not mixed precision). They are set aside only when
+  a mixed design clears the timing and SQNR filters.
+
+TABLE 3  THROUGHPUT (post-route)
+FFT size  Compute-only throughput  End-to-end throughput  End-to-end per Watt  End-to-end per mm^2
+  points             transforms/s           transforms/s         transforms/J    transforms/s/mm^2
+--------------------------------------------------------------------------------------------------
+       2                5,211,591                499,700           67,435,861              954,533
+       4                2,662,761                283,505           41,087,702              541,555
+       8                1,737,016                165,367           21,012,265              315,885
+      16                1,083,729                 87,372           11,712,056              166,899
+      32                  659,531                 46,230            6,230,493               88,310
+      64                  353,474                 22,974            3,267,933               43,884
+     128                  177,533                 11,425            1,600,178               21,825
+     256                   87,273                  5,828              714,194               11,132
+     512                   40,735                  2,896              384,591                5,532
+    1024                   18,831                  1,441              178,071                2,752
+  Compute-only = fmax / exec_cycles (datapath only, same cycles as the rest of
+  this table). End-to-end = fmax / cycles measured by actually simulating this
+  chromosome's RTL inside a PicoRV32 SoC (risc-v-integration/run_soc_eval.py) --
+  load+compute+unload through real RISC-V instructions, not an idealized bus.
+  fmax/power/area are this design's own post-route numbers (TABLE 1). A dash
+  means run_soc_eval.py hasn't been run for that N yet.
