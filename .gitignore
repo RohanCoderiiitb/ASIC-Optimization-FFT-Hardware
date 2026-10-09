@@ -32,3 +32,6 @@ fp32_baseline/synth/fp32_synth_artifacts.zip
 # Large synthesis artifacts
 fp16_baseline/synth/*.zip
 fp32_baseline/synth/*.zip
+
+# Paper-only figure (repo root)
+/pareto_energy_sqnr_N512_N1024.*

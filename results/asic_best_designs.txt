@@ -8,19 +8,21 @@ Area      : equal for every design (fixed floorplan), so it cannot separate them
 
 
 TABLE 1  SELECTED DESIGN
-FFT size                            Chromosome  Config  Energy per transform    SQNR  Critical path  Slack        Cycles  Energy above pool minimum  SQNR below pool maximum  Balance score  Status
-  points  1 = FP8, 0 = FP4; mult/add per stage                            nJ      dB             ns     ns  clock cycles                         nJ                       dB      0 = ideal        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-       2                                    10   Mixed                  1.33  100.00         10.660  0.090            18                      +0.00                    +0.00          0.000      ok
-       4                                  0101   Mixed                  2.42   21.48         10.730  0.030            35                      +0.00                    +0.00          0.000      ok
-       8                                110111   Mixed                  4.49   22.10         10.100  0.480            57                      +0.16                    +0.00          1.000      ok
-      16                              11011101   Mixed                  6.79   18.93         10.140  0.440            91                      +0.33                   -27.39          0.914      ok
-      32                            1111010101   Mixed                 11.35   17.40          9.910  0.650           153                      +0.44                   -30.08          0.946      ok
-      64                          111111011111   Mixed                 19.61   21.10         10.140  0.440           279                      +0.00                   -17.79          0.922      ok
-     128                        11111111011111   Mixed                 39.20   19.76         10.260  0.310           549                      +0.99                    -7.78          0.746      ok
-     256                      1001111110101000   Mixed                 92.94   27.47         10.060  0.500          1139                     +12.42                    -0.12          0.872      ok
-     512                    100000000100100000   Mixed                183.20   26.47         10.090  0.480          2433                     +19.95                    -1.36          0.624      ok
-    1024                  10001111111111101110   Mixed                425.78   27.44         10.090  0.480          5263                     +83.89                    +0.00          1.000      ok
+FFT size                            Chromosome  Config  Energy per transform    SQNR  Critical path  Slack        Cycles  Total power     Area  Norm. energy  Norm. area  Energy above pool minimum  SQNR below pool maximum  Balance score  Status
+  points  1 = FP8, 0 = FP4; mult/add per stage                            nJ      dB             ns     ns  clock cycles           mW     um^2       vs FP32     vs FP32                         nJ                       dB      0 = ideal        
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2                                    10   Mixed                  1.33  100.00         10.660  0.090            18        7.470  523,502         0.398       0.589                      +0.00                    +0.00          0.000      ok
+       4                                  0101   Mixed                  2.42   21.48         10.730  0.030            35        6.960  523,502         0.364       0.589                      +0.00                    +0.00          0.000      ok
+       8                                110111   Mixed                  4.49   22.10         10.100  0.480            57        7.930  523,502         0.393       0.589                      +0.16                    +0.00          1.000      ok
+      16                              11011101   Mixed                  6.79   18.93         10.140  0.440            91        7.520  523,502         0.383       0.589                      +0.33                   -27.39          0.914      ok
+      32                            1111010101   Mixed                 11.35   17.40          9.910  0.650           153        7.470  523,502         0.371       0.589                      +0.44                   -30.08          0.946      ok
+      64                          111111011111   Mixed                 19.61   21.10         10.140  0.440           279        7.090  523,502         0.388       0.589                      +0.00                   -17.79          0.922      ok
+     128                        11111111011111   Mixed                 39.20   19.76         10.260  0.310           549        7.190  523,502         0.395       0.589                      +0.99                    -7.78          0.746      ok
+     256                      1001111110101000   Mixed                 92.94   27.47         10.060  0.500          1139        8.210  523,502         0.462       0.589                     +12.42                    -0.12          0.872      ok
+     512                    100000000100100000   Mixed                183.20   26.47         10.090  0.480          2433        7.590  523,502         0.441       0.589                     +19.95                    -1.36          0.624      ok
+    1024                  10001111111111101110   Mixed                425.78   27.44         10.090  0.480          5263        8.140  523,502         0.476       0.589                     +83.89                    +0.00          1.000      ok
+  Norm. energy / area = this design divided by the FP32 baseline at the same N
+  (energy per transform and post-route area, from the FP16/FP32/mixed comparison).
   Config: Mixed = uses both FP4 and FP8; Fallback = no mixed design cleared the
   filters, so a uniform one is shown; Any = mixed preference switched off.
   'Above pool minimum' and 'below pool maximum' are measured within the pool the
@@ -63,3 +65,47 @@ FFT size  Compute-only throughput  End-to-end throughput  End-to-end per Watt  E
   load+compute+unload through real RISC-V instructions, not an idealized bus.
   fmax/power/area are this design's own post-route numbers (TABLE 1). A dash
   means run_soc_eval.py hasn't been run for that N yet.
+
+TABLE 4  COMPARISON WITH PUBLISHED FFT ACCELERATORS (published normalisations)
+FFT size            Design  Process  Voltage  Complex word  Clock   Area   Power  Time per transform  Energy per transform      Throughput    Chen norm. area  Chen norm. energy  Beulet norm. area  Beulet norm. power
+  points                         nm        V          bits    MHz   mm^2      mW                  us                    nJ  M transforms/s  mm^2*1e3/(M*logN)  nJ*1e3/(M*N*logN)         mm^2*1e3/N         mW*ns*1e3/N
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+       2         This work       45     1.00            16    100  0.524    7.47               0.180                  1.34           5.556             523.50            544.563           1047.004          174260.160
+
+       4         This work       45     1.00            16    100  0.524    6.96               0.350                  2.44           2.857             261.75            246.645            523.502           81181.440
+
+       8         This work       45     1.00            16    100  0.524    7.93               0.570                  4.52           1.754             174.50            152.553            261.751           46247.760
+
+      16         This work       45     1.00            16    100  0.524    7.52               0.910                  6.84           1.099             130.88             86.609            130.876           21928.320
+
+      32         This work       45     1.00            16    100  0.524    7.47               1.530                 11.43           0.654             104.70             57.860             65.438           10891.260
+
+      64         This work       45     1.00            16    100  0.524    7.09               2.790                 19.78           0.358              87.25             41.726             32.719            5168.610
+      64  Beulet'14 DA-FFT       45     1.08            64    100  0.973   68.17               7.640                520.82           0.131             162.17            941.874             15.203           10651.562
+
+     128         This work       45     1.00            16    100  0.524    7.19               5.490                 39.47           0.182              74.79             35.684             16.359            2620.755
+     128  Beulet'14 DA-FFT       45     1.08            64    100  0.973   68.17              17.840               1216.15           0.056             139.00            942.579              7.602            5325.781
+
+     256         This work       45     1.00            16    100  0.524    8.21              11.390                 93.51           0.088              65.44             36.985              8.180            1496.273
+     256  Beulet'14 DA-FFT       45     1.08            64    100  0.973   68.17              40.920               2789.52           0.024             121.62            945.881              3.801            2662.891
+
+     512         This work       45     1.00            16    100  0.524    7.59              24.330                184.66           0.041              58.17             32.461              4.090             691.639
+     512  Beulet'14 DA-FFT       45     1.08            64    100  0.973   68.17              92.480               6304.36           0.011             108.11            950.093              1.900            1331.445
+
+    1024         This work       45     1.00            16    100  0.524    8.14              52.630                428.41           0.019              52.35             33.888              2.045             370.879
+    1024  Beulet'14 DA-FFT       45     1.08            64    100  0.973   68.17             206.440              14073.01           0.005              97.30            954.387              0.950             665.723
+    1024    Chen'18 MT-FFT       45     0.90            64  1,000  2.400   91.30               1.380                125.99           0.725             120.00              6.152              2.344             128.391
+    1024   Chen'18 ref[31]       65     1.00             -    500  4.600  172.38               2.810                484.39           0.356             110.24             19.158                  -                   -
+  Lower is better for every normalised column. Published rows are quoted from their
+  papers (Beulet'14: Tables 4/7/8; Chen'18: Tables I-III) and normalised with the formulas below.
+  Chen'18 (Eq. 7-8): A = Area*1e3/((Process/45)^2*M*log2 N); E = Power*Time*1e3/((V/0.9)^2*M*N*log2 N).
+  Beulet'14 (Eq. 12-13): A = Area*1e3/(N*(Process/45)^2*(Word/64)); P = Power*Tclk*1e3/((V/1.08)^2*N*(Word/64)).
+  This work: 45 nm library at 1.0 V, M = 1 stream, complex word 16 bit (2 x FP8 at the I/O), total power
+  (dynamic+static) at the 10 ns constraint clock, time = cycles x 10 ns (compute only, no DMA/SoC transfer).
+  Area is the post-route core, fixed by the SRAM macros, so it does not shrink with N; the area-normalised
+  columns therefore favour larger N. Chen'18 time includes DDR transfer; Beulet'14 and this work do not.
+  Beulet'14 quote energy per FFT point (their Eq. 14 divides by N, e.g. 13 nJ at N=1024); the energy column
+  here is per transform (Power x Time) for every row, so their figure x N is what appears.
+  Chen'18 ref[31]: word length not reported, so the Beulet columns are left blank.
+  Prasetiyo'23 (NTT CNN accelerator, Alveo U50 FPGA, 26 W, 110 GOPS/W on VGG-16) is a CNN engine with no
+  FFT size, area or per-transform energy, so these metrics cannot be applied to it; it is not tabulated.
